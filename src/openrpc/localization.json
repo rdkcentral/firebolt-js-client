@@ -1,0 +1,126 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Localization",
+    "description": "Methods for accessing location and language preferences.",
+    "version": "1.0.0"
+  },
+  "methods": [
+    {
+      "name": "country",
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:localization:country-code"
+          ]
+        }
+      ],
+      "summary": "Returns the ISO 3166-1 alpha-2 code for the country device is located in.",
+      "params": [],
+      "result": {
+        "name": "code",
+        "summary": "The device country code.",
+        "schema": {
+          "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/CountryCode"
+        }
+      },
+      "examples": [
+        {
+          "name": "Default example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "US"
+          }
+        },
+        {
+          "name": "Another example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "GB"
+          }
+        }
+      ]
+    },
+    {
+      "name": "preferredAudioLanguages",
+      "summary": "Returns a list of ISO 639-2/B codes for the preferred audio languages on this device.",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:localization:preferred-audio-languages"
+          ]
+        }
+      ],
+      "result": {
+        "name": "languages",
+        "summary": "The preferred audio languages.",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/ISO639_2Language"
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Default example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": [
+              "spa",
+              "eng"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "presentationLanguage",
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:localization:locale"
+          ]
+        }
+      ],
+      "summary": "Get the *full* BCP 47 code, including script, region, variant, etc., for the preferred locale",
+      "params": [],
+      "result": {
+        "name": "locale",
+        "summary": "The device locale.",
+        "schema": {
+          "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/Locale"
+        }
+      },
+      "examples": [
+        {
+          "name": "Default example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "en-US"
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {}
+  }
+}

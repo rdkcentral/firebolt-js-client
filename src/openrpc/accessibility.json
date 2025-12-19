@@ -1,0 +1,157 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Accessibility",
+    "version": "0.0.0",
+    "description": "The `Accessibility` module provides access to the user/device settings for closed captioning and voice guidance.\n\nApps **SHOULD** attempt o respect these settings, rather than manage and persist seprate settings, which would be different per-app."
+  },
+  "methods": [
+    {
+      "name": "audioDescription",
+      "summary": "Returns the audio description setting of the device",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:accessibility:audio-descriptions"
+          ]
+        }
+      ],
+      "result": {
+        "name": "setting",
+        "summary": "the audio description setting",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the audio description setting",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "closedCaptionsSettings",
+      "summary": "Returns captions settings: enabled, and a list of zero or more languages in order of decreasing preference",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly",
+          "x-notifier-params-flattening": "true"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:accessibility:closed-captions"
+          ]
+        }
+      ],
+      "result": {
+        "name": "closedCaptionsSettings",
+        "summary": "the closed captions settings",
+        "schema": {
+          "$ref": "https://meta.comcast.com/firebolt/accessibility#/definitions/ClosedCaptionsSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the closed captions settings",
+          "params": [],
+          "result": {
+            "name": "settings",
+            "value": {
+              "enabled": true,
+              "preferredLanguages": [
+                "eng",
+                "spa"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "highContrastUI",
+      "summary": "Returns the high contrast UI device setting",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:accessibility:high-contrast-ui"
+          ]
+        }
+      ],
+      "result": {
+        "name": "highContrastUI",
+        "summary": "Whether high-contrast UI mode is enabled",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "High-contrast UI mode is enabled",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "voiceGuidanceSettings",
+      "summary": "Returns voice guidance settings: enabled, rate, and verbosity",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly",
+          "x-notifier-params-flattening": "true"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:accessibility:voice-guidance"
+          ]
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "summary": "the voice guidance settings",
+        "schema": {
+          "$ref": "https://meta.comcast.com/firebolt/accessibility#/definitions/VoiceGuidanceSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the voice guidance settings",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "enabled": true,
+              "rate": 0.8,
+              "navigationHints": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {}
+  }
+}

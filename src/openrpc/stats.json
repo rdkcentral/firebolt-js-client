@@ -1,0 +1,78 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Stats",
+    "description": "Provides methods to retrieve application-level system information.",
+    "version": "1.0.0"
+  },
+  "methods": [
+    {
+      "name": "memoryUsage",
+      "summary": "Returns information about container memory usage, in units of 1024 bytes.",
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:cpp-client-only"
+          ]
+        }
+      ],
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/MemoryUsage"
+        }
+      },
+      "examples": [
+        {
+          "name": "Default example",
+          "params": [],
+          "result": {
+            "name": "value",
+            "description": "The memory usage information",
+            "value": {
+              "userMemoryUsedKiB": 123456,
+              "userMemoryLimitKiB": 789012,
+              "gpuMemoryUsedKiB": 345678,
+              "gpuMemoryLimitKiB": 901234
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "MemoryUsage": {
+        "title": "MemoryUsage",
+        "type": "object",
+        "description": "Describes current and maximum memory usage of the container.",
+        "properties": {
+          "userMemoryUsedKiB": {
+            "type": "integer",
+            "description": "User memory currently used in 1024 bytes."
+          },
+          "userMemoryLimitKiB": {
+            "type": "integer",
+            "description": "Maximum user memory available in 1024 bytes."
+          },
+          "gpuMemoryUsedKiB": {
+            "type": "integer",
+            "description": "GPU memory currently used in 1024 bytes."
+          },
+          "gpuMemoryLimitKiB": {
+            "type": "integer",
+            "description": "Maximum GPU memory available in 1024 bytes."
+          }
+        },
+        "required": [
+          "userMemoryUsedKiB",
+          "userMemoryLimitKiB",
+          "gpuMemoryUsedKiB",
+          "gpuMemoryLimitKiB"
+        ]
+      }
+    }
+  }
+}
