@@ -19,7 +19,7 @@
 
 
 import { test, expect } from "@jest/globals";
-import { Localization } from '@firebolt-js/core-client';
+import { Localization } from '../../build/javascript/src/firebolt';
 
 test("country", async () => {
   return Localization.country().then((res: string) => {

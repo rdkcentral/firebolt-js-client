@@ -1,10 +1,5 @@
 {
     "include": [
         "src/sdks/core/test/suite/*"
-    ],
-    "compilerOptions": {
-    "paths": {
-      "@firebolt-js/core-client": ["./dist/lib/firebolt.d.ts"]
-    }
-  }
+    ]
 }

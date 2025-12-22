@@ -18,7 +18,7 @@
  */
 
 import { test, expect } from '@jest/globals';
-import { Accessibility } from '@firebolt-js/core-client';
+import { Accessibility } from '../../build/javascript/src/firebolt';
 
 
 test("Accessibility.uid()", async () => {

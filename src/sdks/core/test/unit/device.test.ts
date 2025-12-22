@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { test, expect } from "@jest/globals";
-import { Device } from '@firebolt-js/core-client';
+import { Device } from '../../build/javascript/src/firebolt';
 
 test("Device.uid()", async () => {
   const res = await Device.uid();
