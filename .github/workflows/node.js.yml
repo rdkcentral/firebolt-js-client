@@ -1,0 +1,66 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [ main ]
+  pull_request:
+    types:
+      - opened
+    branches: [ main ]
+
+permissions:
+  contents: read   # minimal token permissions
+  security-events: write   # required for CodeQL analysis uploads
+  pull-requests: write
+  actions: write
+  statuses: write
+env:
+  HUSKY: 0
+  # Turns off installing commit hooks in CI environments
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [lts/*]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          submodules: recursive
+    # CodeQL steps
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+        source-root: src
+        queries: +security-and-quality
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run fs:setup
+    - run: npm run validate:each
+    - run: npm run compile
+    - run: npm run slice
+    - run: npm run validate:compiled
+    - run: npm run specification 
+    - run: npm run sdks
+    - run: npm run test
+    - run: npm run docs
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:javascript"
+        upload: true
