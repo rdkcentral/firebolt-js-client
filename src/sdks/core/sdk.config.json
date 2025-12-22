@@ -1,0 +1,81 @@
+{
+    "info": {
+        "title": "Firebolt Core Client"
+    },
+    "methods": [
+        {
+            "module": "Accessibility",
+            "use": [
+                "xrn:firebolt:capability:accessibility:audio-descriptions",
+                "xrn:firebolt:capability:accessibility:closed-captions",
+                "xrn:firebolt:capability:accessibility:high-contrast-ui",
+                "xrn:firebolt:capability:accessibility:voice-guidance"
+            ]
+        },
+        {
+            "module": "Advertising",
+            "use": [
+                "xrn:firebolt:capability:advertising:identifier"
+            ]
+        },
+        {
+            "module": "Device",
+            "use": [
+                "xrn:firebolt:capability:device:uid",
+                "xrn:firebolt:capability:device:device-class",
+                "xrn:firebolt:capability:cpp-client-only"
+            ]
+        },
+        {
+            "module": "Display",
+            "use": [
+                "xrn:firebolt:capability:cpp-client-only"
+            ]
+        },
+        {
+            "module": "Internal",
+            "use": [
+                "xrn:firebolt:capability:lifecycle:initialize"
+            ]
+        },
+        {
+            "module": "Lifecycle2",
+            "use": [
+                "xrn:firebolt:capability:cpp-client-only"
+            ]
+        },
+        {
+            "module": "Localization",
+            "use": [
+                "xrn:firebolt:capability:localization:country-code",
+                "xrn:firebolt:capability:localization:preferred-audio-languages",
+                "xrn:firebolt:capability:localization:locale"
+            ]
+        },
+        {
+            "module": "Metrics",
+            "use": [
+                "xrn:firebolt:capability:metrics:general",
+                "xrn:firebolt:capability:metrics:media"
+            ]
+        },
+        {
+            "module": "Presentation",
+            "use": [
+                "xrn:firebolt:capability:cpp-client-only"
+            ]
+        },
+        {
+            "module": "SecureStorage",
+            "use": [
+                "xrn:firebolt:capability:storage:secure"
+            ]
+        },
+        {
+            "module": "Stats",
+            "use": [
+                "xrn:firebolt:capability:cpp-client-only"
+            ]
+        }
+    ]
+}

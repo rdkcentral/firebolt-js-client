@@ -1,0 +1,99 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Advertising",
+    "version": "0.0.0",
+    "description": "A module for platform provided advertising settings and functionality."
+  },
+  "methods": [
+    {
+      "name": "advertisingId",
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:advertising:identifier"
+          ]
+        }
+      ],
+      "summary": "Returns the IFA.",
+      "params": [],
+      "result": {
+        "name": "advertisingId",
+        "summary": "The advertising ID",
+        "schema": {
+          "$ref": "#/components/schemas/AdvertisingIdResult"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the advertising ID",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
+              "ifa_type": "sspid",
+              "lmt": "0"
+            }
+          }
+        },
+        {
+          "name": "Getting the advertising ID with scope browse",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
+              "ifa_type": "sspid",
+              "lmt": "1"
+            }
+          }
+        },
+        {
+          "name": "Getting the advertising ID with scope content",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
+              "ifa_type": "idfa",
+              "lmt": "0"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "AdvertisingIdResult": {
+        "title": "AdvertisingIdResult",
+        "type": "object",
+        "properties": {
+          "ifa": {
+            "type": "string",
+            "description": "UUID conforming to IAB standard"
+          },
+          "ifa_type": {
+            "type": "string",
+            "description": "Source of the IFA as defined by IAB"
+          },
+          "lmt": {
+            "type": "string",
+            "enum": [
+              "0",
+              "1"
+            ],
+            "description": "Boolean that if set to 1, user has requested ad tracking and measurement is disabled"
+          }
+        },
+        "required": [
+          "ifa",
+          "ifa_type",
+          "lmt"
+        ]
+      }
+    }
+  }
+}
