@@ -45,7 +45,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./.github/scripts/mk-release-package.sh --version ${nextRelease.version} --package firebolt-apis--native-core --subpath ./src/cpp"
+        "prepareCmd": "./.github/scripts/mk-release-package.sh --version ${nextRelease.version} --package firebolt-js-client--native-core --subpath ./src/cpp"
       }
     ],
     [
@@ -59,7 +59,7 @@
       {
         "assets": [
           { "path":"./*.tgz" },
-          { "path": "build/firebolt-apis--native-core-*.tar.gz", "label": "Source Code - native (tar.gz)" }
+          { "path": "build/firebolt-js-client--native-core-*.tar.gz", "label": "Source Code - native (tar.gz)" }
         ]
       }
     ]
