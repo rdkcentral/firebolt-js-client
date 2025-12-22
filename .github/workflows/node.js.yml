@@ -50,8 +50,8 @@ jobs:
         cache: 'npm'
     - run: node -v && npm -v
     - run: pwd && ls -la && ls -la
-    - run: ls -la node_modules/@firebolt-js | sed -n '1,200p'
     - run: npm ci
+    - run: ls -la node_modules/@firebolt-js | sed -n '1,200p'
     - run: npm run fs:setup
     - run: npm run validate:each
     - run: npm run compile
