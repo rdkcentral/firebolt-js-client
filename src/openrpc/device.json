@@ -1,0 +1,174 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Device",
+    "description": "A module for querying about the device and it's capabilities.",
+    "version": "1.0.0"
+  },
+  "methods": [
+    {
+      "name": "uid",
+      "summary": "Returns a persistent unique UUID for the current app and device. The UUID is reset when the app or device is reset",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:device:uid"
+          ]
+        }
+      ],
+      "result": {
+        "name": "uniqueId",
+        "summary": "A unique UUID for this app-device pair.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the unique UUID",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "ee6723b8-7ab3-462c-8d93-dbf61227998e"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deviceClass",
+      "summary": "Returns the class of the device",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:device:device-class"
+          ]
+        }
+      ],
+      "result": {
+        "name": "deviceClass",
+        "summary": "The device class",
+        "schema": {
+          "$ref": "#/components/schemas/DeviceClass"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the device class",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "ott"
+          }
+        }
+      ]
+    },
+    {
+      "name": "uptime",
+      "summary": "Returns the number of seconds since most recent device boot, including any time spent during deep sleep",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:cpp-client-only"
+          ]
+        }
+      ],
+      "result": {
+        "name": "uptime",
+        "summary": "The device uptime",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the device uptime",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": 123456
+          }
+        }
+      ]
+    },
+    {
+      "name": "timeInActiveState",
+      "summary": "Returns the number of seconds since the device transitioned to the ON power state",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:cpp-client-only"
+          ]
+        }
+      ],
+      "result": {
+        "name": "timeInActiveState",
+        "summary": "The device time in active state",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the number of seconds since the device transitioned to the ON power state",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": 654321
+          }
+        }
+      ]
+    },
+    {
+      "name": "chipsetId",
+      "summary": "Returns chipset ID as a printable string, e.g. BCM72180",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:cpp-client-only"
+          ]
+        }
+      ],
+      "result": {
+        "name": "chipsetId",
+        "summary": "The device chipset ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the device chipset ID",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "BCM72180"
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "DeviceClass": {
+        "title": "DeviceClass",
+        "type": "string",
+        "enum": [
+          "ott",
+          "stb",
+          "tv"
+        ],
+        "description": "The type of device"
+      }
+    }
+  }
+}

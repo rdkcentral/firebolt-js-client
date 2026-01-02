@@ -1,0 +1,7 @@
+build/*
+dist/*
+src/sdks/core/build/*
+src/sdks/core/dist/*
+src/sdks/core/test/transpiled-suite/*
+node_modules/*
+.DS_Store
