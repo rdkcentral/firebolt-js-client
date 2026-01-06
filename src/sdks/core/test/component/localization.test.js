@@ -19,7 +19,7 @@
 import "./utils/bootstrap.mjs";
 
 import { test, expect, describe } from "@jest/globals";
-import Localization from "../../dist/lib/Localization/index.mjs";
+import { Localization } from '../../build/javascript/src/firebolt';
 
 describe("Localization API", () => {
   test("country returns 'US'", async () => {

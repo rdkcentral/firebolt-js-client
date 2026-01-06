@@ -19,7 +19,7 @@
 import "./utils/bootstrap.mjs";
 
 import { test, expect, describe } from "@jest/globals";
-import Accessibility from "../../dist/lib/Accessibility/index.mjs";
+import { Accessibility } from '../../build/javascript/src/firebolt';
 
 describe("Accessibility API", () => {
   test("audioDescription returns boolean true", async () => {
