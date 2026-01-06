@@ -3,7 +3,7 @@ name: CI (Node.js) Build and Test
 on:
   workflow_dispatch:
   push:
-    branches: [ main, next ]
+    branches-ignore: [ main, next ]
   pull_request:
     types:
       - opened
@@ -67,3 +67,13 @@ jobs:
         category: "/language:javascript"
         # temporary disable upload as it fails
         upload: false 
+
+    - name: Setup Mock-Firebolt
+      run: bash .github/scripts/mock-firebolt.sh
+
+    - name: Run Component Tests
+      shell: bash
+      # change the directory to the github workspace
+      run: | 
+        cd "${{ github.workspace }}"
+        npm run test:component
