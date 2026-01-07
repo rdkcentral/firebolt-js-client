@@ -19,7 +19,7 @@
 import "./utils/bootstrap.mjs";
 
 import { test, expect, describe } from "@jest/globals";
-import Advertising from "../../dist/lib/Advertising/index.mjs";
+import { Advertising } from '../../build/javascript/src/firebolt';
 
 describe("Advertising API", () => {
   test("advertisingId returns expected structure", async () => {
