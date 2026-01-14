@@ -30,7 +30,7 @@
     ],
     "@semantic-release/release-notes-generator",
     [
-      "production-changelog",
+      "@semantic-release/changelog",
       {
         "changelogFile": "CHANGELOG.md"
       }
