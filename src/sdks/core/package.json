@@ -1,7 +1,7 @@
 {
 	"name": "@firebolt-js/core-client",
 	"version": "1.0.0-next.3",
-	"description": "The Firebolt JS Client",
+	"description": "The Firebolt JS Core Client",
 	"main": "./dist/lib/firebolt.mjs",
 	"types": "./dist/lib/firebolt.d.ts",
 	"type": "module",
