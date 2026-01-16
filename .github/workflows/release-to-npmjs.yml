@@ -36,14 +36,7 @@ jobs:
     - run: npm ci
     - run: ls -la node_modules/@firebolt-js | sed -n '1,200p'
     - run: npm run fs:setup
-    - run: npm run validate:each
-    - run: npm run compile
-    - run: npm run slice
-    - run: npm run validate:compiled
-    - run: npm run specification 
-    - run: npm run sdks
-    - run: npm run test
-    - run: npm run docs
+    - run: npm run dist
     
     - name: Release Firebolt SDKs to NPM
       env:
