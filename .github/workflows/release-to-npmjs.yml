@@ -30,7 +30,7 @@ jobs:
 
       - name: Install npm dependencies
         run: |
-          npm ci
+          npm install 
           npm run dist
       
       - name: Release Firebolt SDKs to NPM
