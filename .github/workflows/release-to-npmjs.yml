@@ -13,11 +13,20 @@ permissions:
   statuses: write
 
 jobs:
-  build:
-    name: Build and Release to NPM
+  release:
+    name: Release
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repo-token: ${{ secrets.SEMANTIC_RELEASE_BOT_PAT }}
+          persist-credentials: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -30,7 +39,7 @@ jobs:
 
       - name: Install npm dependencies
         run: |
-          npm install 
+          npm ci
           npm run dist
       
       - name: Release Firebolt SDKs to NPM
