@@ -7,6 +7,36 @@
   },
   "methods": [
     {
+      "name": "edid",
+      "summary": "Returns the EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:cpp-client-only"
+          ]
+        }
+      ],
+      "result": {
+        "name": "Base64 EDID",
+        "summary": "The EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the display EDID",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "ZWU2NzIzYjgtN2FiMy00NjJjLThkOTMtZGJmNjEyMjc5OThl"
+          }
+        }
+      ]
+    },
+    {
       "name": "size",
       "summary": "Returns the physical dimensions of the connected or integral display, in centimeters. Returns 0, 0 on a OTT/STB device when a display is not connected over HDMI",
       "params": [],

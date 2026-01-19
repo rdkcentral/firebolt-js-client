@@ -19,11 +19,10 @@
 set -e
 
 echo "Building Mock-Firebolt..."
-git clone --depth 1 --branch main https://github.com/rdkcentral/mock-firebolt.git "$MOCK_PATH"
+git clone --depth 1 --branch "$MOCK_BRANCH" https://github.com/rdkcentral/mock-firebolt.git "$MOCK_PATH"
 cd "$MOCK_PATH"
-git fetch --shallow-since=2025-11-01
+git fetch --shallow-since=2026-01-01
 git checkout "$MOCK_SHA1SUM"
-git apply "$MOCK_PATCH"
 
 cd server
 npm install --no-audit --no-fund

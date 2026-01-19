@@ -18,8 +18,8 @@ permissions:
 env:
   HUSKY: 0
   MOCK_PATH: ${{ github.workspace }}/mock-firebolt
-  MOCK_SHA1SUM: cf0c4b35b5f3997bd9e6f82a18d57eafa0c62192
-  MOCK_PATCH: ${{ github.workspace }}/.github/mock-firebolt/events.patch
+  MOCK_BRANCH: topic/changes-for-bidirectional
+  MOCK_SHA1SUM: a38c77ce06ca6f6d570943b14597b2b8ebc77490  
 
 jobs:
   build:
