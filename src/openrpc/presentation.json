@@ -10,12 +10,15 @@
       "name": "focused",
       "tags": [
         {
+            "name": "rpc-only"
+        },        
+        {
           "name": "property:readonly"
         },
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:cpp-client-only"
+            "xrn:firebolt:capability:presentation:general"
           ]
         }
       ],

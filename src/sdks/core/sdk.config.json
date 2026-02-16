@@ -23,13 +23,13 @@
             "use": [
                 "xrn:firebolt:capability:device:uid",
                 "xrn:firebolt:capability:device:device-class",
-                "xrn:firebolt:capability:cpp-client-only"
+                "xrn:firebolt:capability:device:info"
             ]
         },
         {
             "module": "Display",
             "use": [
-                "xrn:firebolt:capability:cpp-client-only"
+                "xrn:firebolt:capability:display:info"
             ]
         },
         {
@@ -41,7 +41,7 @@
         {
             "module": "Lifecycle2",
             "use": [
-                "xrn:firebolt:capability:cpp-client-only"
+                "xrn:firebolt:capability:lifecycle2:general"
             ]
         },
         {
@@ -62,7 +62,7 @@
         {
             "module": "Presentation",
             "use": [
-                "xrn:firebolt:capability:cpp-client-only"
+                "xrn:firebolt:capability:presentation:general"
             ]
         },
         {
@@ -74,7 +74,19 @@
         {
             "module": "Stats",
             "use": [
-                "xrn:firebolt:capability:cpp-client-only"
+                "xrn:firebolt:capability:stats:general"
+            ]
+        },
+        {
+            "module": "Network",
+            "use": [
+                "xrn:firebolt:capability:network:connected"
+            ]
+        },
+        {
+            "module": "Discovery",
+            "use": [
+                "xrn:firebolt:capability:discovery:watched"
             ]
         }
     ]

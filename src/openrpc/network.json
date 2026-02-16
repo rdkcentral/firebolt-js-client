@@ -1,0 +1,51 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Network",
+    "description": "Methods for accessing network information.",
+    "version": "1.0.0"
+  },
+  "methods": [
+    {
+      "name": "connected",
+      "summary": "Returns whether the device currently has a usable network connection.",
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:network:connected"
+          ]
+        }
+      ],
+      "params": [],
+      "result": {
+        "name": "success",
+        "summary": "Whether the device currently has a usable network connection.",
+        "schema": {
+          "$ref": "#/components/schemas/Connected"
+        }
+      },
+      "examples": [
+        {
+          "name": "Connected example",
+          "params": [],
+          "result": {
+            "name": "success",
+            "value": true
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Connected": {
+        "type": "boolean",
+        "description": "Indicates whether the device currently has a usable network connection."
+      }
+    }
+  }
+}
