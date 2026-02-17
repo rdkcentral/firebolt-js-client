@@ -8,7 +8,8 @@
   "methods": [
     {
       "name": "speak",
-      "summary": "Speak the uttered text using the TTS engine",
+      "summary": "Speak the utterance immediately. Any ongoing speech is interrupted.",
+      "description": "Text argument is either plain text or a well-formed SSML document TTS_status, not success attribute, to be used by caller to indicate success of call 0 OK, 1 Fail, 2 not enabled, 3 invalid configuration Raises onSpeechinterrupted if speaking is interrupted",
       "params": [
         {
           "name": "text",
@@ -17,19 +18,12 @@
             "type": "string"
           },
           "required": true
-        },
-        {
-          "name": "callsign",
-          "summary": "App calling text to speech",
-          "schema": {
-            "type": "string"
-          }
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -51,10 +45,6 @@
             {
               "name": "text",
               "value": "I am a text waiting for speech."
-            },
-            {
-              "name": "callsign",
-              "value": "appA"
             }
           ],
           "result": {
@@ -71,20 +61,21 @@
     {
       "name": "pause",
       "summary": "Pauses the speech for given speech id",
+      "description": "Pauses the utterance. Raises onSpeechpause if ongoing speech is paused. Does nothing if utterance is already paused",
       "params": [
         {
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "type": "integer"
+            "$ref": "#/components/schemas/SpeechId"
           },
           "required": true
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -121,20 +112,21 @@
     {
       "name": "resume",
       "summary": "Resumes the speech for given speech id",
+      "description": "Continue the paused utterance. Raises onSpeechresume if paused speech is resumed. Does nothing if the utterance is not paused",
       "params": [
         {
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "type": "integer"
+            "$ref": "#/components/schemas/SpeechId"
           },
           "required": true
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -171,20 +163,21 @@
     {
       "name": "cancel",
       "summary": "Cancels the speech for given speech id",
+      "description": "Stop speaking if utterance is currently being spoken. Raises onSpeechinterrupted if speaking was interrupted.",
       "params": [
         {
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "type": "integer"
+            "$ref": "#/components/schemas/SpeechId"
           },
           "required": true
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -220,21 +213,21 @@
     },
     {
       "name": "getspeechstate",
-      "summary": "Returns the current state of the speech request.",
+      "summary": "Returns the state of the utterance.",
       "params": [
         {
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "type": "integer"
+            "$ref": "#/components/schemas/SpeechId"
           },
           "required": true
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -271,11 +264,11 @@
     },
     {
       "name": "onWillspeak",
-      "summary": "Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak",
+      "summary": "Text to speech conversion is about to start.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onWillspeak"
@@ -289,15 +282,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -305,10 +295,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -316,11 +304,11 @@
     },
     {
       "name": "onSpeechstart",
-      "summary": "Triggered when the speech start.",
+      "summary": "Utterance is about to be spoken.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onSpeechstart"
@@ -334,15 +322,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -350,10 +335,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -361,11 +344,11 @@
     },
     {
       "name": "onSpeechpause",
-      "summary": "Triggered when the ongoing speech pauses.",
+      "summary": "Ongoing speech was paused.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onSpeechpause"
@@ -379,15 +362,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -395,10 +375,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -406,11 +384,11 @@
     },
     {
       "name": "onSpeechresume",
-      "summary": "Triggered when any paused speech resumes.",
+      "summary": "Paused speech was resumed.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onSpeechresume"
@@ -424,15 +402,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -440,10 +415,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -451,11 +424,11 @@
     },
     {
       "name": "onSpeechcomplete",
-      "summary": "Triggered when the speech completes.",
+      "summary": "Speech completed successfully.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onSpeechcomplete"
@@ -469,15 +442,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -485,10 +455,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -496,11 +464,11 @@
     },
     {
       "name": "onSpeechinterrupted",
-      "summary": "Triggered when the current speech is interrupted either by a next speech request, by calling cancel or by disabling TTS, when speech is in progress.",
+      "summary": "Speech was stopped, due to another call to speak or cancel.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onSpeechinterrupted"
@@ -514,15 +482,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -530,10 +495,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -541,11 +504,11 @@
     },
     {
       "name": "onNetworkerror",
-      "summary": "Triggered when an error occurs during playback including network failures",
+      "summary": "Utterance failed due to network error.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onNetworkerror"
@@ -559,15 +522,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -575,10 +535,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -586,11 +544,11 @@
     },
     {
       "name": "onPlaybackError",
-      "summary": "Triggered when an error occurs during playback including pipeline failures",
+      "summary": "Utterance failed during playback.",
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "notifier",
           "x-event": "TextToSpeech.onPlaybackError"
@@ -604,15 +562,12 @@
       ],
       "params": [
         {
-          "name": "value",
-          "summary": "",
+          "name": "speechid",
+          "summary": "Identifier for the speech call",
           "schema": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeechIdEvent"
-              }
-            ]
-          }
+            "$ref": "#/components/schemas/SpeechId"
+          },
+          "required": true
         }
       ],
       "examples": [
@@ -620,10 +575,8 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "value",
-              "value": {
-                "speechid": 1
-              }
+              "name": "speechid",
+              "value": 1
             }
           ]
         }
@@ -631,21 +584,21 @@
     },
     {
       "name": "listvoices",
-      "summary": "Get the list of Text to speech voices supported by the platform",
+      "summary": "Returns the list of available voices as human-readable strings, e.g. 'ava', 'amelie', 'angelica'",
       "params": [
         {
           "name": "language",
           "summary": "Request language in ISO 3166-1 Alpha-2",
           "schema": {
-            "type": "string"
+            "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/Locale"
           },
           "required": true
         }
       ],
       "tags": [
         {
-            "name": "rpc-only"
-        },        
+          "name": "rpc-only"
+        },
         {
           "name": "capabilities",
           "x-uses": [
@@ -673,12 +626,15 @@
             "name": "voiceList",
             "value": {
               "TTS_Status": 0,
-              "voices": ["carol","tom"]
+              "voices": [
+                "carol",
+                "tom"
+              ]
             }
           }
         }
       ]
-    }    
+    }
   ],
   "components": {
     "schemas": {
@@ -777,13 +733,13 @@
       "SpeechRate": {
         "title": "SpeechRate",
         "type": "string",
-            "enum": [
-              "slow",
-              "medium",
-              "fast",
-              "faster",
-              "fastest"
-            ]
+        "enum": [
+          "slow",
+          "medium",
+          "fast",
+          "faster",
+          "fastest"
+        ]
       },
       "FallbackText": {
         "title": "FallbackText",
