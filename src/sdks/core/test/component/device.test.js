@@ -19,7 +19,7 @@
 import "./utils/bootstrap.mjs";
 
 import { test, expect, describe } from "@jest/globals";
-import { Device } from '../../build/javascript/src/firebolt';
+import { Device } from '../../build/javascript/src/firebolt.mjs';
 
 describe("Device API", () => {
   test("uid returns expected value", async () => {

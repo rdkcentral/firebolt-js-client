@@ -22,7 +22,7 @@ import { test } from '@jest/globals';
 
 import { testSubscribeWithOneArgument, testListenWithOneArgument } from './utils/subscribeHelper.js';
 
-import { Localization } from '../../build/javascript/src/firebolt';
+import { Localization } from '../../build/javascript/src/firebolt.mjs';
 
 test('Localization.country subscription', async () => {
   return testSubscribeWithOneArgument( Localization, 'country','US', 
