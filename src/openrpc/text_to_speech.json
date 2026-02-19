@@ -254,7 +254,7 @@
           "result": {
             "name": "speechstate",
             "value": {
-              "speechstate": "SPEECH_IN_PROGRESS",
+              "speechstate": 1,
               "TTS_Status": 0,
               "success": true
             }
@@ -797,7 +797,14 @@
       },
       "SpeechState": {
         "title": "SpeechState",
-        "type": "string"
+        "type": "integer",
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "description": "0 = SPEECH_PENDING, 1 = SPEECH_IN_PROGRESS, 2 = SPEECH_PAUSED, 3 = SPEECH_NOT_FOUND"
       },
       "SpeechStateResponse": {
         "title": "SpeechStateResponse",
