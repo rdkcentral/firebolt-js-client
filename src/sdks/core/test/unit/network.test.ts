@@ -18,7 +18,6 @@
 
 import { test, expect } from "@jest/globals";
 import { Network } from '../../build/javascript/src/firebolt';
-import MockTransport from '../../build/javascript/src/Transport/MockTransport.mjs'
 
 test("Network.connected()", async () => {
   const res = await Network.connected();

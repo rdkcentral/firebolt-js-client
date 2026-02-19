@@ -18,7 +18,6 @@
 
 import { test, expect } from "@jest/globals";
 import { Device } from '../../build/javascript/src/firebolt';
-import MockTransport from '../../build/javascript/src/Transport/MockTransport.mjs'
 
 test("Device.uid()", async () => {
   const res = await Device.uid();

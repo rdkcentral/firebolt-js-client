@@ -27,7 +27,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -79,7 +79,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -130,7 +130,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -181,7 +181,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -231,7 +231,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -276,7 +276,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -316,7 +316,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -356,7 +356,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -396,7 +396,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -436,7 +436,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -476,7 +476,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -516,7 +516,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -556,7 +556,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],
@@ -588,7 +588,7 @@
       "params": [
         {
           "name": "language",
-          "summary": "Request language in ISO 3166-1 Alpha-2",
+          "summary": "Language - string - BCP 47",
           "schema": {
             "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/Locale"
           },
@@ -602,7 +602,7 @@
         {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:accessibility:voiceguidance"
+            "xrn:firebolt:capability:text-to-speech:general"
           ]
         }
       ],

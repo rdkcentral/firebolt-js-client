@@ -310,7 +310,7 @@
           ]
         }
       ],
-      "summary": "Inform the platform of an error that has occured in your app.",
+      "summary": "Inform the platform of an error that has occurred in your app.",
       "params": [
         {
           "name": "type",
@@ -504,7 +504,7 @@
           ]
         }
       ],
-      "summary": "Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interuption.",
+      "summary": "Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.",
       "params": [
         {
           "name": "entityId",
