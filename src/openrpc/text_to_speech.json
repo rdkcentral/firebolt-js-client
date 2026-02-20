@@ -285,7 +285,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -325,7 +325,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -365,7 +365,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -405,7 +405,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -445,7 +445,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -485,7 +485,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -525,7 +525,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
@@ -543,7 +543,7 @@
       ]
     },
     {
-      "name": "onPlaybackError",
+      "name": "onPlaybackerror",
       "summary": "Utterance failed during playback.",
       "tags": [
         {
@@ -551,7 +551,7 @@
         },
         {
           "name": "notifier",
-          "x-event": "TextToSpeech.onPlaybackError"
+          "x-event": "TextToSpeech.onPlaybackerror"
         },
         {
           "name": "capabilities",
@@ -565,7 +565,7 @@
           "name": "speechid",
           "summary": "Identifier for the speech call",
           "schema": {
-            "$ref": "#/components/schemas/SpeechId"
+            "$ref": "#/components/schemas/SpeechIdEvent"
           },
           "required": true
         }
