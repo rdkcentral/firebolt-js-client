@@ -282,7 +282,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -295,8 +295,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -322,7 +324,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -335,8 +337,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -362,7 +366,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -375,8 +379,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -402,7 +408,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -415,8 +421,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -442,7 +450,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -455,8 +463,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -482,7 +492,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -495,8 +505,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -522,7 +534,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -535,8 +547,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
@@ -562,7 +576,7 @@
       ],
       "params": [
         {
-          "name": "speechid",
+          "name": "SpeechId",
           "summary": "Identifier for the speech call",
           "schema": {
             "$ref": "#/components/schemas/SpeechIdEvent"
@@ -575,8 +589,10 @@
           "name": "Default Example",
           "params": [
             {
-              "name": "speechid",
-              "value": 1
+              "name": "SpeechId",
+              "value": {
+                "speechid": 1
+              }
             }
           ]
         }
