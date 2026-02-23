@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Comcast Cable Communications Management, LLC
+ * Copyright 2026 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,15 @@
  */
 
 import { test, expect } from "@jest/globals";
-import { Device } from '../../build/javascript/src/firebolt';
+import { Network } from '../../build/javascript/src/firebolt';
 
-test("Device.uid()", async () => {
-  const res = await Device.uid();
-  expect(res).toBe("ee6723b8-7ab3-462c-8d93-dbf61227998e");
+test("Network.connected()", async () => {
+  const res = await Network.connected();
+  expect(res).toBe(true);
 });
 
-test("Device.deviceClass()", async () => {
-  const res = await Device.deviceClass();
-  expect(res).toBe("ott");
-});
-
-test("Device.hdr()", async () => {
-  const res = await Device.hdr();
-  expect(res).toEqual({ "dolbyVision": true, "hdr10": true, "hdr10Plus": true, "hlg": true });
-});
-
-test('listen hdr', async () => {
-  return Device.listen('onHdrChanged', (data: object) => {}).then((res: number) => {
+test('listen connected', async () => {
+  return Network.listen('onConnectedChanged', (data: boolean) => { }).then((res: number) => {
     expect(res > 0).toBe(true);
   });
 });

@@ -72,9 +72,12 @@
       "params": [],
       "tags": [
         {
+          "name": "rpc-only"
+        },
+        {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:cpp-client-only"
+            "xrn:firebolt:capability:device:info"
           ]
         }
       ],
@@ -102,9 +105,12 @@
       "params": [],
       "tags": [
         {
+          "name": "rpc-only"
+        },        
+        {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:cpp-client-only"
+            "xrn:firebolt:capability:device:info"
           ]
         }
       ],
@@ -132,9 +138,12 @@
       "params": [],
       "tags": [
         {
+          "name": "rpc-only"
+        },        
+        {
           "name": "capabilities",
           "x-uses": [
-            "xrn:firebolt:capability:cpp-client-only"
+            "xrn:firebolt:capability:device:info"
           ]
         }
       ],
@@ -155,10 +164,73 @@
           }
         }
       ]
-    }
+    },
+    {
+      "name": "hdr",
+      "summary": "Returns the HDR standards that are supported by the attached TV or the integral display",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:device:info"
+          ]
+        }
+      ],
+      "result": {
+        "name": "negotiatedHdrFormats",
+        "summary": "the negotiated HDR formats",
+        "schema": {
+          "$ref": "#/components/schemas/HDRFormatMap"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting the negotiated HDR formats",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "hdr10": true,
+              "hdr10Plus": true,
+              "dolbyVision": true,
+              "hlg": true
+            }
+          }
+        }
+      ]
+    }    
   ],
   "components": {
     "schemas": {
+      "HDRFormatMap": {
+        "title": "HDRFormatMap",
+        "type": "object",
+        "properties": {
+          "hdr10": {
+            "type": "boolean"
+          },
+          "hdr10Plus": {
+            "type": "boolean"
+          },
+          "dolbyVision": {
+            "type": "boolean"
+          },
+          "hlg": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "hdr10",
+          "hdr10Plus",
+          "dolbyVision",
+          "hlg"
+        ],
+        "description": "The type of HDR format"
+      },      
       "DeviceClass": {
         "title": "DeviceClass",
         "type": "string",

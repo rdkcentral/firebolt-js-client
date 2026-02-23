@@ -10,9 +10,12 @@
             "name": "close",
             "tags": [
                 {
+                    "name": "rpc-only"
+                },
+                {
                     "name": "capabilities",
                     "x-uses": [
-                        "xrn:firebolt:capability:cpp-client-only"
+                        "xrn:firebolt:capability:lifecycle2:general"
                     ]
                 }
             ],
@@ -67,9 +70,12 @@
             "summary": "Get the current lifecycle state of the app.",
             "tags": [
                 {
+                    "name": "rpc-only"
+                },
+                {
                     "name": "capabilities",
                     "x-uses": [
-                        "xrn:firebolt:capability:cpp-client-only"
+                        "xrn:firebolt:capability:lifecycle2:general"
                     ]
                 }
             ],
@@ -96,13 +102,16 @@
             "name": "onStateChanged",
             "tags": [
                 {
+                    "name": "rpc-only"
+                },
+                {
                     "name": "notifier",
                     "x-contextual-parameters": 0
                 },
                 {
                     "name": "capabilities",
                     "x-uses": [
-                        "xrn:firebolt:capability:cpp-client-only"
+                        "xrn:firebolt:capability:lifecycle2:general"
                     ]
                 }
             ],

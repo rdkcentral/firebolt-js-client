@@ -1,0 +1,125 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Discovery",
+    "version": "0.0.0",
+    "description": "Your App likely wants to integrate with the Platform's discovery capabilities. For example to add a \"Watch Next\" tile that links to your app from the platform's home screen.\n\nGetting access to this information requires to connect to lower level APIs made available by the platform. Since implementations differ between operators and platforms, the Firebolt SDK offers a Discovery module, that exposes a generic, agnostic interface to the developer.\n\nUnder the hood, an underlying transport layer will then take care of calling the right APIs for the actual platform implementation that your App is running on.\n\nThe Discovery plugin is used to _send_ information to the Platform.\n\n### Localization\nApps should provide all user-facing strings in the device's language, as specified by the Firebolt `Localization.language` property.\n\nApps should provide prices in the same currency presented in the app. If multiple currencies are supported in the app, the app should provide prices in the user's current default currency."
+  },
+  "methods": [
+    {
+      "name": "watched",
+      "summary": "Notify the platform that content was partially or completely watched",
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:discovery:watched"
+          ]
+        }
+      ],
+      "params": [
+        {
+          "name": "entityId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "summary": "The entity Id of the watched content."
+        },
+        {
+          "name": "progress",
+          "summary": "How much of the content has been watched (percentage as (0-0.999) for VOD, number of seconds for live)",
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "completed",
+          "summary": "Whether or not this viewing is considered \"complete,\" per the app's definition thereof",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "watchedOn",
+          "summary": "Date/Time the content was watched, ISO 8601 Date/Time",
+          "schema": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        {
+          "name": "agePolicy",
+          "description": "The age policy associated with the watch event. The age policy describes the age groups to which content may be directed.",
+          "schema": {
+            "$ref": "https://meta.comcast.com/firebolt/policies#/definitions/AgePolicy"
+          }
+        }
+      ],
+      "result": {
+        "name": "success",
+        "summary": "whether the call was successful or not",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "Notify the platform of watched content",
+          "params": [
+            {
+              "name": "entityId",
+              "value": "partner.com/entity/123"
+            },
+            {
+              "name": "progress",
+              "value": 0.95
+            },
+            {
+              "name": "completed",
+              "value": true
+            },
+            {
+              "name": "watchedOn",
+              "value": "2021-04-23T18:25:43.511Z"
+            }
+          ],
+          "result": {
+            "name": "success",
+            "value": true
+          }
+        },
+        {
+          "name": "Notify the platform that child-directed content was watched",
+          "params": [
+            {
+              "name": "entityId",
+              "value": "partner.com/entity/123"
+            },
+            {
+              "name": "progress",
+              "value": 0.95
+            },
+            {
+              "name": "completed",
+              "value": true
+            },
+            {
+              "name": "watchedOn",
+              "value": "2021-04-23T18:25:43.511Z"
+            },
+            {
+              "name": "agePolicy",
+              "value": "app:child"
+            }
+          ],
+          "result": {
+            "name": "success",
+            "value": true
+          }
+        }
+      ]
+    }
+  ]
+}

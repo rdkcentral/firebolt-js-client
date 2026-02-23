@@ -29,7 +29,7 @@ import {
   testListenWithThreeArguments
 } from './utils/subscribeHelper.js';
 
-import { Accessibility } from '../../build/javascript/src/firebolt';
+import { Accessibility } from '../../build/javascript/src/firebolt.mjs';
 
 test('Accessibility.audioDescription subscription', async () => {
   return testSubscribeWithOneArgument(Accessibility, 'audioDescription', true, 
