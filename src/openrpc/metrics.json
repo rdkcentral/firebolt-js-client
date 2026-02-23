@@ -27,8 +27,7 @@
       "examples": [
         {
           "name": "Send ready metric",
-          "params": [
-          ],
+          "params": [],
           "result": {
             "name": "success",
             "value": true
@@ -60,8 +59,7 @@
       "examples": [
         {
           "name": "Send signIn metric",
-          "params": [
-          ],
+          "params": [],
           "result": {
             "name": "success",
             "value": true
@@ -93,8 +91,7 @@
       "examples": [
         {
           "name": "Send signOut metric",
-          "params": [
-          ],
+          "params": [],
           "result": {
             "name": "success",
             "value": true
@@ -139,8 +136,7 @@
       "examples": [
         {
           "name": "Send startContent metric",
-          "params": [
-          ],
+          "params": [],
           "result": {
             "name": "success",
             "value": true
@@ -215,8 +211,7 @@
       "examples": [
         {
           "name": "Send stopContent metric",
-          "params": [
-          ],
+          "params": [],
           "result": {
             "name": "success",
             "value": true
@@ -286,7 +281,7 @@
           }
         },
         {
-          "name": "Send startContent metric w/ entity",
+          "name": "Send page metric w/ pageId",
           "params": [
             {
               "name": "pageId",
@@ -1031,12 +1026,12 @@
             },
             {
               "name": "data",
-              "value":"foo"
+              "value": "foo"
             }
           ],
           "result": {
             "name": "result",
-            "value": true 
+            "value": true
           }
         }
       ]
