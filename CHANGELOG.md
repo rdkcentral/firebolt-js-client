@@ -1,3 +1,10 @@
+# [1.0.0-next.5](https://github.com/rdkcentral/firebolt-js-client/compare/v1.0.0-next.4...v1.0.0-next.5) (2026-02-23)
+
+
+### Features
+
+* Add metrics, text to speech, discovery and network modules ([#7](https://github.com/rdkcentral/firebolt-js-client/issues/7)) ([2ce8915](https://github.com/rdkcentral/firebolt-js-client/commit/2ce89158cd5e45c5d71961c9f6a834896ca8c119))
+
 # [1.0.0-next.4](https://github.com/rdkcentral/firebolt-js-client/compare/v1.0.0-next.3...v1.0.0-next.4) (2026-01-19)
 
 

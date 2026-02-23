@@ -1,6 +1,6 @@
 {
   "name": "@firebolt-js/clients",
-  "version": "1.0.0-next.4",
+  "version": "1.0.0-next.5",
   "description": "The Firebolt Core Client",
   "type": "module",
   "bin": {
