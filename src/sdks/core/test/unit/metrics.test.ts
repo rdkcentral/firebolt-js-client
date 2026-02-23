@@ -37,7 +37,7 @@ test("Metrics page() returns true", async () => {
   expect(res).toBe(true);
 });
 test("Metrics error() returns true", async () => {
-  const res = await Metrics.error( Metrics.ErrorType.MEDIA, "MEDIA-STALLED", "playback stalled", true);
+  const res = await Metrics.error(Metrics.ErrorType.MEDIA, "MEDIA-STALLED", "playback stalled", true);
   expect(res).toBe(true);
 });
 test("Metrics mediaLoadStart() returns true", async () => {
@@ -80,13 +80,12 @@ test("Metrics mediaEnded() returns true", async () => {
   const res = await Metrics.mediaEnded("345");
   expect(res).toBe(true);
 });
-/* 
-//TODO event is not currently generated in the JS SDK, that is a bug that needs to be fixed.
+
 test("Metrics event() returns true", async () => {
   const res = await Metrics.event("http://meta.rdkcentral.com/some/schema", "foo");
   expect(res).toBe(true);
 });
-*/
+
 test("Metrics appInfo() returns null", async () => {
   const res = await Metrics.appInfo("1.2.2");
   expect(res).toBe(null);

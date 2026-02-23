@@ -100,14 +100,11 @@ describe("Metrics API", () => {
       true
     );
   });
-  /*
-  //TODO event is not currently generated in the JS SDK, that is a bug that needs to be fixed.
   test("event returns expected value", async () => {
     await expect(Metrics.event("http://meta.rdkcentral.com/some/schema", "foo")).resolves.toBe(
       true
     );
   });
-  */
   test("appInfo returns expected value", async () => {
     await expect(Metrics.appInfo("1.2.2")).resolves.toBe(
       null
