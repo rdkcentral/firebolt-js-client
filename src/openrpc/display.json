@@ -8,7 +8,7 @@
   "methods": [
     {
       "name": "edid",
-      "summary": "Returns the EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
+      "summary": "Returns the EDID (and extensions) of the connected or integral display, as a Base64-encoded string. Returns an empty string when no HDMI display is connected.",
       "params": [],
       "tags": [
         {
@@ -23,7 +23,7 @@
       ],
       "result": {
         "name": "Base64 EDID",
-        "summary": "The EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
+        "summary": "The EDID (and extensions) of the connected or integral display, as a Base64-encoded string. Returns an empty string when no HDMI display is connected.",
         "schema": {
           "type": "string"
         }
@@ -36,12 +36,20 @@
             "name": "Default Result",
             "value": "ZWU2NzIzYjgtN2FiMy00NjJjLThkOTMtZGJmNjEyMjc5OThl"
           }
+        },
+        {
+          "name": "No display is connected",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": ""
+          }
         }
       ]
     },
     {
       "name": "size",
-      "summary": "Returns the physical dimensions of the connected or integral display, in centimeters. Returns 0, 0 on a OTT/STB device when a display is not connected over HDMI",
+      "summary": "Returns the physical dimensions of the connected or integral display, in centimeters. Returns 0, 0 when no HDMI display is connected.",
       "params": [],
       "tags": [
         {
@@ -73,7 +81,7 @@
       },
       "examples": [
         {
-          "name": "Getting the display size",
+          "name": "Get the display size",
           "params": [],
           "result": {
             "name": "Default Result",
@@ -82,12 +90,23 @@
               "height": 27
             }
           }
+        },
+        {
+          "name": "No display is connected",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "width": 0,
+              "height": 0
+            }
+          }
         }
       ]
     },
     {
       "name": "maxResolution",
-      "summary": "Returns the physical/native resolution of the connected or integral display, in pixels. Returns 0, 0 on a OTT/STB device when a display is not connected over HDMI",
+      "summary": "Returns the physical/native resolution of the connected or integral display, in pixels. Returns 0, 0 when no HDMI display is connected.",
       "params": [],
       "tags": [
         {
@@ -119,7 +138,7 @@
       },
       "examples": [
         {
-          "name": "Getting the display size",
+          "name": "Get the display max resolution",
           "params": [],
           "result": {
             "name": "Default Result",
@@ -127,6 +146,129 @@
               "width": 1920,
               "height": 1080
             }
+          }
+        },
+        {
+          "name": "No display is connected",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": {
+              "width": 0,
+              "height": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "videoResolutions",
+      "summary": "Returns the list of HD video resolutions supported by the connected or integral display, in pixels. Returns an empty list when no HDMI display is connected.",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:display:info"
+          ]
+        }
+      ],
+      "result": {
+        "name": "videoResolutions",
+        "summary": "The list of supported HD video resolutions",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer",
+                "description": "The width of the display resolution, in pixels"
+              },
+              "height": {
+                "type": "integer",
+                "description": "The height of the display resolution, in pixels"
+              }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Return the HD video resolutions on a UHD-capable display",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": [
+              {
+                "width": 1280,
+                "height": 720
+              },
+              {
+                "width": 1920,
+                "height": 1080
+              },
+              {
+                "width": 3840,
+                "height": 2160
+              }
+            ]
+          }
+        },
+        {
+          "name": "No display is connected",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "colorimetry",
+      "summary": "Returns the SDR and HDR colorimetry standards supported by the connected or integral display. Returns an empty list when no HDMI display is connected.",
+      "params": [],
+      "tags": [
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:display:info"
+          ]
+        }
+      ],
+      "result": {
+        "name": "colorimetry",
+        "summary": "The supported SDR and HDR colorimetry standards",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "bt709",
+              "bt2020"
+            ]
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Get the supported colorimetry standards from an HDR display",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": [
+              "bt709",
+              "bt2020"
+            ]
+          }
+        },
+        {
+          "name": "No display is connected",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": []
           }
         }
       ]
