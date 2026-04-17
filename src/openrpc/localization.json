@@ -118,9 +118,51 @@
           }
         }
       ]
+    },
+    {
+      "name": "timeZone",
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:localization:time-zone"
+          ]
+        }
+      ],
+      "summary": "Returns the IANA time zone identifier of the device.",
+      "params": [],
+      "result": {
+        "name": "timeZone",
+        "summary": "The device time zone.",
+        "schema": {
+          "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/TimeZone"
+        }
+      },
+      "examples": [
+        {
+          "name": "New York time zone example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "America/New_York"
+          }
+        },
+        {
+          "name": "London time zone example",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": "Europe/London"
+          }
+        }
+      ]
     }
   ],
   "components": {
-    "schemas": {}
+    "schemas": {
+    }
   }
 }
