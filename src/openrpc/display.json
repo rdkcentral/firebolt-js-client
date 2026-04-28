@@ -163,7 +163,7 @@
     },
     {
       "name": "videoResolutions",
-      "summary": "Returns the list of HD video resolutions supported by the connected or integral display, in pixels. Returns an empty list when no HDMI display is connected.",
+      "summary": "Returns an unordered list of HD video resolutions/formats supported by the connected or integral display. Returns an empty list when no HDMI display is connected.",
       "params": [],
       "tags": [
         {
@@ -175,43 +175,48 @@
       ],
       "result": {
         "name": "videoResolutions",
-        "summary": "The list of supported HD video resolutions",
+        "summary": "The list of HD video resolutions/formats supported by the display.",
         "schema": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "width": {
-                "type": "integer",
-                "description": "The width of the display resolution, in pixels"
-              },
-              "height": {
-                "type": "integer",
-                "description": "The height of the display resolution, in pixels"
-              }
-            }
+            "type": "string",
+            "enum": [
+              "720p50",
+              "720p60",
+              "1080p50",
+              "1080p60",
+              "2160p50",
+              "2160p60"
+            ]
           }
         }
       },
       "examples": [
         {
-          "name": "Return the HD video resolutions on a UHD-capable display",
+          "name": "Get the video resolutions/formats for a UHD-capable display.",
           "params": [],
           "result": {
             "name": "Default Result",
             "value": [
-              {
-                "width": 1280,
-                "height": 720
-              },
-              {
-                "width": 1920,
-                "height": 1080
-              },
-              {
-                "width": 3840,
-                "height": 2160
-              }
+              "720p50",
+              "720p60",
+              "1080p50",
+              "1080p60",
+              "2160p50",
+              "2160p60"
+            ]
+          }
+        },
+        {
+          "name": "Get the video resolutions/formats for an HD-capable display.",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": [
+              "720p50",
+              "720p60",
+              "1080p50",
+              "1080p60"
             ]
           }
         },
