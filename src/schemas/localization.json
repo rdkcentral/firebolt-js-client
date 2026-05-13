@@ -10,6 +10,9 @@
         },
         {
             "$ref": "#/definitions/Locale"
+        },
+        {
+            "$ref": "#/definitions/TimeZone"
         }
     ],
     "definitions": {
@@ -24,6 +27,10 @@
         "Locale": {
             "type": "string",
             "pattern": "^[a-zA-Z]+([a-zA-Z0-9\\-]*)$"
+        },
+        "TimeZone": {
+            "type": "string",
+            "pattern": "^[-+_\/ A-Za-z 0-9]*$"
         }
     }
 }
