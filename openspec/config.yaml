@@ -1,20 +1,58 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Project: Firebolt® JS Client (firebolt-js-client)
+  Purpose: Firebolt 9 API client for JavaScript/TypeScript platforms (WPE/WebKit)
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Pipeline (strictly ordered — each layer derives from the one above):
+    1. OpenSpec  (.md + YAML frontmatter)  — authored by humans; captures API semantics
+    2. OpenRPC   (.json)                   — AI-assisted derivation; formal JSON-RPC contract
+    3. Canonical AST (in-memory TypeScript tree) — parsed from OpenRPC; language-neutral
+    4. Language headers (generated)        — emitted from AST by per-language generators
+
+  Generator targets:
+    - TypeScript  (.d.ts)   — declaration file, all calls async (Promise<T>)
+    - ReScript    (.res)    — external bindings, labeled optional args
+    - Kotlin/JS   (.kt)     — external object declarations, Kotlin/JS only (not multiplatform)
+    - C++         (.hpp)    — native SDK headers, statically linkable, FireboltResult<T>
+    - Python      (.pyi)    — type stub for IDE checking
+    - Python      (.py)     — abstract Protocol base class
+
+  API model (Firebolt 9 — key constraints):
+    - No capabilities system (removed from Firebolt 9)
+    - No "provide" kind (removed from Firebolt 9)
+    - Method kinds: call | subscribe
+    - Semantic kinds authored in spec: property | action | event
+    - Lifecycle2 module name is intentional — "Lifecycle" is reserved by Firebolt ≤8
+    - Event payload type is always identical to getter result type (no divergence)
+    - listen param is NOT declared in spec — injected at OpenRPC derivation layer
+    - All call results are wrapped in async/result types by generators (not the AST)
+    - date-time format follows ISO 8601; generators use language-idiomatic datetime types
+
+  Module naming conventions:
+    - Module:       PascalCase              e.g. Device, Lifecycle2, SecureStorage
+    - Type:         PascalCase              e.g. AudioProfile, StateChangedEvent
+    - Property:     camelCase               e.g. audioDescription, screenResolution
+    - Action:       camelCase               e.g. watched, start
+    - Event:        camelCase, "on" prefix  e.g. onStateChanged, onForeground
+    - Param/Field:  camelCase               e.g. entityId, handlerAppId
+    - Enum value:   wire string as-is       e.g. "app:adult", "dolbyDigital5.1"
+
+  Meta-guidelines live in: openspec/specs/_meta/
+  Shared cross-module types:  openspec/specs/shared/spec.md
+  Module specs:               openspec/specs/<module>/spec.md
+
+rules:
+  proposal:
+    - Include a "Pipeline Impact" section: which layers (spec/openrpc/ast/generator) are affected
+    - Include a "Target Languages" section if generator output changes
+    - Reference the relevant _meta guideline documents
+    - Explicitly state which Firebolt 9 modules are in scope
+  design:
+    - Show the spec → OpenRPC → AST → emitted code chain for at least one method
+    - Document any new AST node types introduced
+    - Document enum serializedId → identifier derivation if new enum patterns are added
+  tasks:
+    - "Tag every task with its layer: [spec] [openrpc] [ast] [generator] [test]"
+    - "Order tasks strictly by layer: spec → openrpc → ast → generator → test"
+    - One task per method or type — do not batch across modules
