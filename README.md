@@ -7,6 +7,40 @@ Implementation of Firebolt JavaScript Client.
 
 A build-time code generator that reads OpenRPC contracts for Firebolt 9 API modules and emits type-safe language headers for TypeScript, ReScript, Kotlin/JS, C++, and Python.
 
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     AUTHORING LAYER                             │
+│                                                                 │
+│   openspec/specs/<capability>/spec.md                           │
+│   "What does this API mean?"                                    │
+│   Human language, intent, constraints, capabilities             │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ derives (deterministically)
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     CONTRACT LAYER                              │
+│                                                                 │
+│   openrpc.json                                                  │
+│   "What exactly is this API?"                                   │
+│   Method signatures, schemas, validation, versioning            │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ parses into
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     REPRESENTATION LAYER                        │
+│                                                                 │
+│   Canonical AST (language-neutral)                              │
+│   "How do all languages see this API?"                          │
+│   Typed tree of Modules, Methods, TypeDecls, TypeRefs           │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ emits
+              ┌─────────┼──────────┬───────────┬──────────┐
+              ▼         ▼          ▼           ▼          ▼
+           .d.ts       .res        .kt         .hpp        .py
+        TypeScript  ReScript  Kotlin/JS      C++        Python
+```
+
 ### Pipeline
 
 ```
@@ -131,6 +165,22 @@ out/
 └── py/                   # Python .pyi + _protocol.py
 ```
 
+```
+                   CanonicalAST
+                        │
+              ┌─────────┴──────────┐
+              │   Generator Host   │
+              │  (TypeScript CLI)  │
+              └─────────┬──────────┘
+                        │ calls
+           ┌────────────┼────────────┬──────────────┐
+           ▼            ▼            ▼              ▼
+     ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+     │    ts    │ │    res   │ │    kt    │ │   cpp    │
+     │generator │ │generator │ │generator │ │generator │
+     └──────────┘ └──────────┘ └──────────┘ └──────────┘
+```
+
 ### Builder Rules Reference
 
 | Rule | Description |
@@ -141,3 +191,5 @@ out/
 | 4 | Resolve `$ref` to `NamedRef`; set `.module` for cross-module refs |
 | 5 | Propagate `format: "date-time"` to `PrimitiveRef.format` (Python → `datetime`) |
 | 6 | Inline anonymous result schemas → synthetic `TypeDecl` named `<Module><Method>Result` |
+
+
