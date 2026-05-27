@@ -1,0 +1,75 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Discovery",
+    "version": "9.0",
+    "description": "Allows apps to signal content consumption events back to the platform."
+  },
+  "methods": [
+    {
+      "name": "Discovery.watched",
+      "summary": "Notify the platform that content has been partially or completely watched.",
+      "description": "Notify the platform that content has been partially or completely watched. watchedOn must be ISO 8601 UTC: YYYY-MM-DDThh:mm:ss.sssZ. agePolicy is set by the app to classify the content being reported.",
+      "params": [
+        {
+          "name": "entityId",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Platform entity ID of the content being reported"
+        },
+        {
+          "name": "progress",
+          "required": false,
+          "schema": { "type": "number", "format": "double" },
+          "description": "Playback progress from 0.0 (start) to 1.0 (end)"
+        },
+        {
+          "name": "completed",
+          "required": false,
+          "schema": { "type": "boolean" },
+          "description": "True if the content was watched to completion"
+        },
+        {
+          "name": "watchedOn",
+          "required": false,
+          "schema": { "type": "string", "format": "date-time" },
+          "description": "ISO 8601 UTC timestamp of when the content was watched"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "#/components/schemas/AgePolicy" },
+          "description": "Age policy applied by the app to this content"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "partialWatchAdult",
+          "summary": "Report partial watch with adult age policy",
+          "params": [
+            { "name": "entityId",  "value": "entity-12345" },
+            { "name": "progress",  "value": 0.75 },
+            { "name": "completed", "value": false },
+            { "name": "watchedOn", "value": "2026-05-27T14:30:00.000Z" },
+            { "name": "agePolicy", "value": "app:adult" }
+          ],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "AgePolicy": {
+        "title": "AgePolicy",
+        "type": "string",
+        "enum": ["app:adult", "app:child", "app:teen"],
+        "description": "Age-rating classification applied by the app to the content being reported."
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Lifecycle2",
+    "version": "9.0",
+    "description": "Manages the lifecycle state of an app as controlled by the platform."
+  },
+  "methods": [
+    {
+      "name": "Lifecycle2.onStateChanged",
+      "summary": "Subscribe to lifecycle state change notifications.",
+      "description": "Subscribe to lifecycle state change notifications. The app remains in initializing until this subscribe call is made.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": { "type": "boolean" },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            { "$ref": "shared.json#/components/schemas/ListenResponse" },
+            { "$ref": "#/components/schemas/StateChangedEvent" }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "name": "subscribe",
+          "summary": "Subscribe to state changes",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": { "listening": true, "event": "Lifecycle2.onStateChanged" }
+          }
+        },
+        {
+          "name": "stateChangeActive",
+          "summary": "App becomes active from paused",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": { "oldState": "paused", "newState": "active" }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "LifecycleState": {
+        "title": "LifecycleState",
+        "type": "string",
+        "enum": ["initializing", "paused", "active", "suspended", "hibernated", "terminating"],
+        "description": "Lifecycle state of an app managed by the platform."
+      },
+      "StateChangedEvent": {
+        "title": "StateChangedEvent",
+        "type": "object",
+        "description": "Payload for a lifecycle state transition notification.",
+        "properties": {
+          "oldState": { "$ref": "#/components/schemas/LifecycleState" },
+          "newState": { "$ref": "#/components/schemas/LifecycleState" }
+        },
+        "required": ["oldState", "newState"]
+      }
+    }
+  }
+}
