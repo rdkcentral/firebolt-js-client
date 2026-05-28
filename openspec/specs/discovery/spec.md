@@ -1,6 +1,7 @@
 ---
 module: Discovery
 version: "9.0"
+platform: both
 stability: stable
 description: |
   Allows apps to signal content consumption events back to the platform.

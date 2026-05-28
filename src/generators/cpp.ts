@@ -23,7 +23,7 @@ import {
   TypeDecl,
   TypeRef,
 } from "../ast/types";
-import { GenConfig, GeneratorOutput, registerGenerator } from "./index";
+import { GenConfig, GeneratorOutput, extractConstraints, formatConstraintNote, registerGenerator } from "./index";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -103,14 +103,16 @@ function emitObject(decl: ObjectTypeDecl): string[] {
   lines.push(`struct ${decl.name} {`);
   for (const prop of decl.properties) {
     const isOpt = !prop.required;
-    const innerRef =
+    const ref =
       isOpt && prop.type.kind === "optional"
         ? (prop.type as OptionalRef).inner
         : prop.type;
     const cppType = isOpt
-      ? `std::optional<${typeRefToCpp(innerRef)}>`
-      : typeRefToCpp(innerRef);
-    lines.push(`    ${cppType} ${prop.name};`);
+      ? `std::optional<${typeRefToCpp(ref)}>`
+      : typeRefToCpp(ref);
+    const c = extractConstraints(ref);
+    const note = c ? ` // ${formatConstraintNote(c)}` : "";
+    lines.push(`    ${cppType} ${prop.name};${note}`);
   }
   lines.push(`};`);
   return lines;
@@ -129,7 +131,11 @@ function emitCallMethod(method: Method): string[] {
   const params = method.params.map(paramToCpp).join(", ");
   const resultType =
     method.result === null ? "FireboltResult<void>" : `FireboltResult<${typeRefToCpp(method.result)}>`;
-  return [`${resultType} ${method.name}(${params});`];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`// ${constraintNote}`);
+  lines.push(`${resultType} ${method.name}(${params});`);
+  return lines;
 }
 
 function emitSubscribeMethod(method: Method): string[] {
@@ -139,7 +145,24 @@ function emitSubscribeMethod(method: Method): string[] {
       ? `std::function<void()>`
       : `std::function<void(${typeRefToCpp(method.result)})>`;
   params.push(`${callbackType} callback`);
-  return [`UnsubscribeFn ${method.name}(${params.join(", ")});`];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`// ${constraintNote}`);
+  lines.push(`UnsubscribeFn ${method.name}(${params.join(", ")});`);
+  return lines;
+}
+
+function buildConstraintNote(method: Method): string {
+  const notes: string[] = [];
+  for (const p of method.params) {
+    const c = extractConstraints(p.type);
+    if (c) notes.push(`${p.name}: ${formatConstraintNote(c)}`);
+  }
+  if (method.result) {
+    const c = extractConstraints(method.result);
+    if (c) notes.push(`result: ${formatConstraintNote(c)}`);
+  }
+  return notes.length ? `Constraints — ${notes.join(" | ")}` : "";
 }
 
 function paramToCpp(p: Param): string {
@@ -187,4 +210,4 @@ function primitiveToCpp(ref: PrimitiveRef): string {
 // Register
 // ---------------------------------------------------------------------------
 
-registerGenerator("cpp", generate);
+registerGenerator("cpp", generate, "native");

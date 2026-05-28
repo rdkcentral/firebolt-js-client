@@ -3,6 +3,7 @@
   "info": {
     "title": "Discovery",
     "version": "9.0",
+    "x-firebolt-platform": "both",
     "description": "Allows apps to signal content consumption events back to the platform."
   },
   "methods": [

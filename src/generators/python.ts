@@ -23,7 +23,7 @@ import {
   TypeDecl,
   TypeRef,
 } from "../ast/types";
-import { GenConfig, GeneratorOutput, registerGenerator } from "./index";
+import { GenConfig, GeneratorOutput, formatConstraintNote, registerGenerator } from "./index";
 
 const modName = (name: string) => name.toLowerCase();
 
@@ -47,6 +47,8 @@ function emitStub(module: Module): GeneratorOutput {
   lines.push(`from __future__ import annotations`);
   lines.push(`from typing import Callable, Literal, Optional`);
   if (hasDt) lines.push(`from datetime import datetime`);
+  const hasAnnotated = moduleUsesAnnotated(module);
+  if (hasAnnotated) lines.push(`from typing import Annotated`);
   lines.push(`from typing_extensions import TypedDict`);
   lines.push(``);
 
@@ -249,15 +251,19 @@ function primitiveToPy(ref: PrimitiveRef): string {
     case "bool":
       return "bool";
     case "string":
+      // Rule 7 (Python): constrained string → Annotated[str, "<note>"]
+      if (ref.constraints) return `Annotated[str, "${formatConstraintNote(ref.constraints)}"]`;
       return "str";
     case "unsigned":
     case "double":
+      // Rule 7 (Python): constrained number → Annotated[float, "<note>"]
+      if (ref.constraints) return `Annotated[float, "${formatConstraintNote(ref.constraints)}"]`;
       return "float";
   }
 }
 
 // ---------------------------------------------------------------------------
-// Helper: does this module use datetime anywhere?
+// Helpers: does this module use datetime / Annotated anywhere?
 // ---------------------------------------------------------------------------
 
 function moduleUsesDatetime(module: Module): boolean {
@@ -273,8 +279,32 @@ function typeRefUsesDatetime(ref: TypeRef): boolean {
   return false;
 }
 
+function moduleUsesAnnotated(module: Module): boolean {
+  // Check method params and results
+  for (const m of module.methods) {
+    for (const p of m.params) if (refUsesAnnotated(p.type)) return true;
+    if (m.result && refUsesAnnotated(m.result)) return true;
+  }
+  // Check object type properties
+  for (const decl of module.types) {
+    if (decl.kind === "object") {
+      for (const prop of decl.properties) {
+        if (refUsesAnnotated(prop.type)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function refUsesAnnotated(ref: TypeRef): boolean {
+  if (ref.kind === "primitive") return !!(ref as PrimitiveRef).constraints;
+  if (ref.kind === "optional") return refUsesAnnotated((ref as OptionalRef).inner);
+  if (ref.kind === "array") return refUsesAnnotated((ref as ArrayRef).items);
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // Register
 // ---------------------------------------------------------------------------
 
-registerGenerator("py", generate);
+registerGenerator("py", generate, "native");

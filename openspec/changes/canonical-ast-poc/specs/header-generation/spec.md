@@ -113,3 +113,92 @@ datetime types only in Python; all other targets SHALL keep the type as a plain 
 - **THEN** Kotlin/JS output type MUST be `String`
 - **THEN** C++ output type MUST be `std::string`
 - **THEN** Python `.pyi` output type MUST be `datetime`
+
+---
+
+### Requirement: Generator registry filters modules by platform
+Generators are registered with a `targetPlatform` of `"web"` or `"native"`. When
+`runAll()` processes modules, it SHALL skip any module whose `platform` does not
+match the generator's `targetPlatform` (unless `module.platform === "both"`).
+
+#### Scenario: Native-only module absent from web generator output
+- **WHEN** `module.platform === "native"` and the TypeScript generator targets `"web"`
+- **THEN** no `.d.ts` file MUST be emitted for that module
+
+#### Scenario: Both-platform module present in all five generator outputs
+- **WHEN** `module.platform === "both"`
+- **THEN** all five generators MUST emit their output file for that module
+
+#### Scenario: Lifecycle2 (native) absent from web targets
+- **WHEN** `Lifecycle2.platform === "native"`
+- **THEN** no `Lifecycle2.d.ts`, `Lifecycle2.res`, or `Lifecycle2.kt` MUST be written
+- **THEN** `Lifecycle2.hpp` and `lifecycle2.pyi` MUST be written
+
+---
+
+### Requirement: All generators emit constraint notes on constrained method signatures
+When a method has params or a result whose `TypeRef` resolves to a constrained
+`PrimitiveRef` (i.e., `PrimitiveRef.constraints` is defined), each generator SHALL
+emit a human-readable constraint annotation on the method declaration.
+
+#### Scenario: TypeScript JSDoc on constrained subscribe method
+- **WHEN** `Method.result` is `PrimitiveRef { primitive:"string", constraints:{ minLength:2, ... } }`
+- **THEN** the `.d.ts` method declaration MUST have a preceding JSDoc comment containing `minLength=2`
+
+#### Scenario: ReScript comment on constrained method
+- **WHEN** the same constrained method is processed by the ReScript generator
+- **THEN** a `/* Constraints — result: minLength=2, ... */` comment MUST precede the `external` declaration
+
+#### Scenario: Kotlin KDoc on constrained method
+- **WHEN** the same constrained method is processed by the Kotlin generator
+- **THEN** a `/** Constraints — result: ... */` comment MUST precede the `fun` declaration
+
+#### Scenario: C++ comment on constrained method
+- **WHEN** the same constrained method is processed by the C++ generator
+- **THEN** a `// Constraints — result: ...` comment MUST precede the function declaration
+
+---
+
+### Requirement: All generators emit constraint annotations on constrained object properties
+When an `ObjectTypeDecl` property's `TypeRef` resolves to a constrained `PrimitiveRef`,
+each generator SHALL emit the constraint annotation inline on or adjacent to that property.
+
+#### Scenario: TypeScript JSDoc comment above constrained property
+- **WHEN** `ObjectProperty { name:"rate", type:PrimitiveRef { primitive:"double", constraints:{ minimum:0.1, maximum:10 } } }`
+- **THEN** the `.d.ts` MUST emit `/** Constraints: minimum=0.1, maximum=10 */` immediately before the `rate: number;` line
+
+#### Scenario: Kotlin inline comment on constrained property
+- **WHEN** the same property is processed by the Kotlin generator
+- **THEN** the `.kt` MUST emit `val rate: Double // minimum=0.1, maximum=10`
+
+#### Scenario: C++ inline comment on constrained struct field
+- **WHEN** the same property is processed by the C++ generator
+- **THEN** the `.hpp` MUST emit `double rate; // minimum=0.1, maximum=10`
+
+#### Scenario: ReScript inline comment on constrained record field
+- **WHEN** the same property is processed by the ReScript generator
+- **THEN** the `.res` MUST emit `rate: float, /* minimum=0.1, maximum=10 */`
+
+---
+
+### Requirement: Python generator emits Annotated types for constrained primitives
+When a method param, result, or object property has a constrained `PrimitiveRef`,
+the Python generator SHALL emit `Annotated[str, "..."]` (for strings) or
+`Annotated[float, "..."]` (for doubles/unsigned) instead of the bare type.
+The `Annotated` annotation string SHALL be the output of `formatConstraintNote()`.
+The generator SHALL conditionally emit `from typing import Annotated` only when
+at least one constrained field is present in the module.
+
+#### Scenario: Constrained string param uses Annotated[str, ...]
+- **WHEN** a method result is `PrimitiveRef { primitive:"string", constraints:{ minLength:2, maxLength:2, pattern:"^[A-Z]{2}$" } }`
+- **THEN** the `.pyi` MUST use `Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]`
+- **THEN** the `.pyi` MUST contain `from typing import Annotated`
+
+#### Scenario: Constrained double property uses Annotated[float, ...]
+- **WHEN** `ObjectProperty { name:"rate", type:PrimitiveRef { primitive:"double", constraints:{ minimum:0.1, maximum:10 } } }`
+- **THEN** the `.pyi` class MUST declare `rate: Annotated[float, "minimum=0.1, maximum=10"]`
+- **THEN** the `.pyi` MUST contain `from typing import Annotated`
+
+#### Scenario: Unconstrained module does not import Annotated
+- **WHEN** a module has no constrained params, results, or object properties
+- **THEN** the `.pyi` MUST NOT contain `from typing import Annotated`

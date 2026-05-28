@@ -23,6 +23,7 @@ openspec/specs/<module>/spec.md
 ---
 module:      <ModuleName>    # required — PascalCase, e.g. Device, Lifecycle2
 version:     "<semver>"      # required — Firebolt API version, e.g. "9.0"
+platform:    <platform>      # required — see Platform Classification below
 stability:   <stability>     # required — see Stability Levels below
 description: |               # required — multiline prose describing the module purpose
   ...
@@ -33,6 +34,27 @@ actions:     {}              # optional — imperative calls with no event count
 events:      {}              # optional — spontaneous events with no getter counterpart
 ---
 ```
+
+---
+
+## Platform Classification
+
+Every spec MUST declare `platform`. This field drives which language headers are
+generated. Omitting it is a build error.
+
+| Value    | Generators that run           | Use when…                                      |
+|----------|-------------------------------|------------------------------------------------|
+| `web`    | ts · res · kt                 | API is only available to web-based app runtimes |
+| `native` | cpp · py                      | API is only available to native SDK integrations |
+| `both`   | ts · res · kt · cpp · py      | API is available to all runtimes               |
+
+**Examples:**
+- `Lifecycle2` — native app lifecycle hooks, not exposed over the web runtime → `platform: native`
+- `Discovery` — content-reporting signals used by both web apps and native integrations → `platform: both`
+- A hypothetical DOM-only capability → `platform: web`
+
+The `x-firebolt-platform` extension field on the OpenRPC `info` object is derived
+directly from this spec field. Never set them to different values.
 
 ---
 
@@ -58,6 +80,89 @@ format: date-time    # ISO 8601 UTC: "YYYY-MM-DDThh:mm:ss.sssZ"
 
 Generators map `format: date-time` to the language-idiomatic datetime type.
 See `generator-conventions.md` for the per-language mapping.
+
+### String Constraints
+
+When a `string` value has a well-defined shape that can be validated, declare the
+constraints alongside the type. All three fields are optional and combinable.
+
+```yaml
+type: string
+minLength: <unsigned>   # minimum number of characters (inclusive)
+maxLength: <unsigned>   # maximum number of characters (inclusive)
+pattern:   "<regex>"    # ECMAScript regular expression the value must fully match
+```
+
+**Well-known string constraint patterns:**
+
+| Value domain               | minLength | maxLength | pattern                     |
+|----------------------------|-----------|-----------|-----------------------------|
+| ISO 3166-1 alpha-2 country | 2         | 2         | `^[A-Z]{2}$`                |
+| ISO 3166-1 alpha-3 country | 3         | 3         | `^[A-Z]{3}$`                |
+| ISO 639-1 language code    | 2         | 2         | `^[a-z]{2}$`                |
+| BCP 47 locale tag          | 2         | 35        | `^[a-zA-Z][a-zA-Z0-9\-]*$` |
+
+---
+
+### Numeric Constraints
+
+When a `double` or `unsigned` value has a defined valid range, declare the bounds
+alongside the type. Both fields are optional.
+
+```yaml
+type: double            # or unsigned
+minimum: <number>       # inclusive lower bound
+maximum: <number>       # inclusive upper bound
+```
+
+**Rules:**
+
+1. **Constraints are enforced at spec authoring time.** When a numeric type has a
+   known valid range it MUST be declared. Leaving bounds undeclared when they are
+   known is a spec defect.
+
+2. **`minimum` and `maximum` are inclusive** and correspond directly to the JSON
+   Schema `minimum` / `maximum` keywords.
+
+3. **Constraints are carried into the AST** on every `PrimitiveRef` node that
+   resolves to a constrained numeric, making them available to all generators.
+
+4. **Generators use constraints as documentation at minimum.** They may also emit
+   type-system annotations where the target language supports them (e.g. Python's
+   `Annotated[float, ...]`).
+
+**Well-known numeric constraint examples:**
+
+| Value domain                        | minimum | maximum |
+|-------------------------------------|---------|---------|
+| Voice guidance rate (1.0 = normal)  | 0.1     | 10      |
+| Percentage                          | 0       | 100     |
+| Volume (0 = silent)                 | 0.0     | 1.0     |
+
+**Example — voice guidance rate:**
+
+```yaml
+actions:
+  voiceGuidanceSettings:
+    result:
+      type: object
+      properties:
+        rate:
+          type: double
+          minimum: 0.1
+          maximum: 10
+          description: Speech rate relative to normal; 1.0 = normal speed
+```
+
+**Rules (string and numeric constraints, shared):**
+
+1. **Constraints are enforced at spec authoring time.** When a type has known
+   constraints they MUST be declared.
+
+2. **Constraints are carried into the AST** and are available to all generators.
+
+3. **Generators document constraints at minimum;** type-safe annotations are
+   emitted where the target language supports them.
 
 ---
 

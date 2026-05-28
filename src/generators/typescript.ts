@@ -23,7 +23,7 @@ import {
   TypeDecl,
   TypeRef,
 } from "../ast/types";
-import { GenConfig, GeneratorOutput, registerGenerator } from "./index";
+import { GenConfig, GeneratorOutput, extractConstraints, formatConstraintNote, registerGenerator } from "./index";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -92,10 +92,13 @@ function emitObject(decl: ObjectTypeDecl): string[] {
   lines.push(`interface ${decl.name} {`);
   for (const prop of decl.properties) {
     const opt = !prop.required ? "?" : "";
-    const inner =
+    const ref =
       !prop.required && prop.type.kind === "optional"
-        ? typeRefToTS((prop.type as OptionalRef).inner)
-        : typeRefToTS(prop.type);
+        ? (prop.type as OptionalRef).inner
+        : prop.type;
+    const inner = typeRefToTS(ref);
+    const c = extractConstraints(ref);
+    if (c) lines.push(`  /** Constraints: ${formatConstraintNote(c)} */`);
     lines.push(`  ${prop.name}${opt}: ${inner};`);
   }
   lines.push(`}`);
@@ -117,8 +120,12 @@ function emitCallMethod(method: Method): string[] {
   const paramStr = method.params.map(paramToTS).join(", ");
   const resultType =
     method.result === null ? "void" : typeRefToTS(method.result);
+  const constraintLines = collectConstraintLines(method);
+  const doc = constraintLines.length
+    ? `/** ${method.description}\n   * Constraints: ${constraintLines.join(" | ")} */`
+    : `/** ${method.description} */`;
   return [
-    `/** ${method.description} */`,
+    doc,
     `function ${method.name}(${paramStr}): Promise<${resultType}>;`,
   ];
 }
@@ -128,10 +135,28 @@ function emitSubscribeMethod(method: Method): string[] {
     method.result === null ? "() => void" : `(event: ${typeRefToTS(method.result)}) => void`;
   const paramStr = method.params.map(paramToTS).join(", ");
   const sep = paramStr ? ", " : "";
+  const constraintLines = collectConstraintLines(method);
+  const doc = constraintLines.length
+    ? `/** ${method.description}\n   * Constraints — event payload: ${constraintLines.join(" | ")} */`
+    : `/** ${method.description} */`;
   return [
-    `/** ${method.description} */`,
+    doc,
     `function ${method.name}(${paramStr}${sep}callback: ${callbackType}): () => void;`,
   ];
+}
+
+/** Collect constraint notes for all params + result of a method. */
+function collectConstraintLines(method: Method): string[] {
+  const notes: string[] = [];
+  for (const p of method.params) {
+    const c = extractConstraints(p.type);
+    if (c) notes.push(`${p.name}: ${formatConstraintNote(c)}`);
+  }
+  if (method.result) {
+    const c = extractConstraints(method.result);
+    if (c) notes.push(formatConstraintNote(c));
+  }
+  return notes;
 }
 
 function paramToTS(p: Param): string {
@@ -176,4 +201,4 @@ function primitiveToTS(ref: PrimitiveRef): string {
 // Register
 // ---------------------------------------------------------------------------
 
-registerGenerator("ts", generate);
+registerGenerator("ts", generate, "web");

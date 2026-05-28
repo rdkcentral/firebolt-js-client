@@ -1,0 +1,66 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Localization",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to locale and regional settings managed by the platform."
+  },
+  "methods": [
+    {
+      "name": "Localization.onCountryChanged",
+      "summary": "Subscribe to country setting change notifications.",
+      "description": "Fires when the platform's active country setting changes. Payload is an ISO 3166-1 alpha-2 country code (e.g. \"US\", \"GB\", \"DE\"). Corresponds to the Country field in the Devices table.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": { "type": "boolean" },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            { "$ref": "shared.json#/components/schemas/ListenResponse" },
+            {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "pattern": "^[A-Z]{2}$",
+              "description": "ISO 3166-1 alpha-2 country code"
+            }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "name": "subscribe",
+          "summary": "Subscribe to country changes",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": { "listening": true, "event": "Localization.onCountryChanged" }
+          }
+        },
+        {
+          "name": "countryChangedUS",
+          "summary": "Country changed to United States",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": "US"
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {}
+  }
+}

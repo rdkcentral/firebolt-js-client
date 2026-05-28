@@ -72,3 +72,39 @@
 - [x] 12.2 [test] Write `format:date-time` promotion test — assert `watchedOn` is `string`/`String`/`std::string` in TS/ReScript/Kotlin/C++ and `datetime` in Python `.pyi`
 - [x] 12.3 [test] Write subscribe pattern consistency test — assert `onStateChanged` in all five outputs has a callback parameter and returns an unsubscribe token type
 - [x] 12.4 [spec] Write `README.md` for the generator — prerequisites, how to run, how to add a new module, how to add a new language target
+
+## 13. Platform Classification
+
+- [x] 13.1 [spec] Add `platform: web | native | both` as a required field to all module specs; update `openspec/specs/_meta/spec-format.md` to document it as mandatory with a Platform Classification section
+- [x] 13.2 [openrpc] Add `"x-firebolt-platform"` to the `info` object in all four OpenRPC documents (`discovery.json`, `lifecycle2.json`, `localization.json`, `accessibility.json`); update `openrpc-derivation.md` with the derivation rule
+- [x] 13.3 [ast] Add `Platform` type (`"web" | "native" | "both"`) and `Module.platform` field to `src/ast/types.ts`
+- [x] 13.4 [ast] Implement `parsePlatform()` in `src/ast/builder.ts` — reads `info["x-firebolt-platform"]`, validates it is present and in `{web, native, both}`, throws a descriptive `BuildError` otherwise
+- [x] 13.5 [generator] Update generator registry in `src/generators/index.ts` — `registerGenerator(id, gen, targetPlatform)` stores the runtime target per generator; `runAll()` skips modules where `module.platform !== "both" && module.platform !== entry.targetPlatform`
+- [x] 13.6 [test] Add platform tests to `builder.test.ts` — verify missing `x-firebolt-platform` throws; verify invalid value throws; verify `Lifecycle2` module has `platform: "native"`
+- [x] 13.7 [test] Add platform filtering tests to `consistency.test.ts` (12.4) — verify `Lifecycle2` is absent from TS/ReScript/Kotlin outputs and present only in C++/Python outputs
+
+## 14. Localization Module
+
+- [x] 14.1 [spec] Author `openspec/specs/localization/spec.md` — `platform: both`; `onCountryChanged` subscribe event with payload `type: string, minLength: 2, maxLength: 2, pattern: "^[A-Z]{2}$"`; include worked example (`"US"`, `"GB"`)
+- [x] 14.2 [openrpc] Derive `src/openrpc/localization.json` — `Localization.onCountryChanged` subscribe method; result is `oneOf[ListenResponse, { type:"string", minLength:2, maxLength:2, pattern:"^[A-Z]{2}$", description:"ISO 3166-1 alpha-2 country code" }]`
+- [x] 14.3 [generator] Add Localization to the CLI module list; verify 6 output files generated: `ts/Localization.d.ts`, `res/Localization.res`, `kt/Localization.kt`, `cpp/firebolt/Localization.hpp`, `py/localization.pyi`, `py/localization_protocol.py`
+- [x] 14.4 [test] Add 12.5 consistency tests — verify string constraint notes (`minLength=2`, `maxLength=2`, `pattern=^[A-Z]{2}$`) appear in all five generator outputs for `onCountryChanged`; verify Python emits `Annotated[str, "..."]` and imports `Annotated`
+
+## 15. Accessibility Module
+
+- [x] 15.1 [spec] Author `openspec/specs/accessibility/spec.md` — `platform: both`; `VoiceGuidanceSettings` object type with `enabled: bool`, `rate: double (minimum: 0.1, maximum: 10)`, `navigationHints: bool`; `voiceGuidanceSettings` action returning `$ref: VoiceGuidanceSettings`
+- [x] 15.2 [openrpc] Derive `src/openrpc/accessibility.json` — `Accessibility.voiceGuidanceSettings` method with `result.$ref: VoiceGuidanceSettings`; `VoiceGuidanceSettings` schema in `components/schemas` with `rate` having `"type":"number", "format":"double", "minimum":0.1, "maximum":10`
+- [x] 15.3 [generator] Add Accessibility to the CLI module list; verify 7 output files generated across all five targets (same pattern as Localization plus a second Python file)
+- [x] 15.4 [test] Add 12.6 consistency tests — verify numeric constraint notes (`minimum=0.1`, `maximum=10`) appear on the `rate` property in all five generator outputs; verify Python emits `Annotated[float, "..."]`
+
+## 16. Value Constraints (Rule 7)
+
+- [x] 16.1 [spec] Update `openspec/specs/_meta/spec-format.md` — add String Constraints section (`minLength`, `maxLength`, `pattern`) and Numeric Constraints section (`minimum`, `maximum`) with rules, well-known tables, and worked examples
+- [x] 16.2 [spec] Update `openspec/specs/_meta/openrpc-derivation.md` — add Rule 3a: String Constraint Mapping and Rule 3b: Numeric Constraint Mapping with derivation tables and full OpenRPC examples
+- [x] 16.3 [ast] Rename `StringConstraints` → `Constraints` and add `minimum?: number` and `maximum?: number` to the interface in `src/ast/types.ts`; update `PrimitiveRef.constraints` doc comment
+- [x] 16.4 [ast] Extend Rule 7 in `resolveTypeRef` (`src/ast/builder.ts`) — for `string` primitives populate `minLength`, `maxLength`, `pattern`; for `double`/`unsigned` primitives populate `minimum`, `maximum`; update the Rule 7 builder doc comment
+- [x] 16.5 [generator] Update `src/generators/index.ts` — update `extractConstraints()` to unwrap `OptionalRef` and return `Constraints` from any `PrimitiveRef` (not just strings); update `formatConstraintNote()` to include `minimum` and `maximum` entries
+- [x] 16.6 [generator] Update all 5 generators for method-level constraints — rename label from "String constraints" to "Constraints" in all `buildConstraintNote()` helpers; TypeScript: JSDoc `Constraints:` line on constrained method signatures; ReScript/Kotlin/C++: inline comment before declaration
+- [x] 16.7 [generator] Update all 5 generators for object property-level constraints — in each `emitObject()` function, check each property's TypeRef with `extractConstraints()` and emit an inline/preceding comment for constrained properties; Python: use `Annotated[float, "..."]` in `primitiveToPy()` for constrained doubles; update `moduleUsesAnnotated()` to also walk type declaration properties
+- [x] 16.8 [test] Add Rule 7 string constraint tests to `builder.test.ts` — fixture with `onCountryChanged`-style method; verify result `PrimitiveRef` carries `constraints: {minLength:2, maxLength:2, pattern:"^[A-Z]{2}$"}`; verify unconstrained string has no `constraints` property
+- [x] 16.9 [test] Add Rule 7 numeric constraint tests to `builder.test.ts` — fixture with `VoiceGuidanceSettings`-style schema; verify `rate` property carries `constraints: {minimum:0.1, maximum:10}`; verify `enabled` (bool) has no `constraints` property

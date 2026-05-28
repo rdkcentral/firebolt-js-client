@@ -3,6 +3,7 @@
   "info": {
     "title": "Shared",
     "version": "9.0",
+    "x-firebolt-platform": "both",
     "description": "Shared type definitions used across all Firebolt 9 API modules."
   },
   "methods": [],

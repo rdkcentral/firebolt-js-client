@@ -4,6 +4,9 @@
  *   12.1: enum identifier "app:adult" → "AppAdult" across all outputs
  *   12.2: format:date-time → datetime in Python, string elsewhere
  *   12.3: subscribe pattern present in all outputs for onStateChanged
+ *   12.4: platform filtering — Discovery (both) in all 5 targets
+ *   12.5: string constraints — onCountryChanged constraint notes in all targets
+ *   12.6: numeric constraints — rate property in VoiceGuidanceSettings
  */
 
 import { buildAST } from "../ast/builder";
@@ -22,8 +25,15 @@ import "../generators/python";
 
 import discoveryDoc from "../../src/openrpc/discovery.json";
 import lifecycle2Doc from "../../src/openrpc/lifecycle2.json";
+import localizationDoc from "../../src/openrpc/localization.json";
+import accessibilityDoc from "../../src/openrpc/accessibility.json";
 
-const ast = buildAST([discoveryDoc as never, lifecycle2Doc as never]);
+const ast = buildAST([
+  discoveryDoc as never,
+  lifecycle2Doc as never,
+  localizationDoc as never,
+  accessibilityDoc as never,
+]);
 const config: GenConfig = { outDir: "/tmp/firebolt-test-out" };
 const outputs = runAll(ast.modules, config);
 
@@ -109,31 +119,17 @@ describe("12.2 format:date-time — datetime in Python, string in all others", (
   });
 });
 
+// Helper: assert output is absent by path fragment
+function expectNoOutput(pathFragment: string): void {
+  const hit = outputs.find((o) => o.filePath.includes(pathFragment));
+  if (hit) throw new Error(`Expected no output matching "${pathFragment}" but found: ${hit.filePath}`);
+}
+
 // ---------------------------------------------------------------------------
-// 12.3: subscribe pattern for onStateChanged in all targets
+// 12.3: subscribe pattern for onStateChanged — native targets only
 // ---------------------------------------------------------------------------
 
-describe("12.3 Subscribe pattern — callback + unsubscribe in all targets", () => {
-  test("TypeScript: onStateChanged takes callback and returns () => void", () => {
-    const ts = getOutput("ts/Lifecycle2.d.ts");
-    expect(ts).toContain("onStateChanged");
-    expect(ts).toContain("callback");
-    expect(ts).toContain("() => void");
-  });
-
-  test("ReScript: onStateChanged returns (unit => unit)", () => {
-    const res = getOutput("res/Lifecycle2.res");
-    expect(res).toContain("onStateChanged");
-    expect(res).toContain("unit => unit");
-  });
-
-  test("Kotlin: onStateChanged takes callback and returns () -> Unit", () => {
-    const kt = getOutput("kt/Lifecycle2.kt");
-    expect(kt).toContain("onStateChanged");
-    expect(kt).toContain("callback");
-    expect(kt).toContain("() -> Unit");
-  });
-
+describe("12.3 Subscribe pattern — Lifecycle2 native targets only", () => {
   test("C++: onStateChanged takes std::function callback and returns UnsubscribeFn", () => {
     const cpp = getOutput("cpp/firebolt/Lifecycle2.hpp");
     expect(cpp).toContain("onStateChanged");
@@ -152,5 +148,134 @@ describe("12.3 Subscribe pattern — callback + unsubscribe in all targets", () 
     const proto = getOutput("lifecycle2_protocol.py");
     expect(proto).toContain("@abstractmethod");
     expect(proto).toContain("onStateChanged");
+  });
+
+  // Negative: web generators must NOT emit Lifecycle2 output
+  test("TypeScript: NO Lifecycle2.d.ts emitted (Lifecycle2 is native-only)", () => {
+    expectNoOutput("ts/Lifecycle2.d.ts");
+  });
+
+  test("ReScript: NO Lifecycle2.res emitted (Lifecycle2 is native-only)", () => {
+    expectNoOutput("res/Lifecycle2.res");
+  });
+
+  test("Kotlin: NO Lifecycle2.kt emitted (Lifecycle2 is native-only)", () => {
+    expectNoOutput("kt/Lifecycle2.kt");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 12.5: String constraints — onCountryChanged annotations in all targets
+// ---------------------------------------------------------------------------
+
+describe("12.5 String constraints — onCountryChanged constraint notes in all targets", () => {
+  test("TypeScript: constraint note in Localization.d.ts", () => {
+    const ts = getOutput("ts/Localization.d.ts");
+    expect(ts).toContain("minLength=2");
+    expect(ts).toContain("maxLength=2");
+    expect(ts).toContain("pattern=^[A-Z]{2}$");
+  });
+
+  test("ReScript: constraint comment in Localization.res", () => {
+    const res = getOutput("res/Localization.res");
+    expect(res).toContain("minLength=2");
+    expect(res).toContain("maxLength=2");
+    expect(res).toContain("pattern=^[A-Z]{2}$");
+  });
+
+  test("Kotlin: constraint KDoc in Localization.kt", () => {
+    const kt = getOutput("kt/Localization.kt");
+    expect(kt).toContain("minLength=2");
+    expect(kt).toContain("maxLength=2");
+    expect(kt).toContain("pattern=^[A-Z]{2}$");
+  });
+
+  test("C++: constraint comment in Localization.hpp", () => {
+    const cpp = getOutput("cpp/firebolt/Localization.hpp");
+    expect(cpp).toContain("minLength=2");
+    expect(cpp).toContain("maxLength=2");
+    expect(cpp).toContain("pattern=^[A-Z]{2}$");
+  });
+
+  test("Python .pyi: Annotated[str, ...] for constrained string", () => {
+    const pyi = getOutput("localization.pyi");
+    expect(pyi).toContain("Annotated[str,");
+    expect(pyi).toContain("minLength=2");
+    expect(pyi).toContain("maxLength=2");
+    expect(pyi).toContain("pattern=^[A-Z]{2}$");
+  });
+
+  test("Python .pyi: Annotated import present", () => {
+    const pyi = getOutput("localization.pyi");
+    expect(pyi).toContain("from typing import Annotated");
+  });
+});
+
+describe("12.4 Platform filtering — Discovery (platform: both) in all 5 targets", () => {
+  test("TypeScript: Discovery.d.ts exists", () => {
+    expect(getOutput("ts/Discovery.d.ts")).toBeTruthy();
+  });
+
+  test("ReScript: Discovery.res exists", () => {
+    expect(getOutput("res/Discovery.res")).toBeTruthy();
+  });
+
+  test("Kotlin: Discovery.kt exists", () => {
+    expect(getOutput("kt/Discovery.kt")).toBeTruthy();
+  });
+
+  test("C++: Discovery.hpp exists", () => {
+    expect(getOutput("cpp/firebolt/Discovery.hpp")).toBeTruthy();
+  });
+
+  test("Python: discovery.pyi exists", () => {
+    expect(getOutput("discovery.pyi")).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 12.6: Numeric constraints — VoiceGuidanceSettings.rate in all 5 targets
+// ---------------------------------------------------------------------------
+
+describe("12.6 Numeric constraints — rate property in VoiceGuidanceSettings", () => {
+  test("TypeScript: JSDoc constraint on rate property in Accessibility.d.ts", () => {
+    const ts = getOutput("ts/Accessibility.d.ts");
+    expect(ts).toContain("minimum=0.1");
+    expect(ts).toContain("maximum=10");
+  });
+
+  test("TypeScript: rate is number type", () => {
+    const ts = getOutput("ts/Accessibility.d.ts");
+    expect(ts).toContain("rate: number");
+  });
+
+  test("ReScript: inline constraint comment on rate in Accessibility.res", () => {
+    const res = getOutput("res/Accessibility.res");
+    expect(res).toContain("minimum=0.1");
+    expect(res).toContain("maximum=10");
+  });
+
+  test("Kotlin: inline constraint comment on rate in Accessibility.kt", () => {
+    const kt = getOutput("kt/Accessibility.kt");
+    expect(kt).toContain("minimum=0.1");
+    expect(kt).toContain("maximum=10");
+  });
+
+  test("C++: inline constraint comment on rate in Accessibility.hpp", () => {
+    const cpp = getOutput("cpp/firebolt/Accessibility.hpp");
+    expect(cpp).toContain("minimum=0.1");
+    expect(cpp).toContain("maximum=10");
+  });
+
+  test("Python .pyi: Annotated[float, ...] for constrained rate", () => {
+    const pyi = getOutput("accessibility.pyi");
+    expect(pyi).toContain("Annotated[float,");
+    expect(pyi).toContain("minimum=0.1");
+    expect(pyi).toContain("maximum=10");
+  });
+
+  test("Python .pyi: Annotated import present for accessibility", () => {
+    const pyi = getOutput("accessibility.pyi");
+    expect(pyi).toContain("from typing import Annotated");
   });
 });

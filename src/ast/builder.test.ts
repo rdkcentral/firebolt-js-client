@@ -1,6 +1,6 @@
 /**
  * Unit tests for the Canonical AST Builder.
- * Covers Rules 1, 2, 3, and 5.
+ * Covers Rules 1, 2, 3, 5, and 7 (string + numeric constraints).
  */
 
 import { buildAST, deriveIdentifier, OpenRPCDocument } from "./builder";
@@ -11,7 +11,7 @@ import { buildAST, deriveIdentifier, OpenRPCDocument } from "./builder";
 
 const DISCOVERY_DOC: OpenRPCDocument = {
   openrpc: "1.2.4",
-  info: { title: "Discovery", version: "9.0" },
+  info: { title: "Discovery", version: "9.0", "x-firebolt-platform": "both" },
   methods: [
     {
       name: "Discovery.watched",
@@ -39,7 +39,7 @@ const DISCOVERY_DOC: OpenRPCDocument = {
 
 const LIFECYCLE2_DOC: OpenRPCDocument = {
   openrpc: "1.2.4",
-  info: { title: "Lifecycle2", version: "9.0" },
+  info: { title: "Lifecycle2", version: "9.0", "x-firebolt-platform": "native" },
   methods: [
     {
       name: "Lifecycle2.onStateChanged",
@@ -231,7 +231,7 @@ describe("Rule 5 — format date-time propagation", () => {
 describe("Rule 3 — collision detection", () => {
   const collidingDoc: OpenRPCDocument = {
     openrpc: "1.2.4",
-    info: { title: "Test", version: "1.0" },
+    info: { title: "Test", version: "1.0", "x-firebolt-platform": "web" },
     methods: [],
     components: {
       schemas: {
@@ -255,5 +255,207 @@ describe("Rule 3 — collision detection", () => {
 describe("buildAST error cases", () => {
   test("throws when called with no documents", () => {
     expect(() => buildAST([])).toThrow();
+  });
+
+  test("throws when x-firebolt-platform is missing", () => {
+    const noPlatformDoc: OpenRPCDocument = {
+      openrpc: "1.2.4",
+      info: { title: "MissingPlatform", version: "9.0" },
+      methods: [],
+    };
+    expect(() => buildAST([noPlatformDoc])).toThrow(/x-firebolt-platform/);
+  });
+
+  test("throws when x-firebolt-platform has an invalid value", () => {
+    const badPlatformDoc: OpenRPCDocument = {
+      openrpc: "1.2.4",
+      info: { title: "BadPlatform", version: "9.0", "x-firebolt-platform": "mobile" },
+      methods: [],
+    };
+    expect(() => buildAST([badPlatformDoc])).toThrow(/invalid/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Platform classification
+// ---------------------------------------------------------------------------
+
+describe("Platform classification", () => {
+  test("Discovery module has platform 'both'", () => {
+    const ast = buildAST([DISCOVERY_DOC]);
+    expect(ast.modules[0].platform).toBe("both");
+  });
+
+  test("Lifecycle2 module has platform 'native'", () => {
+    const ast = buildAST([LIFECYCLE2_DOC]);
+    expect(ast.modules[0].platform).toBe("native");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Rule 7: string constraint propagation
+// ---------------------------------------------------------------------------
+
+const LOCALIZATION_DOC: OpenRPCDocument = {
+  openrpc: "1.2.4",
+  info: { title: "Localization", version: "9.0", "x-firebolt-platform": "both" },
+  methods: [
+    {
+      name: "Localization.onCountryChanged",
+      description: "Fires when the country setting changes.",
+      params: [
+        { name: "listen", required: true, schema: { type: "boolean" } },
+      ],
+      result: {
+        name: "result",
+        schema: {
+          oneOf: [
+            { $ref: "shared.json#/components/schemas/ListenResponse" },
+            {
+              type: "string",
+              minLength: 2,
+              maxLength: 2,
+              pattern: "^[A-Z]{2}$",
+              description: "ISO 3166-1 alpha-2 country code",
+            },
+          ],
+        },
+      },
+    },
+    {
+      name: "Localization.getUnconstrained",
+      description: "Returns a plain string with no constraints.",
+      params: [],
+      result: {
+        name: "result",
+        schema: { type: "string" },
+      },
+    },
+  ],
+  components: { schemas: {} },
+};
+
+describe("Rule 7 — string constraint propagation", () => {
+  const ast = buildAST([LOCALIZATION_DOC]);
+  const mod = ast.modules[0];
+  const onCountryChanged = mod.methods.find((m) => m.name === "onCountryChanged");
+  const getUnconstrained  = mod.methods.find((m) => m.name === "getUnconstrained");
+
+  test("onCountryChanged result is a PrimitiveRef string", () => {
+    expect(onCountryChanged?.result?.kind).toBe("primitive");
+    if (onCountryChanged?.result?.kind === "primitive") {
+      expect(onCountryChanged.result.primitive).toBe("string");
+    }
+  });
+
+  test("onCountryChanged result carries minLength=2", () => {
+    if (onCountryChanged?.result?.kind === "primitive") {
+      expect(onCountryChanged.result.constraints?.minLength).toBe(2);
+    }
+  });
+
+  test("onCountryChanged result carries maxLength=2", () => {
+    if (onCountryChanged?.result?.kind === "primitive") {
+      expect(onCountryChanged.result.constraints?.maxLength).toBe(2);
+    }
+  });
+
+  test("onCountryChanged result carries pattern=^[A-Z]{2}$", () => {
+    if (onCountryChanged?.result?.kind === "primitive") {
+      expect(onCountryChanged.result.constraints?.pattern).toBe("^[A-Z]{2}$");
+    }
+  });
+
+  test("plain string result has no constraints property", () => {
+    expect(getUnconstrained?.result?.kind).toBe("primitive");
+    if (getUnconstrained?.result?.kind === "primitive") {
+      expect(getUnconstrained.result.constraints).toBeUndefined();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Rule 7: numeric constraint propagation
+// ---------------------------------------------------------------------------
+
+const ACCESSIBILITY_DOC: OpenRPCDocument = {
+  openrpc: "1.2.4",
+  info: { title: "Accessibility", version: "9.0", "x-firebolt-platform": "both" },
+  methods: [
+    {
+      name: "Accessibility.voiceGuidanceSettings",
+      description: "Returns current voice guidance configuration.",
+      params: [],
+      result: {
+        name: "result",
+        schema: { $ref: "#/components/schemas/VoiceGuidanceSettings" },
+      },
+    },
+  ],
+  components: {
+    schemas: {
+      VoiceGuidanceSettings: {
+        title: "VoiceGuidanceSettings",
+        type: "object",
+        description: "Voice guidance configuration.",
+        properties: {
+          enabled:         { type: "boolean" },
+          rate:            { type: "number", format: "double", minimum: 0.1, maximum: 10 },
+          navigationHints: { type: "boolean" },
+        },
+        required: ["enabled", "rate", "navigationHints"],
+      },
+    },
+  },
+};
+
+describe("Rule 7 — numeric constraint propagation", () => {
+  const ast = buildAST([ACCESSIBILITY_DOC]);
+  const mod = ast.modules[0];
+  const settings = mod.types.find((t) => t.name === "VoiceGuidanceSettings");
+  const rateProp  = settings?.kind === "object"
+    ? settings.properties.find((p) => p.name === "rate")
+    : undefined;
+  const enabledProp = settings?.kind === "object"
+    ? settings.properties.find((p) => p.name === "enabled")
+    : undefined;
+
+  test("VoiceGuidanceSettings type is emitted", () => {
+    expect(settings).toBeDefined();
+    expect(settings?.kind).toBe("object");
+  });
+
+  test("rate property type is a double PrimitiveRef", () => {
+    expect(rateProp?.type.kind).toBe("primitive");
+    if (rateProp?.type.kind === "primitive") {
+      expect(rateProp.type.primitive).toBe("double");
+    }
+  });
+
+  test("rate property carries minimum=0.1", () => {
+    if (rateProp?.type.kind === "primitive") {
+      expect(rateProp.type.constraints?.minimum).toBeCloseTo(0.1);
+    }
+  });
+
+  test("rate property carries maximum=10", () => {
+    if (rateProp?.type.kind === "primitive") {
+      expect(rateProp.type.constraints?.maximum).toBe(10);
+    }
+  });
+
+  test("enabled property (bool) has no constraints", () => {
+    expect(enabledProp?.type.kind).toBe("primitive");
+    if (enabledProp?.type.kind === "primitive") {
+      expect(enabledProp.type.constraints).toBeUndefined();
+    }
+  });
+
+  test("voiceGuidanceSettings method result is NamedRef to VoiceGuidanceSettings", () => {
+    const method = mod.methods[0];
+    expect(method.result?.kind).toBe("named");
+    if (method.result?.kind === "named") {
+      expect(method.result.name).toBe("VoiceGuidanceSettings");
+    }
   });
 });

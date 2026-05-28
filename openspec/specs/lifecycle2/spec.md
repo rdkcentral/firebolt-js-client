@@ -1,6 +1,7 @@
 ---
 module: Lifecycle2
 version: "9.0"
+platform: native
 stability: stable
 description: |
   Manages the lifecycle state of an app as controlled by the platform.

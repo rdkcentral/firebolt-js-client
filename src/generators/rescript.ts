@@ -22,7 +22,7 @@ import {
   TypeDecl,
   TypeRef,
 } from "../ast/types";
-import { GenConfig, GeneratorOutput, registerGenerator } from "./index";
+import { GenConfig, GeneratorOutput, extractConstraints, formatConstraintNote, registerGenerator } from "./index";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -76,11 +76,16 @@ function emitObject(decl: ObjectTypeDecl): string[] {
   const lines: string[] = [];
   lines.push(`type ${lcFirst(decl.name)} = {`);
   for (const prop of decl.properties) {
-    const t =
+    const ref =
       !prop.required && prop.type.kind === "optional"
-        ? `option<${typeRefToRes((prop.type as OptionalRef).inner)}>`
-        : typeRefToRes(prop.type);
-    lines.push(`  ${prop.name}: ${t},`);
+        ? (prop.type as OptionalRef).inner
+        : prop.type;
+    const t = !prop.required && prop.type.kind === "optional"
+      ? `option<${typeRefToRes(ref)}>`
+      : typeRefToRes(ref);
+    const c = extractConstraints(ref);
+    const note = c ? ` /* ${formatConstraintNote(c)} */` : "";
+    lines.push(`  ${prop.name}: ${t},${note}`);
   }
   lines.push(`}`);
   return lines;
@@ -100,10 +105,12 @@ function emitCallMethod(method: Method, moduleName: string): string[] {
   const sep = params ? ", " : "";
   const resultType =
     method.result === null ? "unit" : `promise<${typeRefToRes(method.result)}>`;
-  return [
-    `@val @scope("${moduleName}")`,
-    `external ${lcFirst(method.name)}: (${params}${sep}unit) => ${resultType} = "${method.name}"`,
-  ];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`/* ${constraintNote} */`);
+  lines.push(`@val @scope("${moduleName}")`);
+  lines.push(`external ${lcFirst(method.name)}: (${params}${sep}unit) => ${resultType} = "${method.name}"`);
+  return lines;
 }
 
 function emitSubscribeMethod(method: Method, moduleName: string): string[] {
@@ -113,10 +120,25 @@ function emitSubscribeMethod(method: Method, moduleName: string): string[] {
     method.result === null
       ? `(unit => unit)`
       : `(${typeRefToRes(method.result)} => unit)`;
-  return [
-    `@val @scope("${moduleName}")`,
-    `external ${lcFirst(method.name)}: (${params}${sep}~callback: ${callbackType}) => (unit => unit) = "${method.name}"`,
-  ];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`/* ${constraintNote} */`);
+  lines.push(`@val @scope("${moduleName}")`);
+  lines.push(`external ${lcFirst(method.name)}: (${params}${sep}~callback: ${callbackType}) => (unit => unit) = "${method.name}"`);
+  return lines;
+}
+
+function buildConstraintNote(method: Method): string {
+  const notes: string[] = [];
+  for (const p of method.params) {
+    const c = extractConstraints(p.type);
+    if (c) notes.push(`${p.name}: ${formatConstraintNote(c)}`);
+  }
+  if (method.result) {
+    const c = extractConstraints(method.result);
+    if (c) notes.push(`result: ${formatConstraintNote(c)}`);
+  }
+  return notes.length ? `Constraints — ${notes.join(" | ")}` : "";
 }
 
 function paramToRes(p: Param): string {
@@ -171,4 +193,4 @@ function lcFirst(s: string): string {
 // Register
 // ---------------------------------------------------------------------------
 
-registerGenerator("res", generate);
+registerGenerator("res", generate, "web");

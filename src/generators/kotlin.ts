@@ -24,7 +24,7 @@ import {
   TypeDecl,
   TypeRef,
 } from "../ast/types";
-import { GenConfig, GeneratorOutput, registerGenerator } from "./index";
+import { GenConfig, GeneratorOutput, extractConstraints, formatConstraintNote, registerGenerator } from "./index";
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -102,12 +102,14 @@ function emitObject(decl: ObjectTypeDecl): string[] {
   lines.push(`external interface ${decl.name} {`);
   for (const prop of decl.properties) {
     const isOpt = !prop.required;
-    const innerRef =
+    const ref =
       isOpt && prop.type.kind === "optional"
         ? (prop.type as OptionalRef).inner
         : prop.type;
-    const ktType = isOpt ? `${typeRefToKt(innerRef)}?` : typeRefToKt(innerRef);
-    lines.push(`    val ${prop.name}: ${ktType}`);
+    const ktType = isOpt ? `${typeRefToKt(ref)}?` : typeRefToKt(ref);
+    const c = extractConstraints(ref);
+    const note = c ? ` // ${formatConstraintNote(c)}` : "";
+    lines.push(`    val ${prop.name}: ${ktType}${note}`);
   }
   lines.push(`}`);
   return lines;
@@ -125,7 +127,11 @@ function emitMethod(method: Method): string[] {
 function emitCallMethod(method: Method): string[] {
   const params = method.params.map(paramToKt).join(", ");
   const resultType = method.result === null ? "Unit" : typeRefToKt(method.result);
-  return [`fun ${method.name}(${params}): Promise<${resultType}>`];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`/** ${constraintNote} */`);
+  lines.push(`fun ${method.name}(${params}): Promise<${resultType}>`);
+  return lines;
 }
 
 function emitSubscribeMethod(method: Method): string[] {
@@ -135,7 +141,24 @@ function emitSubscribeMethod(method: Method): string[] {
       ? `() -> Unit`
       : `(${typeRefToKt(method.result)}) -> Unit`;
   params.push(`callback: ${callbackType}`);
-  return [`fun ${method.name}(${params.join(", ")}): () -> Unit`];
+  const lines: string[] = [];
+  const constraintNote = buildConstraintNote(method);
+  if (constraintNote) lines.push(`/** ${constraintNote} */`);
+  lines.push(`fun ${method.name}(${params.join(", ")}): () -> Unit`);
+  return lines;
+}
+
+function buildConstraintNote(method: Method): string {
+  const notes: string[] = [];
+  for (const p of method.params) {
+    const c = extractConstraints(p.type);
+    if (c) notes.push(`${p.name}: ${formatConstraintNote(c)}`);
+  }
+  if (method.result) {
+    const c = extractConstraints(method.result);
+    if (c) notes.push(`result: ${formatConstraintNote(c)}`);
+  }
+  return notes.length ? `Constraints — ${notes.join(" | ")}` : "";
 }
 
 function paramToKt(p: Param): string {
@@ -181,4 +204,4 @@ function primitiveToKt(ref: PrimitiveRef): string {
 // Register
 // ---------------------------------------------------------------------------
 
-registerGenerator("kt", generate);
+registerGenerator("kt", generate, "web");

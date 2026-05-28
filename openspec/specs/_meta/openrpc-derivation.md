@@ -96,6 +96,122 @@ Rules:
 |----------------|---------------------------------------|
 | `date-time`    | `"format": "date-time"` appended to `string` schema |
 
+### 3a. String Constraint Mapping (Rule 7)
+
+When a spec declares `minLength`, `maxLength`, or `pattern` on a `string` type,
+these map **verbatim** to the JSON Schema keywords of the same name.
+
+**Derivation:**
+
+```yaml
+# Spec
+type: string
+minLength: 2
+maxLength: 2
+pattern: "^[A-Z]{2}$"
+```
+
+```json
+// OpenRPC → JSON Schema
+{
+  "type": "string",
+  "minLength": 2,
+  "maxLength": 2,
+  "pattern": "^[A-Z]{2}$"
+}
+```
+
+**Rules for string constraints in OpenRPC:**
+- All three keywords are optional and independent.
+- `pattern` must be an ECMAScript (ECMA 262) regular expression — JSON Schema 
+  `pattern` keyword does not support POSIX classes.
+- For subscribe event payloads, constraints go on the inline schema inside `oneOf`,
+  not on the `ListenResponse` variant.
+- String constraints in `components/schemas` named types are also carried verbatim.
+- The AST builder (Rule 7) reads all three keywords and stores them on `PrimitiveRef.constraints`.
+
+**Example — ISO 3166-1 alpha-2 country code as a subscribe payload:**
+
+```json
+{
+  "name": "Localization.onCountryChanged",
+  "params": [
+    { "name": "listen", "required": true, "schema": { "type": "boolean" } }
+  ],
+  "result": {
+    "name": "result",
+    "schema": {
+      "oneOf": [
+        { "$ref": "shared.json#/components/schemas/ListenResponse" },
+        {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+### 3b. Numeric Constraint Mapping (Rule 7)
+
+When a spec declares `minimum` or `maximum` on a `double` or `unsigned` type,
+these map **verbatim** to the JSON Schema keywords of the same name.
+
+**Derivation:**
+
+```yaml
+# Spec
+type: double
+minimum: 0.1
+maximum: 10
+```
+
+```json
+// OpenRPC → JSON Schema
+{
+  "type": "number",
+  "format": "double",
+  "minimum": 0.1,
+  "maximum": 10
+}
+```
+
+**Rules for numeric constraints in OpenRPC:**
+- Both keywords are optional and independent.
+- `minimum` and `maximum` are **inclusive** bounds (JSON Schema semantics).
+- Constraints on named type properties are placed directly on the property schema
+  inside `components/schemas`.
+- The AST builder (Rule 7) reads both keywords and stores them on
+  `PrimitiveRef.constraints` for `double` and `unsigned` primitives.
+
+**Example — voice guidance rate on a named object type:**
+
+```json
+{
+  "components": {
+    "schemas": {
+      "VoiceGuidanceSettings": {
+        "type": "object",
+        "properties": {
+          "enabled":         { "type": "boolean" },
+          "rate":            { "type": "number", "format": "double",
+                               "minimum": 0.1, "maximum": 10,
+                               "description": "Speech rate; 1.0 = normal" },
+          "navigationHints": { "type": "boolean" }
+        },
+        "required": ["enabled", "rate", "navigationHints"]
+      }
+    }
+  }
+}
+```
+
 ### 4. `properties:` → Method(s)
 
 Each property generates 1, 2, or 3 OpenRPC methods depending on `writable`.

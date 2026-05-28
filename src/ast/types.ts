@@ -13,9 +13,25 @@ export interface CanonicalAST {
   modules: Module[];
 }
 
+/**
+ * Platform classification for a module.
+ *   web    — available to web-based runtimes only  → generators: ts, res, kt
+ *   native — available to native SDK integrations only → generators: cpp, py
+ *   both   — available to all runtimes → all generators
+ *
+ * Every spec MUST declare a platform. This is enforced by the AST builder.
+ */
+export type Platform = "web" | "native" | "both";
+
 export interface Module {
   /** PascalCase module name, e.g. "Discovery", "Lifecycle2" */
   name: string;
+  /**
+   * Platform classification. Derived from `x-firebolt-platform` in the
+   * OpenRPC document's `info` object. Generators use this to skip modules
+   * that don't target their runtime.
+   */
+  platform: Platform;
   types: TypeDecl[];
   methods: Method[];
 }
@@ -133,6 +149,28 @@ export type TypeRef =
 
 export type PrimitiveKind = "bool" | "string" | "unsigned" | "double";
 
+/**
+ * Validation constraints on a primitive value (Rule 7).
+ * Derived from JSON Schema keywords. Only fields relevant to the primitive kind
+ * should be present:
+ *   string          → minLength, maxLength, pattern
+ *   double/unsigned → minimum, maximum
+ */
+export interface Constraints {
+  // String constraints
+  /** Minimum character count (inclusive) */
+  minLength?: number;
+  /** Maximum character count (inclusive) */
+  maxLength?: number;
+  /** ECMAScript regular expression the full value must match */
+  pattern?: string;
+  // Numeric constraints
+  /** Inclusive lower bound */
+  minimum?: number;
+  /** Inclusive upper bound */
+  maximum?: number;
+}
+
 export interface PrimitiveRef {
   kind: "primitive";
   primitive: PrimitiveKind;
@@ -141,6 +179,12 @@ export interface PrimitiveRef {
    * Currently used: "date-time" — Python generator promotes to datetime.
    */
   format?: string;
+  /**
+   * Validation constraints (Rule 7).
+   * Present only when at least one constraint was declared in the spec /
+   * OpenRPC schema. See Constraints for which fields apply to each kind.
+   */
+  constraints?: Constraints;
 }
 
 export interface NamedRef {

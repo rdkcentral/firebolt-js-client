@@ -3,12 +3,17 @@
 Firebolt 9 needs a single build-time pipeline that transforms human-authored API
 semantics into type-safe language headers for five targets. No such pipeline exists
 today. The meta-guidelines in `openspec/specs/_meta/` define the rules; this PoC
-implements them for two methods that collectively exercise every pipeline node type:
+implements them for four modules that collectively exercise every pipeline node type
+plus two constraint kinds:
 
 - `Discovery.watched` — `kind: "call"`, required + optional params, enum ref,
   `format: "date-time"`, void result
 - `Lifecycle2.onStateChanged` — `kind: "subscribe"`, structured enum payload,
   no params after builder strips `listen`
+- `Localization.onCountryChanged` — `kind: "subscribe"`, string payload with
+  `minLength`/`maxLength`/`pattern` constraints; platform: both
+- `Accessibility.voiceGuidanceSettings` — `kind: "call"`, returns named object type
+  with a `double` property carrying `minimum`/`maximum` constraints; platform: both
 
 The generator host is TypeScript (Node.js, build-time only). No runtime dependency
 is introduced into the Firebolt JS client itself.
@@ -16,9 +21,13 @@ is introduced into the Firebolt JS client itself.
 ## Goals / Non-Goals
 
 **Goals:**
-- Implement the full four-layer pipeline for the two PoC methods
-- Prove every AST node type (EnumType, ObjectType, PrimitiveRef with format,
+- Implement the full four-layer pipeline for the four PoC modules
+- Prove every AST node type (EnumType, ObjectType, PrimitiveRef with format/constraints,
   NamedRef, ArrayRef) is correctly translated to all five target languages
+- Establish platform classification: `web | native | both` enforced at build time;
+  generators only emit output for modules targeting their runtime
+- Establish value constraints: string (`minLength`, `maxLength`, `pattern`) and numeric
+  (`minimum`, `maximum`) declared once in the spec and surfaced in all generators
 - Establish generator contracts that make adding a new module mechanical
 - Validate generated headers with each language's own toolchain
 
@@ -27,7 +36,7 @@ is introduced into the Firebolt JS client itself.
 - Runtime JSON-RPC transport layer
 - Property kind (getter + setter + onChange triple) — no PoC examples needed
 - CI/CD integration
-- Cross-module `$ref` (no current cases in Firebolt 9)
+- Cross-module `$ref` resolution (no current cases in Firebolt 9)
 
 ## Decisions
 
@@ -146,13 +155,15 @@ A single pass is simpler than two separate generators.
 
 ## Pipeline Trace — Full Example
 
-Showing the complete chain for both PoC methods:
+Showing the complete chain for all four PoC modules (abbreviated to key nodes).
+
+### Discovery.watched + Lifecycle2.onStateChanged (original PoC methods)
 
 ```
 LAYER 1 — OPENSPEC
 ─────────────────────────────────────────────────────────
 
-openspec/specs/discovery/spec.md
+openspec/specs/discovery/spec.md     platform: both
   actions:
     watched:
       params: [entityId(string,req), progress(double,opt),
@@ -160,7 +171,7 @@ openspec/specs/discovery/spec.md
                agePolicy($ref:AgePolicy,opt)]
       result: none
 
-openspec/specs/lifecycle2/spec.md
+openspec/specs/lifecycle2/spec.md    platform: native
   types:
     LifecycleState: enum [initializing,paused,active,suspended,hibernated,terminating]
     StateChangedEvent: object {oldState: $ref:LifecycleState, newState: $ref:LifecycleState}
@@ -172,72 +183,177 @@ LAYER 2 — DERIVED OPENRPC
 ─────────────────────────────────────────────────────────
 
 src/openrpc/discovery.json
+  info["x-firebolt-platform"]: "both"
   method: Discovery.watched
     params: [entityId(string,req), progress(number,opt), completed(bool,opt),
              watchedOn(string+date-time,opt), agePolicy($ref:AgePolicy,opt)]
     result: { type: "null" }
 
 src/openrpc/lifecycle2.json
+  info["x-firebolt-platform"]: "native"
   method: Lifecycle2.onStateChanged   ← subscribe tag
-    params: [listen(boolean,req)]     ← INJECTED by derivation rules
+    params: [listen(boolean,req)]
     result: oneOf[ListenResponse, $ref:StateChangedEvent]
 
 
 LAYER 3 — CANONICAL AST  (after builder rules applied)
 ─────────────────────────────────────────────────────────
 
-Method {
-  name: "watched", kind: "call",
-  params: [
-    {name:"entityId",  type:PrimitiveRef(string),              required:true },
-    {name:"progress",  type:PrimitiveRef(number),              required:false},
-    {name:"completed", type:PrimitiveRef(boolean),             required:false},
-    {name:"watchedOn", type:PrimitiveRef(string,"date-time"),  required:false},
-    {name:"agePolicy", type:NamedRef("AgePolicy"),             required:false}
-  ],
-  result: PrimitiveRef(null)
-}
+Module { name:"Discovery", platform:"both", methods:[watched], types:[AgePolicy] }
+Module { name:"Lifecycle2", platform:"native", methods:[onStateChanged], types:[...] }
 
-Method {
-  name: "onStateChanged", kind: "subscribe",
-  params: [],                           ← listen STRIPPED (Rule 2)
-  result: NamedRef("StateChangedEvent") ← ListenResponse STRIPPED (Rule 1)
-}
-
-EnumType { name:"AgePolicy", values:[
-  {serializedId:"app:adult",  identifier:"AppAdult"},
-  {serializedId:"app:child",  identifier:"AppChild"},
-  {serializedId:"app:teen",   identifier:"AppTeen" }
-]}
-
-EnumType { name:"LifecycleState", values:[
-  {serializedId:"initializing", identifier:"Initializing"},
-  ...
-]}
-
-ObjectType { name:"StateChangedEvent", fields:[
-  {name:"oldState", type:NamedRef("LifecycleState"), required:true},
-  {name:"newState", type:NamedRef("LifecycleState"), required:true}
-]}
+Method { name:"watched", kind:"call", params:[...5 params...], result:null }
+Method { name:"onStateChanged", kind:"subscribe", params:[], result:NamedRef("StateChangedEvent") }
 
 
 LAYER 4 — GENERATED HEADERS (TypeScript example)
 ─────────────────────────────────────────────────────────
 
-// out/ts/Discovery.d.ts
+// out/ts/Discovery.d.ts            ← emitted (platform: both → web targets run)
 type AgePolicy = "app:adult" | "app:child" | "app:teen";
 declare namespace Discovery {
-  function watched(entityId: string, progress?: number,
-    completed?: boolean, watchedOn?: string,
-    agePolicy?: AgePolicy): Promise<void>;
+  function watched(entityId: string, progress?: number, ...): Promise<void>;
 }
 
-// out/ts/Lifecycle2.d.ts
-type LifecycleState = "initializing"|"paused"|"active"|"suspended"|"hibernated"|"terminating";
-interface StateChangedEvent { oldState: LifecycleState; newState: LifecycleState; }
-declare namespace Lifecycle2 {
-  function onStateChanged(callback: (event: StateChangedEvent) => void): () => void;
+// out/ts/Lifecycle2.d.ts           ← NOT emitted (platform: native, ts is web target)
+// out/cpp/firebolt/Lifecycle2.hpp  ← emitted (platform: native → native targets run)
+```
+
+---
+
+### Localization.onCountryChanged (string constraints)
+
+```
+LAYER 1 — OPENSPEC
+─────────────────────────────────────────────────────────
+
+openspec/specs/localization/spec.md   platform: both
+  events:
+    onCountryChanged:
+      payload:
+        type: string
+        minLength: 2
+        maxLength: 2
+        pattern: "^[A-Z]{2}$"
+        description: ISO 3166-1 alpha-2 country code
+
+
+LAYER 2 — DERIVED OPENRPC
+─────────────────────────────────────────────────────────
+
+src/openrpc/localization.json
+  info["x-firebolt-platform"]: "both"
+  method: Localization.onCountryChanged
+    result: oneOf[
+      ListenResponse,
+      { "type":"string", "minLength":2, "maxLength":2, "pattern":"^[A-Z]{2}$" }
+    ]
+
+
+LAYER 3 — CANONICAL AST
+─────────────────────────────────────────────────────────
+
+Method {
+  name: "onCountryChanged", kind: "subscribe",
+  params: [],
+  result: PrimitiveRef {
+    kind: "primitive", primitive: "string",
+    constraints: { minLength: 2, maxLength: 2, pattern: "^[A-Z]{2}$" }
+  }
 }
+
+
+LAYER 4 — GENERATED HEADERS
+─────────────────────────────────────────────────────────
+
+// TypeScript (.d.ts)
+/** Fires when the platform's active country setting changes.
+ * Constraints — event payload: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
+function onCountryChanged(callback: (event: string) => void): () => void;
+
+// Python (.pyi)
+def onCountryChanged(self, callback: Callable[[Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]], None]) -> Callable[[], None]: ...
+
+// C++ (.hpp)
+// Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$
+UnsubscribeFn onCountryChanged(std::function<void(std::string)> callback);
+```
+
+---
+
+### Accessibility.voiceGuidanceSettings (numeric constraints on object property)
+
+```
+LAYER 1 — OPENSPEC
+─────────────────────────────────────────────────────────
+
+openspec/specs/accessibility/spec.md   platform: both
+  types:
+    VoiceGuidanceSettings:
+      properties:
+        enabled:         type: bool
+        rate:            type: double, minimum: 0.1, maximum: 10
+        navigationHints: type: bool
+  actions:
+    voiceGuidanceSettings:
+      result: $ref: VoiceGuidanceSettings
+
+
+LAYER 2 — DERIVED OPENRPC
+─────────────────────────────────────────────────────────
+
+src/openrpc/accessibility.json
+  info["x-firebolt-platform"]: "both"
+  components/schemas/VoiceGuidanceSettings:
+    type: object
+    properties:
+      rate: { type: "number", format: "double", minimum: 0.1, maximum: 10 }
+      ...
+  method: Accessibility.voiceGuidanceSettings
+    result: { $ref: "#/components/schemas/VoiceGuidanceSettings" }
+
+
+LAYER 3 — CANONICAL AST
+─────────────────────────────────────────────────────────
+
+ObjectTypeDecl {
+  kind: "object", name: "VoiceGuidanceSettings",
+  properties: [
+    { name: "enabled",         type: PrimitiveRef("bool"),   required: true },
+    { name: "rate",            type: PrimitiveRef("double",
+                                 constraints: { minimum: 0.1, maximum: 10 }),
+                                                              required: true },
+    { name: "navigationHints", type: PrimitiveRef("bool"),   required: true }
+  ]
+}
+
+Method { name: "voiceGuidanceSettings", kind: "call",
+         params: [], result: NamedRef("VoiceGuidanceSettings") }
+
+
+LAYER 4 — GENERATED HEADERS
+─────────────────────────────────────────────────────────
+
+// TypeScript (.d.ts)
+interface VoiceGuidanceSettings {
+  enabled: boolean;
+  /** Constraints: minimum=0.1, maximum=10 */
+  rate: number;
+  navigationHints: boolean;
+}
+
+// Kotlin (.kt)
+external interface VoiceGuidanceSettings {
+    val enabled: Boolean
+    val rate: Double // minimum=0.1, maximum=10
+    val navigationHints: Boolean
+}
+
+// Python (.pyi)
+class VoiceGuidanceSettings(TypedDict):
+    enabled: bool
+    rate: Annotated[float, "minimum=0.1, maximum=10"]
+    navigationHints: bool
 ```
 
 ## Risks / Trade-offs
@@ -268,3 +384,36 @@ declare namespace Lifecycle2 {
 
 - Should `out/` be committed to the repo for PoC review, or only generated on CI?
   Recommendation: commit for PoC review, add to `.gitignore` after full rollout.
+
+---
+
+### Decision 7 — Platform classification via `x-firebolt-platform` in OpenRPC `info`
+
+**Chosen**: Every OpenRPC document has `info["x-firebolt-platform"]: "web" | "native" | "both"`. The AST builder validates its presence and populates `Module.platform`. The generator registry stores a `targetPlatform` per generator (`"web"` or `"native"`). `runAll()` skips any module where `module.platform !== "both" && module.platform !== entry.targetPlatform`.
+
+**Why**: Platform differences are a first-class Firebolt concern — some APIs are only meaningful on web runtimes (browser-based, ReScript bindings) while others are only on native (C++, Python). Encoding this in the spec and enforcing it at build time prevents silent cross-platform header drift. Using the OpenRPC `info` extension keeps the check colocated with the contract source, not scattered across generator code.
+
+**Validation rule**: Missing `x-firebolt-platform` or any value outside `{"web", "native", "both"}` throws a `BuildError` before any module is processed.
+
+**Alternative considered**: Declare platform in the CLI invocation (e.g., `--platform native`).
+Rejected — that makes platform an operator concern rather than a spec concern; two operators could generate incompatible headers from the same spec.
+
+---
+
+### Decision 8 — Value constraints carried as `PrimitiveRef.constraints`, not promoted to new TypeDecl kinds
+
+**Chosen**: String constraints (`minLength`, `maxLength`, `pattern`) and numeric constraints (`minimum`, `maximum`) are stored in a single `Constraints` interface on the existing `PrimitiveRef`. The `constraints` field is optional and only present when at least one constraint was declared.
+
+**Why**: Constraints are annotations on primitive values, not new types. Promoting them to `TypeDecl` nodes (e.g., `ConstrainedStringDecl`) would create synthetic types not present in the OpenRPC schema, polluting the `$ref` resolution space and making the AST harder to traverse. Keeping them as metadata on `PrimitiveRef` means:
+- Existing generator traversal logic works unchanged
+- Generators can opt in to constraint emission without affecting type output
+- The same `Constraints` interface covers both string and numeric kinds via disjoint optional fields
+
+**Generator behaviour**:
+- TypeScript, ReScript, Kotlin, C++: emit constraint information as JSDoc / comments on method signatures and object property declarations
+- Python: emit `Annotated[str, "..."]` / `Annotated[float, "..."]` for full type-level annotation; `from typing import Annotated` is added conditionally only when at least one constrained field exists in the module
+
+**Constraint scope**: Both method-level (params + result) and object property-level constraints are surfaced. The `extractConstraints(ref: TypeRef)` utility in `generators/index.ts` unwraps `OptionalRef` and returns the `Constraints` from the innermost `PrimitiveRef`.
+
+**Alternative considered**: Separate `StringConstraints` and `NumericConstraints` types on `PrimitiveRef`.
+Rejected — two optional fields on `PrimitiveRef` complicate traversal; a single unified `Constraints` interface is simpler and the disjoint field names prevent confusion.

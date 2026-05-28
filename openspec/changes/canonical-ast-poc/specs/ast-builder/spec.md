@@ -78,6 +78,64 @@ or object field to a `NamedRef` node, and populate `NamedRef.module` for cross-m
 The AST builder SHALL generate a synthetic `TypeDecl` name when a result or param
 schema is defined inline rather than via `$ref`.
 
+---
+
+### Requirement: Builder validates and propagates platform classification
+Every OpenRPC document processed by the builder SHALL declare `info["x-firebolt-platform"]`
+with a value of `"web"`, `"native"`, or `"both"`. The resulting `Module` SHALL have
+its `platform` field set to the validated value.
+
+#### Scenario: Platform field is populated from x-firebolt-platform
+- **WHEN** an OpenRPC document has `info["x-firebolt-platform"]: "native"`
+- **THEN** `Module.platform` MUST equal `"native"`
+
+#### Scenario: Missing x-firebolt-platform throws a build error
+- **WHEN** an OpenRPC document has no `x-firebolt-platform` in `info`
+- **THEN** the builder MUST throw an error containing the text `"x-firebolt-platform"`
+- **THEN** no `CanonicalAST` MUST be returned
+
+#### Scenario: Invalid x-firebolt-platform value throws a build error
+- **WHEN** an OpenRPC document has `info["x-firebolt-platform"]: "mobile"`
+- **THEN** the builder MUST throw an error mentioning both the document title and the invalid value
+
+---
+
+### Requirement: Builder propagates string constraints to PrimitiveRef (Rule 7 — strings)
+The AST builder SHALL read `minLength`, `maxLength`, and `pattern` from a JSON Schema
+string field and populate `PrimitiveRef.constraints` when at least one is present.
+
+#### Scenario: minLength + maxLength + pattern propagate to PrimitiveRef
+- **WHEN** a schema is `{ "type":"string", "minLength":2, "maxLength":2, "pattern":"^[A-Z]{2}$" }`
+- **THEN** the resulting `TypeRef` MUST be `PrimitiveRef { primitive:"string", constraints:{ minLength:2, maxLength:2, pattern:"^[A-Z]{2}$" } }`
+
+#### Scenario: Unconstrained string has no constraints field
+- **WHEN** a schema is `{ "type":"string" }` with no length or pattern fields
+- **THEN** the resulting `PrimitiveRef.constraints` MUST be `undefined`
+
+#### Scenario: String constraints survive subscribe oneOf unwrapping (Rule 1)
+- **WHEN** a subscribe result is `oneOf[ListenResponse, {type:"string", minLength:2, ...}]`
+- **THEN** after Rule 1 strips `ListenResponse`, `Method.result` MUST be a `PrimitiveRef` carrying all declared constraints
+
+---
+
+### Requirement: Builder propagates numeric constraints to PrimitiveRef (Rule 7 — numbers)
+The AST builder SHALL read `minimum` and `maximum` from a JSON Schema number field
+and populate `PrimitiveRef.constraints` when at least one is present. This applies
+to `double` and `unsigned` primitive kinds only.
+
+#### Scenario: minimum + maximum propagate to PrimitiveRef for a double property
+- **WHEN** an object property schema is `{ "type":"number", "format":"double", "minimum":0.1, "maximum":10 }`
+- **THEN** the resulting `ObjectProperty.type` MUST be `PrimitiveRef { primitive:"double", constraints:{ minimum:0.1, maximum:10 } }`
+
+#### Scenario: Boolean property has no constraints
+- **WHEN** a schema is `{ "type":"boolean" }`
+- **THEN** the resulting `PrimitiveRef.constraints` MUST be `undefined`
+
+#### Scenario: Numeric constraints do not bleed across property boundaries
+- **WHEN** a `VoiceGuidanceSettings` object has `rate` with constraints and `enabled` without
+- **THEN** `enabled.constraints` MUST be `undefined`
+- **THEN** `rate.constraints.minimum` MUST equal `0.1` and `rate.constraints.maximum` MUST equal `10`
+
 #### Scenario: Inline result schema gets synthetic name
 - **WHEN** an OpenRPC method result schema is defined inline (not via `$ref`)
 - **THEN** the builder MUST create a `TypeDecl` named `<Module><MethodName>Result`

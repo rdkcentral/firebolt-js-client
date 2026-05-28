@@ -1,0 +1,59 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Accessibility",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to platform accessibility settings."
+  },
+  "methods": [
+    {
+      "name": "Accessibility.voiceGuidanceSettings",
+      "summary": "Get the current voice guidance configuration.",
+      "description": "Returns the current voice guidance configuration. Voice guidance is a screen-reader feature that reads UI elements aloud.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/VoiceGuidanceSettings" }
+      },
+      "examples": [
+        {
+          "name": "voiceGuidanceEnabled",
+          "summary": "Voice guidance enabled at normal rate",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": { "enabled": true, "rate": 1.0, "navigationHints": true }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "VoiceGuidanceSettings": {
+        "title": "VoiceGuidanceSettings",
+        "type": "object",
+        "description": "Current voice guidance configuration.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether voice guidance is active"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0.1,
+            "maximum": 10,
+            "description": "Speech rate relative to the platform default. 1.0 = normal speed."
+          },
+          "navigationHints": {
+            "type": "boolean",
+            "description": "Whether navigation hints are read aloud"
+          }
+        },
+        "required": ["enabled", "rate", "navigationHints"]
+      }
+    }
+  }
+}

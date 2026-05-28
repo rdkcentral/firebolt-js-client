@@ -8,6 +8,7 @@
  *   Rule 4: Resolve $ref to NamedRef; populate module for cross-module refs.
  *   Rule 5: Propagate format:"date-time" to PrimitiveRef.format.
  *   Rule 6: Detect inline anonymous schemas; create synthetic TypeDecl named <Module><Method>Result; emit warning.
+ *   Rule 7: Propagate minLength/maxLength/pattern (strings) and minimum/maximum (numbers) from schemas to PrimitiveRef.constraints.
  */
 
 import {
@@ -22,11 +23,13 @@ import {
   ObjectTypeDecl,
   OptionalRef,
   Param,
+  Platform,
   PrimitiveKind,
   PrimitiveRef,
+  Constraints,
   TypeDecl,
   TypeRef,
-} from "./types.js";
+} from "./types";
 
 // ---------------------------------------------------------------------------
 // Types for raw OpenRPC JSON (minimal, just what we need)
@@ -35,6 +38,8 @@ import {
 interface OpenRPCInfo {
   title: string;
   version: string;
+  /** Required — must be "web" | "native" | "both" */
+  "x-firebolt-platform"?: string;
 }
 
 interface OpenRPCSchema {
@@ -48,6 +53,13 @@ interface OpenRPCSchema {
   description?: string;
   title?: string;
   $ref?: string;
+  // String constraint keywords (Rule 7)
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  // Numeric constraint keywords (Rule 7)
+  minimum?: number;
+  maximum?: number;
 }
 
 interface RefSchema {
@@ -91,6 +103,25 @@ export interface OpenRPCDocument {
   components?: OpenRPCComponents;
 }
 
+const VALID_PLATFORMS: readonly string[] = ["web", "native", "both"];
+
+function parsePlatform(doc: OpenRPCDocument): Platform {
+  const raw = doc.info["x-firebolt-platform"];
+  if (!raw) {
+    throw new Error(
+      `OpenRPC document "${doc.info.title}" is missing required field info["x-firebolt-platform"]. ` +
+        `Every module spec MUST declare a platform (web | native | both).`
+    );
+  }
+  if (!VALID_PLATFORMS.includes(raw)) {
+    throw new Error(
+      `OpenRPC document "${doc.info.title}" has invalid x-firebolt-platform "${raw}". ` +
+        `Valid values: ${VALID_PLATFORMS.join(", ")}.`
+    );
+  }
+  return raw as Platform;
+}
+
 // ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
@@ -116,6 +147,7 @@ export function buildAST(documents: OpenRPCDocument[]): CanonicalAST {
 
 function buildModule(doc: OpenRPCDocument): Module {
   const moduleName = doc.info.title;
+  const platform = parsePlatform(doc);
   const schemas = doc.components?.schemas ?? {};
 
   // Collect type declarations from schemas
@@ -133,7 +165,7 @@ function buildModule(doc: OpenRPCDocument): Module {
     buildMethod(m, moduleName, schemas, syntheticTypes)
   );
 
-  return { name: moduleName, types: [...types, ...syntheticTypes], methods };
+  return { name: moduleName, platform, types: [...types, ...syntheticTypes], methods };
 }
 
 // ---------------------------------------------------------------------------
@@ -362,12 +394,24 @@ function resolveTypeRef(
     return { kind: "array", items: resolveTypeRef(schema.items, _schemas) };
   }
 
-  // Primitive (Rule 5: propagate format)
+  // Primitive (Rule 5: propagate format; Rule 7: propagate value constraints)
   const primitive = jsonTypeToPrimitive(schema.type ?? "string");
   const ref: PrimitiveRef = { kind: "primitive", primitive };
   if (schema.format) {
     ref.format = schema.format;
   }
+  // Rule 7: propagate constraints per primitive kind
+  const c: Constraints = {};
+  let hasConstraint = false;
+  if (primitive === "string") {
+    if (schema.minLength !== undefined) { c.minLength = schema.minLength; hasConstraint = true; }
+    if (schema.maxLength !== undefined) { c.maxLength = schema.maxLength; hasConstraint = true; }
+    if (schema.pattern   !== undefined) { c.pattern   = schema.pattern;   hasConstraint = true; }
+  } else if (primitive === "double" || primitive === "unsigned") {
+    if (schema.minimum !== undefined) { c.minimum = schema.minimum; hasConstraint = true; }
+    if (schema.maximum !== undefined) { c.maximum = schema.maximum; hasConstraint = true; }
+  }
+  if (hasConstraint) ref.constraints = c;
   return ref;
 }
 
