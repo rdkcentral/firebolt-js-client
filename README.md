@@ -41,6 +41,39 @@ A build-time code generator that reads OpenRPC contracts for Firebolt 9 API modu
         TypeScript  ReScript  Kotlin/JS      C++        Python
 ```
 
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                  What exists today                                    │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  OpenRPC JSON ──► AST builder ──► CanonicalAST                       │
+│                                          │                             │
+│                                          ▼ (per-module)               │
+│                              ┌─────────────────────┐                  │
+│                              │  Generator registry  │                  │
+│                              │  ts / res / kt /     │                  │
+│                              │  cpp / py            │                  │
+│                              └─────────────────────┘                  │
+│                                          │                             │
+│                                          ▼ (declaration files)         │
+│                               Module.d.ts / .res / .kt...             │
+│                                                                        │
+└──────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────┐
+│                  What we need to add                                  │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  CanonicalAST (all modules) ──► inject-js generator                  │
+│                                          │                             │
+│                                          ▼ (single runtime JS file)   │
+│                               firebolt-inject.js                      │
+│                                                                        │
+└──────────────────────────────────────────────────────────────────────┘
+
+```
+
 ### Pipeline
 
 ```

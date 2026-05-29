@@ -16,7 +16,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Command } from "commander";
 import { buildAST, OpenRPCDocument } from "./ast/builder";
-import { GenConfig, runAll } from "./generators/index";
+import { GenConfig, runAll, runAllFullAST } from "./generators/index";
 
 // Register all generators by importing their modules (side-effect: registerGenerator calls)
 import "./generators/typescript";
@@ -24,6 +24,7 @@ import "./generators/rescript";
 import "./generators/kotlin";
 import "./generators/cpp";
 import "./generators/python";
+import "./generators/inject-js";
 
 // ---------------------------------------------------------------------------
 // CLI definition
@@ -130,9 +131,10 @@ function run(opts: {
 
   const config: GenConfig = { outDir };
   const outputs = runAll(ast.modules, config, targets);
+  const fullASTOutputs = runAllFullAST(ast, config, targets);
 
   // Write files
-  for (const output of outputs) {
+  for (const output of [...outputs, ...fullASTOutputs]) {
     const fullPath = path.join(outDir, output.filePath);
     const dir = path.dirname(fullPath);
     fs.mkdirSync(dir, { recursive: true });
@@ -140,7 +142,7 @@ function run(opts: {
     console.log(`  wrote ${output.filePath}`);
   }
 
-  console.log(`Done. ${outputs.length} file(s) written to ${outDir}`);
+  console.log(`Done. ${outputs.length + fullASTOutputs.length} file(s) written to ${outDir}`);
 }
 
 // ---------------------------------------------------------------------------

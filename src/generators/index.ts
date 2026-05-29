@@ -5,7 +5,7 @@
  * returns a list of GeneratorOutput entries — one file per output path.
  */
 
-import { Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef } from "../ast/types";
+import { CanonicalAST, Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef } from "../ast/types";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -30,6 +30,16 @@ export interface GeneratorOutput {
  */
 export type Generator = (
   module: Module,
+  config: GenConfig
+) => GeneratorOutput[];
+
+/**
+ * A full-AST generator function: receives the entire CanonicalAST once per run
+ * rather than one Module at a time. Used for generators that must emit a single
+ * file covering all modules (e.g. inject-js).
+ */
+export type FullASTGenerator = (
+  ast: CanonicalAST,
   config: GenConfig
 ) => GeneratorOutput[];
 
@@ -99,17 +109,43 @@ export function listGenerators(): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Full-AST registry
+// ---------------------------------------------------------------------------
+
+interface FullASTRegistryEntry {
+  gen: FullASTGenerator;
+  targetPlatform: Extract<Platform, "web" | "native">;
+}
+
+const fullASTRegistry = new Map<string, FullASTRegistryEntry>();
+
+export function registerFullASTGenerator(
+  id: string,
+  gen: FullASTGenerator,
+  targetPlatform: Extract<Platform, "web" | "native">
+): void {
+  fullASTRegistry.set(id, { gen, targetPlatform });
+}
+
+export function listFullASTGenerators(): string[] {
+  return Array.from(fullASTRegistry.keys());
+}
+
+// ---------------------------------------------------------------------------
 // runAll helper
 // ---------------------------------------------------------------------------
 
 /**
- * Run all registered generators (or a filtered subset) against every module
- * in the AST.
+ * Run all registered per-module generators (or a filtered subset) against
+ * every module in the AST.
  *
  * Platform filtering:
  *   - A "web" generator skips modules with platform "native"
  *   - A "native" generator skips modules with platform "web"
  *   - Modules with platform "both" are processed by all generators
+ *
+ * Targets registered as full-AST generators are silently skipped here;
+ * call runAllFullAST() to dispatch them.
  */
 export function runAll(
   modules: Module[],
@@ -120,6 +156,9 @@ export function runAll(
   const outputs: GeneratorOutput[] = [];
 
   for (const id of ids) {
+    // Skip targets that belong to the full-AST registry
+    if (fullASTRegistry.has(id)) continue;
+
     const entry = registry.get(id);
     if (!entry) {
       throw new Error(`No generator registered for target "${id}"`);
@@ -134,6 +173,35 @@ export function runAll(
       }
       outputs.push(...entry.gen(module, config));
     }
+  }
+
+  return outputs;
+}
+
+/**
+ * Run all registered full-AST generators (or a filtered subset) once,
+ * passing the complete CanonicalAST.
+ *
+ * Targets registered as per-module generators are silently skipped here.
+ * Targets not found in either registry throw an error.
+ */
+export function runAllFullAST(
+  ast: CanonicalAST,
+  config: GenConfig,
+  targets?: string[]
+): GeneratorOutput[] {
+  const ids = targets ?? listFullASTGenerators();
+  const outputs: GeneratorOutput[] = [];
+
+  for (const id of ids) {
+    // Skip targets that belong to the per-module registry
+    if (registry.has(id)) continue;
+
+    const entry = fullASTRegistry.get(id);
+    if (!entry) {
+      throw new Error(`No generator registered for target "${id}"`);
+    }
+    outputs.push(...entry.gen(ast, config));
   }
 
   return outputs;
