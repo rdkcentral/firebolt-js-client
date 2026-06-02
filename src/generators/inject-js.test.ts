@@ -604,3 +604,349 @@ test("5.19 unsubscribeFn does NOT send {listen:false} when other listeners remai
   expect(cb2).toHaveBeenCalledWith("fr");
   expect(cb1).not.toHaveBeenCalled();
 });
+
+// ---------------------------------------------------------------------------
+// 6.1-6.10: Test coverage for new RDK9 Web modules
+// ---------------------------------------------------------------------------
+
+/**
+ * Helper to build a comprehensive AST with all new modules
+ */
+function makeRDK9WebAST(): CanonicalAST {
+  return {
+    version: "9.0",
+    modules: [
+      // Accessibility (updated with new properties)
+      {
+        name: "Accessibility",
+        platform: "both",
+        types: [
+          {
+            kind: "object",
+            name: "ClosedCaptionsSettings",
+            properties: [
+              { name: "enabled", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+              { name: "preferredLanguages", type: { kind: "array", items: { kind: "primitive", primitive: "string" } } as never, required: false },
+            ],
+          } as never,
+          {
+            kind: "object",
+            name: "VoiceGuidanceSettings",
+            properties: [
+              { name: "enabled", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+              { name: "rate", type: { kind: "primitive", primitive: "double" } as never, required: true },
+              { name: "navigationHints", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "audioDescription", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "subscribe", name: "onAudioDescriptionChanged", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "call", name: "closedCaptionsSettings", params: [], result: { kind: "named", name: "ClosedCaptionsSettings" } as never } as never,
+          { kind: "subscribe", name: "onClosedCaptionsSettingsChanged", params: [], result: { kind: "named", name: "ClosedCaptionsSettings" } as never } as never,
+          { kind: "call", name: "highContrastUI", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "subscribe", name: "onHighContrastUIChanged", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "call", name: "voiceGuidanceSettings", params: [], result: { kind: "named", name: "VoiceGuidanceSettings" } as never } as never,
+          { kind: "subscribe", name: "onVoiceGuidanceSettingsChanged", params: [], result: { kind: "named", name: "VoiceGuidanceSettings" } as never } as never,
+        ],
+      } as never,
+      // Localization (updated with new properties)
+      {
+        name: "Localization",
+        platform: "both",
+        types: [],
+        methods: [
+          { kind: "call", name: "country", params: [], result: { kind: "primitive", primitive: "string" } as never } as never,
+          { kind: "subscribe", name: "onCountryChanged", params: [], result: { kind: "primitive", primitive: "string" } as never } as never,
+          { kind: "call", name: "preferredAudioLanguages", params: [], result: { kind: "array", items: { kind: "primitive", primitive: "string" } } as never } as never,
+          { kind: "subscribe", name: "onPreferredAudioLanguagesChanged", params: [], result: { kind: "array", items: { kind: "primitive", primitive: "string" } } as never } as never,
+          { kind: "call", name: "presentationLanguage", params: [], result: { kind: "primitive", primitive: "string" } as never } as never,
+          { kind: "subscribe", name: "onPresentationLanguageChanged", params: [], result: { kind: "primitive", primitive: "string" } as never } as never,
+        ],
+      } as never,
+      // Actions (new)
+      {
+        name: "Actions",
+        platform: "both",
+        types: [
+          {
+            kind: "object",
+            name: "IntentPayload",
+            properties: [
+              { name: "intentId", type: { kind: "primitive", primitive: "unsigned" } as never, required: true },
+              { name: "intent", type: { kind: "primitive", primitive: "string" } as never, required: true },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "start", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "intent", params: [], result: { kind: "named", name: "IntentPayload" } as never } as never,
+          { kind: "subscribe", name: "onIntent", params: [], result: { kind: "named", name: "IntentPayload" } as never } as never,
+        ],
+      } as never,
+      // Advertising (new)
+      {
+        name: "Advertising",
+        platform: "both",
+        types: [
+          {
+            kind: "enum",
+            name: "IfaType",
+            values: [
+              { label: "DPID", value: "dpid", serializedId: "dpid" },
+              { label: "SSPID", value: "sspid", serializedId: "sspid" },
+            ],
+          } as never,
+          {
+            kind: "enum",
+            name: "Lmt",
+            values: [
+              { label: "Disabled", value: "0", serializedId: "0" },
+              { label: "Enabled", value: "1", serializedId: "1" },
+            ],
+          } as never,
+          {
+            kind: "object",
+            name: "AdvertisingId",
+            properties: [
+              { name: "ifa", type: { kind: "primitive", primitive: "string" } as never, required: true },
+              { name: "ifa_type", type: { kind: "named", name: "IfaType" } as never, required: true },
+              { name: "lmt", type: { kind: "named", name: "Lmt" } as never, required: true },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "advertisingId", params: [], result: { kind: "named", name: "AdvertisingId" } as never } as never,
+        ],
+      } as never,
+      // Device (new)
+      {
+        name: "Device",
+        platform: "both",
+        types: [
+          {
+            kind: "enum",
+            name: "DeviceClass",
+            values: [
+              { label: "OTT", value: "ott", serializedId: "ott" },
+              { label: "STB", value: "stb", serializedId: "stb" },
+              { label: "TV", value: "tv", serializedId: "tv" },
+            ],
+          } as never,
+          {
+            kind: "object",
+            name: "HdrCapabilities",
+            properties: [
+              { name: "hdr10", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+              { name: "hdr10Plus", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+              { name: "dolbyVision", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+              { name: "hlg", type: { kind: "primitive", primitive: "bool" } as never, required: true },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "uid", params: [], result: { kind: "primitive", primitive: "string" } as never } as never,
+          { kind: "call", name: "deviceClass", params: [], result: { kind: "named", name: "DeviceClass" } as never } as never,
+          { kind: "call", name: "hdr", params: [], result: { kind: "named", name: "HdrCapabilities" } as never } as never,
+          { kind: "subscribe", name: "onHdrChanged", params: [], result: { kind: "named", name: "HdrCapabilities" } as never } as never,
+          { kind: "call", name: "dolbyAtmosExperienceAvailable", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "subscribe", name: "onDolbyAtmosExperienceAvailableChanged", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+        ],
+      } as never,
+      // Display (new, web-only)
+      {
+        name: "Display",
+        platform: "web",
+        types: [
+          {
+            kind: "enum",
+            name: "ColorimetryValue",
+            values: [
+              { label: "SDR", value: "SDR", serializedId: "SDR" },
+              { label: "HDR", value: "HDR", serializedId: "HDR" },
+            ],
+          } as never,
+          {
+            kind: "enum",
+            name: "VideoResolution",
+            values: [
+              { label: "1080p", value: "1920x1080", serializedId: "1920x1080" },
+              { label: "4K", value: "3840x2160", serializedId: "3840x2160" },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "colorimetry", params: [], result: { kind: "named", name: "ColorimetryValue" } as never } as never,
+          { kind: "call", name: "videoResolutions", params: [], result: { kind: "array", items: { kind: "named", name: "VideoResolution" } } as never } as never,
+        ],
+      } as never,
+      // Network (new)
+      {
+        name: "Network",
+        platform: "both",
+        types: [],
+        methods: [
+          { kind: "call", name: "connected", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+          { kind: "subscribe", name: "onConnectedChanged", params: [], result: { kind: "primitive", primitive: "bool" } as never } as never,
+        ],
+      } as never,
+      // VideoOutput (new)
+      {
+        name: "VideoOutput",
+        platform: "both",
+        types: [
+          {
+            kind: "object",
+            name: "VideoResolution",
+            properties: [
+              { name: "resolution", type: { kind: "primitive", primitive: "string" } as never, required: false },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "resolution", params: [], result: { kind: "named", name: "VideoResolution" } as never } as never,
+          { kind: "subscribe", name: "onResolutionChanged", params: [], result: { kind: "named", name: "VideoResolution" } as never } as never,
+        ],
+      } as never,
+      // Metrics (new)
+      {
+        name: "Metrics",
+        platform: "both",
+        types: [
+          {
+            kind: "enum",
+            name: "ErrorType",
+            values: [
+              { label: "Network", value: "network", serializedId: "network" },
+              { label: "Playback", value: "playback", serializedId: "playback" },
+              { label: "Entitlement", value: "entitlement", serializedId: "entitlement" },
+              { label: "Parse", value: "parse", serializedId: "parse" },
+              { label: "Aborted", value: "aborted", serializedId: "aborted" },
+              { label: "Unknown", value: "unknown", serializedId: "unknown" },
+            ],
+          } as never,
+        ],
+        methods: [
+          { kind: "call", name: "ready", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "startContent", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "stopContent", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "page", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "error", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaLoadStart", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaPlay", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaPlaying", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaPause", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaWaiting", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaSeeking", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaSeeked", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaRateChanged", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaRenditionChanged", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "mediaEnded", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "event", params: [], result: { kind: "null" } as never } as never,
+          { kind: "call", name: "appInfo", params: [], result: { kind: "null" } as never } as never,
+        ],
+      } as never,
+    ],
+  };
+}
+
+// 6.1 — Accessibility methods present in bundle
+test("6.1 Accessibility methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Accessibility.audioDescription");
+  expect(code).toContain("Accessibility.onAudioDescriptionChanged");
+  expect(code).toContain("Accessibility.closedCaptionsSettings");
+  expect(code).toContain("Accessibility.onClosedCaptionsSettingsChanged");
+  expect(code).toContain("Accessibility.highContrastUI");
+  expect(code).toContain("Accessibility.onHighContrastUIChanged");
+  expect(code).toContain("Accessibility.voiceGuidanceSettings");
+  expect(code).toContain("Accessibility.onVoiceGuidanceSettingsChanged");
+});
+
+// 6.2 — Localization methods present
+test("6.2 Localization methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Localization.country");
+  expect(code).toContain("Localization.onCountryChanged");
+  expect(code).toContain("Localization.preferredAudioLanguages");
+  expect(code).toContain("Localization.onPreferredAudioLanguagesChanged");
+  expect(code).toContain("Localization.presentationLanguage");
+  expect(code).toContain("Localization.onPresentationLanguageChanged");
+});
+
+// 6.3 — Actions methods present
+test("6.3 Actions methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Actions.start");
+  expect(code).toContain("Actions.intent");
+  expect(code).toContain("Actions.onIntent");
+});
+
+// 6.4 — Advertising methods present
+test("6.4 Advertising methods and types are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Advertising.advertisingId");
+  expect(code).toContain("AdvertisingId");
+  expect(code).toContain("IfaType");
+  expect(code).toContain("Lmt");
+});
+
+// 6.5 — Device methods present
+test("6.5 Device methods and types are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Device.uid");
+  expect(code).toContain("Device.deviceClass");
+  expect(code).toContain("Device.hdr");
+  expect(code).toContain("Device.onHdrChanged");
+  expect(code).toContain("Device.dolbyAtmosExperienceAvailable");
+  expect(code).toContain("Device.onDolbyAtmosExperienceAvailableChanged");
+  expect(code).toContain("HdrCapabilities");
+  expect(code).toContain("DeviceClass");
+});
+
+// 6.6 — Display methods present and Display filtered to web
+test("6.6 Display methods present; Display excluded from native generators", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Display.colorimetry");
+  expect(code).toContain("Display.videoResolutions");
+  expect(code).toContain("ColorimetryValue");
+});
+
+// 6.7 — Network methods present
+test("6.7 Network methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("Network.connected");
+  expect(code).toContain("Network.onConnectedChanged");
+});
+
+// 6.8 — VideoOutput methods present
+test("6.8 VideoOutput methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  expect(code).toContain("VideoOutput.resolution");
+  expect(code).toContain("VideoOutput.onResolutionChanged");
+});
+
+// 6.9 — Metrics methods present
+test("6.9 All Metrics methods are in generated bundle", () => {
+  const ast = makeRDK9WebAST();
+  const code = generateBundle(ast);
+  const expectedMethods = [
+    "Metrics.ready", "Metrics.startContent", "Metrics.stopContent", "Metrics.page",
+    "Metrics.error", "Metrics.mediaLoadStart", "Metrics.mediaPlay", "Metrics.mediaPlaying",
+    "Metrics.mediaPause", "Metrics.mediaWaiting", "Metrics.mediaSeeking", "Metrics.mediaSeeked",
+    "Metrics.mediaRateChanged", "Metrics.mediaRenditionChanged", "Metrics.mediaEnded",
+    "Metrics.event", "Metrics.appInfo"
+  ];
+  for (const method of expectedMethods) {
+    expect(code).toContain(method);
+  }
+  expect(code).toContain("ErrorType");
+});

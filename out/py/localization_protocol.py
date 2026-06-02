@@ -6,5 +6,25 @@ from typing import Callable, Optional
 
 class LocalizationProtocol(ABC):
     @abstractmethod
-    def onCountryChanged(self, callback: Callable[[Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]], None]) -> Callable[[], None]:
+    async def country(self) -> Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]:
+        ...
+
+    @abstractmethod
+    async def onCountryChanged(self) -> Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]:
+        ...
+
+    @abstractmethod
+    async def preferredAudioLanguages(self) -> list[str]:
+        ...
+
+    @abstractmethod
+    async def onPreferredAudioLanguagesChanged(self) -> list[str]:
+        ...
+
+    @abstractmethod
+    async def presentationLanguage(self) -> str:
+        ...
+
+    @abstractmethod
+    async def onPresentationLanguageChanged(self) -> str:
         ...

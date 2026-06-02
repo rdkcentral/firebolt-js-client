@@ -6,6 +6,11 @@ package firebolt.accessibility
 
 import kotlin.js.Promise
 
+external interface ClosedCaptionsSettings {
+    val enabled: Boolean
+    val preferredLanguages: Array<String>?
+}
+
 external interface VoiceGuidanceSettings {
     val enabled: Boolean
     val rate: Double // minimum=0.1, maximum=10
@@ -13,6 +18,20 @@ external interface VoiceGuidanceSettings {
 }
 
 external object Accessibility {
+    fun audioDescription(): Promise<Boolean>
+
+    fun onAudioDescriptionChanged(): Promise<Boolean>
+
+    fun closedCaptionsSettings(): Promise<ClosedCaptionsSettings>
+
+    fun onClosedCaptionsSettingsChanged(): Promise<ClosedCaptionsSettings>
+
+    fun highContrastUI(): Promise<Boolean>
+
+    fun onHighContrastUIChanged(): Promise<Boolean>
+
     fun voiceGuidanceSettings(): Promise<VoiceGuidanceSettings>
+
+    fun onVoiceGuidanceSettingsChanged(): Promise<VoiceGuidanceSettings>
 
 }

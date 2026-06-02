@@ -7,20 +7,48 @@ description: |
   Provides access to locale and regional settings managed by the platform.
   Apps subscribe to events to receive real-time updates when settings change.
 
-events:
-  onCountryChanged:
+properties:
+  country:
     description: |
-      Fires when the platform's active country setting changes.
+      Returns the country setting.
       The payload is an ISO 3166-1 alpha-2 country code (e.g. "US", "GB", "DE").
       Corresponds to the Country field in the Devices table.
-    since: "9.0.0"
-    payload:
+    since: "8.0.0"
+    result:
       type: string
       minLength: 2
       maxLength: 2
       pattern: "^[A-Z]{2}$"
       description: ISO 3166-1 alpha-2 country code
     examples:
-      - description: Country changed to United States
-        payload: "US"
+      - description: Country is United States
+        result: "US"
+
+  preferredAudioLanguages:
+    description: |
+      Returns the list of preferred audio languages.
+      A list of zero or more languages in order of decreasing preference.
+      Each code is an ISO 639-2/B language code.
+    since: "8.0.0"
+    result:
+      type:
+        - string
+      description: ISO 639-2/B language codes
+    examples:
+      - description: English and Spanish preferences
+        result:
+          - "eng"
+          - "spa"
+
+  presentationLanguage:
+    description: |
+      Returns the presentation language setting.
+      The presentation language is a BCP 47 locale tag.
+    since: "8.0.0"
+    result:
+      type: string
+      description: BCP 47 locale tag
+    examples:
+      - description: US English
+        result: "en-US"
 ---

@@ -8,53 +8,153 @@
   },
   "methods": [
     {
-      "name": "Localization.onCountryChanged",
-      "summary": "Subscribe to country setting change notifications.",
-      "description": "Fires when the platform's active country setting changes. Payload is an ISO 3166-1 alpha-2 country code (e.g. \"US\", \"GB\", \"DE\"). Corresponds to the Country field in the Devices table.",
-      "params": [
-        {
-          "name": "listen",
-          "required": true,
-          "schema": { "type": "boolean" },
-          "description": "Pass true to subscribe; false to unsubscribe"
-        }
-      ],
+      "name": "Localization.country",
+      "summary": "Get the country setting.",
+      "description": "Returns the country setting. The value is an ISO 3166-1 alpha-2 country code (e.g. \"US\", \"GB\", \"DE\").",
+      "params": [],
       "result": {
         "name": "result",
         "schema": {
-          "oneOf": [
-            { "$ref": "shared.json#/components/schemas/ListenResponse" },
-            {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 2,
-              "pattern": "^[A-Z]{2}$",
-              "description": "ISO 3166-1 alpha-2 country code"
-            }
-          ]
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
         }
       },
       "examples": [
         {
-          "name": "subscribe",
-          "summary": "Subscribe to country changes",
-          "params": [
-            { "name": "listen", "value": true }
-          ],
-          "result": {
-            "name": "result",
-            "value": { "listening": true, "event": "Localization.onCountryChanged" }
-          }
-        },
-        {
-          "name": "countryChangedUS",
-          "summary": "Country changed to United States",
-          "params": [
-            { "name": "listen", "value": true }
-          ],
+          "name": "countryUS",
+          "summary": "Country is United States",
+          "params": [],
           "result": {
             "name": "result",
             "value": "US"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.onCountryChanged",
+      "summary": "Subscribe to country setting change notifications.",
+      "description": "Fires when the platform's active country setting changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
+        }
+      },
+      "examples": [
+        {
+          "name": "countryChangedUS",
+          "summary": "Country changed to United States",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "US"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.preferredAudioLanguages",
+      "summary": "Get the preferred audio languages.",
+      "description": "Returns the list of preferred audio languages. A list of zero or more languages in order of decreasing preference. Each code is an ISO 639-2/B language code.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "ISO 639-2/B language codes"
+        }
+      },
+      "examples": [
+        {
+          "name": "preferredLanguagesEngSpa",
+          "summary": "English and Spanish preferences",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": ["eng", "spa"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.onPreferredAudioLanguagesChanged",
+      "summary": "Subscribe to preferred audio languages changes.",
+      "description": "Fired when the preferred audio languages setting changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "ISO 639-2/B language codes"
+        }
+      },
+      "examples": [
+        {
+          "name": "languagesChanged",
+          "summary": "Languages were changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": ["eng", "fra"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.presentationLanguage",
+      "summary": "Get the presentation language.",
+      "description": "Returns the presentation language setting. The presentation language is a BCP 47 locale tag.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "BCP 47 locale tag"
+        }
+      },
+      "examples": [
+        {
+          "name": "presentationLanguageUS",
+          "summary": "US English",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "en-US"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.onPresentationLanguageChanged",
+      "summary": "Subscribe to presentation language changes.",
+      "description": "Fired when the presentation language setting changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "BCP 47 locale tag"
+        }
+      },
+      "examples": [
+        {
+          "name": "languageChanged",
+          "summary": "Presentation language changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "en-GB"
           }
         }
       ]

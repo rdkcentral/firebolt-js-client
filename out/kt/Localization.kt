@@ -8,6 +8,17 @@ import kotlin.js.Promise
 
 external object Localization {
     /** Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
-    fun onCountryChanged(callback: (String) -> Unit): () -> Unit
+    fun country(): Promise<String>
+
+    /** Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
+    fun onCountryChanged(): Promise<String>
+
+    fun preferredAudioLanguages(): Promise<Array<String>>
+
+    fun onPreferredAudioLanguagesChanged(): Promise<Array<String>>
+
+    fun presentationLanguage(): Promise<String>
+
+    fun onPresentationLanguageChanged(): Promise<String>
 
 }

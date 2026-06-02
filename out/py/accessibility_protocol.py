@@ -4,6 +4,14 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Callable, Optional
 
+class ClosedCaptionsSettings:
+    def __init__(self
+        ,enabled: bool
+        ,preferredLanguages: Optional[list[str]] = None
+    ) -> None:
+        self.enabled = enabled
+        self.preferredLanguages = preferredLanguages
+
 class VoiceGuidanceSettings:
     def __init__(self
         ,enabled: bool
@@ -16,5 +24,33 @@ class VoiceGuidanceSettings:
 
 class AccessibilityProtocol(ABC):
     @abstractmethod
+    async def audioDescription(self) -> bool:
+        ...
+
+    @abstractmethod
+    async def onAudioDescriptionChanged(self) -> bool:
+        ...
+
+    @abstractmethod
+    async def closedCaptionsSettings(self) -> ClosedCaptionsSettings:
+        ...
+
+    @abstractmethod
+    async def onClosedCaptionsSettingsChanged(self) -> ClosedCaptionsSettings:
+        ...
+
+    @abstractmethod
+    async def highContrastUI(self) -> bool:
+        ...
+
+    @abstractmethod
+    async def onHighContrastUIChanged(self) -> bool:
+        ...
+
+    @abstractmethod
     async def voiceGuidanceSettings(self) -> VoiceGuidanceSettings:
+        ...
+
+    @abstractmethod
+    async def onVoiceGuidanceSettingsChanged(self) -> VoiceGuidanceSettings:
         ...

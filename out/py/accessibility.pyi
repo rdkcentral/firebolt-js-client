@@ -4,10 +4,28 @@ from typing import Callable, Literal, Optional
 from typing import Annotated
 from typing_extensions import TypedDict
 
+class ClosedCaptionsSettings(TypedDict):
+    enabled: bool
+    preferredLanguages: Optional[list[str]]
+
 class VoiceGuidanceSettings(TypedDict):
     enabled: bool
     rate: Annotated[float, "minimum=0.1, maximum=10"]
     navigationHints: bool
 
 class Accessibility:
+    async def audioDescription(self) -> bool: ...
+
+    async def onAudioDescriptionChanged(self) -> bool: ...
+
+    async def closedCaptionsSettings(self) -> ClosedCaptionsSettings: ...
+
+    async def onClosedCaptionsSettingsChanged(self) -> ClosedCaptionsSettings: ...
+
+    async def highContrastUI(self) -> bool: ...
+
+    async def onHighContrastUIChanged(self) -> bool: ...
+
     async def voiceGuidanceSettings(self) -> VoiceGuidanceSettings: ...
+
+    async def onVoiceGuidanceSettingsChanged(self) -> VoiceGuidanceSettings: ...

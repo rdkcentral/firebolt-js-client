@@ -1,0 +1,72 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Advertising",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to advertising identifiers. Apps can query the device's IFA and related metadata."
+  },
+  "methods": [
+    {
+      "name": "Advertising.advertisingId",
+      "summary": "Get the IFA and related metadata.",
+      "description": "Returns the IFA (Identifier For Advertising) and related metadata.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/AdvertisingId" }
+      },
+      "examples": [
+        {
+          "name": "getAdvertisingId",
+          "summary": "IFA with DPID and LMT enabled",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "ifa": "550e8400-e29b-41d4-a716-446655440000",
+              "ifa_type": "dpid",
+              "lmt": "1"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "AdvertisingId": {
+        "title": "AdvertisingId",
+        "type": "object",
+        "description": "Advertising identifiers and metadata.",
+        "properties": {
+          "ifa": {
+            "type": "string",
+            "description": "The Identifier For Advertising as a UUID"
+          },
+          "ifa_type": {
+            "$ref": "#/components/schemas/IfaType"
+          },
+          "lmt": {
+            "$ref": "#/components/schemas/Lmt"
+          }
+        },
+        "required": ["ifa", "ifa_type", "lmt"]
+      },
+      "IfaType": {
+        "title": "IfaType",
+        "type": "string",
+        "enum": ["dpid", "sspid", "sessionid"],
+        "description": "The source of the IFA.",
+        "examples": ["dpid"]
+      },
+      "Lmt": {
+        "title": "Lmt",
+        "type": "string",
+        "enum": ["0", "1"],
+        "description": "Limit Ad Tracking setting. 0 = disabled, 1 = enabled",
+        "examples": ["0"]
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Display",
+    "version": "9.0",
+    "x-firebolt-platform": "web",
+    "description": "Provides access to display capabilities. This module is only available in web/JS environments."
+  },
+  "methods": [
+    {
+      "name": "Display.colorimetry",
+      "summary": "Get the display colorimetry standard.",
+      "description": "Returns the colorimetry settings of the attached display.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/ColorimetryValue" }
+      },
+      "examples": [
+        {
+          "name": "displayColorimetry",
+          "summary": "Display supports standard color gamut",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "SDR"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Display.videoResolutions",
+      "summary": "Get the supported video resolutions.",
+      "description": "Returns a list of video resolutions supported by the display.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": { "$ref": "#/components/schemas/VideoResolution" }
+        }
+      },
+      "examples": [
+        {
+          "name": "displayResolutions",
+          "summary": "Display supports 4K and 1080p",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": ["3840x2160", "1920x1080"]
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ColorimetryValue": {
+        "title": "ColorimetryValue",
+        "type": "string",
+        "enum": ["SDR", "HDR"],
+        "description": "Colorimetry standard.",
+        "x-firebolt-platform": "web",
+        "examples": ["SDR"]
+      },
+      "VideoResolution": {
+        "title": "VideoResolution",
+        "type": "string",
+        "enum": ["1920x1080", "3840x2160", "7680x4320"],
+        "description": "Video resolution.",
+        "x-firebolt-platform": "web",
+        "examples": ["3840x2160"]
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Network",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to network connectivity status. Apps can query network state and subscribe to connectivity changes."
+  },
+  "methods": [
+    {
+      "name": "Network.connected",
+      "summary": "Get the network connectivity status.",
+      "description": "Returns the network connectivity status: true if internet-accessible, false otherwise.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "networkConnected",
+          "summary": "Device is connected to internet",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Network.onConnectedChanged",
+      "summary": "Subscribe to network connectivity changes.",
+      "description": "Fired when the network connectivity status changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "networkDisconnected",
+          "summary": "Device lost internet connectivity",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": false
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {}
+  }
+}

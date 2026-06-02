@@ -8,6 +8,138 @@
   },
   "methods": [
     {
+      "name": "Accessibility.audioDescription",
+      "summary": "Get the audio description setting.",
+      "description": "Returns the audio description setting of the device.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "audioDescriptionEnabled",
+          "summary": "Audio description enabled",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.onAudioDescriptionChanged",
+      "summary": "Subscribe to audio description changes.",
+      "description": "Fired when the audio description setting changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "audioDescriptionChanged",
+          "summary": "Audio description was enabled",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.closedCaptionsSettings",
+      "summary": "Get the closed captions settings.",
+      "description": "Returns captions settings: enabled, and a list of zero or more languages in order of decreasing preference.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/ClosedCaptionsSettings" }
+      },
+      "examples": [
+        {
+          "name": "captionsEnabledWithLanguages",
+          "summary": "Captions enabled with English and Spanish preferences",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "enabled": true,
+              "preferredLanguages": ["eng", "spa"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.onClosedCaptionsSettingsChanged",
+      "summary": "Subscribe to closed captions settings changes.",
+      "description": "Fired when the closed captions settings change.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/ClosedCaptionsSettings" }
+      },
+      "examples": [
+        {
+          "name": "captionsSettingsChanged",
+          "summary": "Captions settings were updated",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "enabled": true,
+              "preferredLanguages": ["eng"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.highContrastUI",
+      "summary": "Get the high contrast UI setting.",
+      "description": "Returns the high contrast UI device setting.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "highContrastEnabled",
+          "summary": "High contrast UI enabled",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.onHighContrastUIChanged",
+      "summary": "Subscribe to high contrast UI changes.",
+      "description": "Fired when the high contrast UI setting changes.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "boolean" }
+      },
+      "examples": [
+        {
+          "name": "highContrastChanged",
+          "summary": "High contrast UI was enabled",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
       "name": "Accessibility.voiceGuidanceSettings",
       "summary": "Get the current voice guidance configuration.",
       "description": "Returns the current voice guidance configuration. Voice guidance is a screen-reader feature that reads UI elements aloud.",
@@ -27,10 +159,48 @@
           }
         }
       ]
+    },
+    {
+      "name": "Accessibility.onVoiceGuidanceSettingsChanged",
+      "summary": "Subscribe to voice guidance settings changes.",
+      "description": "Fired when the voice guidance settings change.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/VoiceGuidanceSettings" }
+      },
+      "examples": [
+        {
+          "name": "voiceGuidanceSettingsChanged",
+          "summary": "Voice guidance rate changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": { "enabled": true, "rate": 1.5, "navigationHints": true }
+          }
+        }
+      ]
     }
   ],
   "components": {
     "schemas": {
+      "ClosedCaptionsSettings": {
+        "title": "ClosedCaptionsSettings",
+        "type": "object",
+        "description": "Closed captions settings.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether captions are enabled"
+          },
+          "preferredLanguages": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of ISO 639-2/B language codes in order of user preference."
+          }
+        },
+        "required": ["enabled"]
+      },
       "VoiceGuidanceSettings": {
         "title": "VoiceGuidanceSettings",
         "type": "object",

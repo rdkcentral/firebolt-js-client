@@ -1,0 +1,118 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Actions",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to platform intent dispatch. Apps can send intents to the platform and receive the most recently received intent."
+  },
+  "methods": [
+    {
+      "name": "Actions.start",
+      "summary": "Send an intent to the platform.",
+      "description": "Send an intent to the platform.",
+      "params": [
+        {
+          "name": "intent",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "The intent as a JSON document"
+        },
+        {
+          "name": "handlerAppId",
+          "required": false,
+          "schema": { "type": "string" },
+          "description": "The app ID to handle the intent (optional)"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "sendPlayIntent",
+          "summary": "Send a play intent",
+          "params": [
+            {
+              "name": "intent",
+              "value": "{\"action\":\"play\",\"entityId\":\"entity-123\"}"
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actions.intent",
+      "summary": "Get the most recently received intent.",
+      "description": "Returns the intent that was most recently received from the platform. Getter is typically called by an app after transitioning to the active lifecycle state.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/IntentPayload" }
+      },
+      "examples": [
+        {
+          "name": "getRecentIntent",
+          "summary": "Recent intent received",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "intentId": 1,
+              "intent": "{\"action\":\"play\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actions.onIntent",
+      "summary": "Subscribe to intent events.",
+      "description": "Fired when a new intent is received from the platform.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/IntentPayload" }
+      },
+      "examples": [
+        {
+          "name": "intentReceived",
+          "summary": "Intent was sent by platform",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "intentId": 2,
+              "intent": "{\"action\":\"play\",\"entityId\":\"entity-456\"}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "IntentPayload": {
+        "title": "IntentPayload",
+        "type": "object",
+        "description": "Platform intent with unique ID and payload.",
+        "properties": {
+          "intentId": {
+            "type": "integer",
+            "description": "Monotonically increasing intent ID"
+          },
+          "intent": {
+            "type": "string",
+            "description": "The intent as a JSON document"
+          }
+        },
+        "required": ["intentId", "intent"]
+      }
+    }
+  }
+}

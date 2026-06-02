@@ -1,0 +1,378 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Metrics",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides event logging to the platform for metrics and analytics. Apps send telemetry events describing media playback, errors, and lifecycle."
+  },
+  "methods": [
+    {
+      "name": "Metrics.ready",
+      "summary": "Signal that app is ready.",
+      "description": "Signals that the app is ready to display content and accept user input.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "appReady",
+          "summary": "App is ready",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.startContent",
+      "summary": "Signal that content playback started.",
+      "description": "Signals the app is starting to show video or audio content.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "contentStarted",
+          "summary": "Content playback started",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.stopContent",
+      "summary": "Signal that content playback stopped.",
+      "description": "Signals the app has stopped showing video or audio content.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "contentStopped",
+          "summary": "Content playback stopped",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.page",
+      "summary": "Signal page transition.",
+      "description": "Signals that the app has transitioned to a new page. The pageName parameter identifies the page.",
+      "params": [
+        {
+          "name": "pageName",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Identifier for the page the app is now on"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "pageTransition",
+          "summary": "App navigated to details page",
+          "params": [
+            { "name": "pageName", "value": "details" }
+          ],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.error",
+      "summary": "Log an error.",
+      "description": "Logs an error that occurred within the app.",
+      "params": [
+        {
+          "name": "errorType",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/ErrorType" },
+          "description": "Type of error"
+        },
+        {
+          "name": "errorMessage",
+          "required": false,
+          "schema": { "type": "string" },
+          "description": "Human-readable error description"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "networkError",
+          "summary": "Network error occurred",
+          "params": [
+            { "name": "errorType", "value": "network" },
+            { "name": "errorMessage", "value": "DNS resolution failed" }
+          ],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaLoadStart",
+      "summary": "Signal media load started.",
+      "description": "Signals that the app has started loading media content.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "loadStarted",
+          "summary": "Media loading started",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaPlay",
+      "summary": "Signal media play began.",
+      "description": "Signals that media playback has begun.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "playStarted",
+          "summary": "Playback started",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaPlaying",
+      "summary": "Signal media is actively playing.",
+      "description": "Signals that media is actively playing (distinguishes from play intent, e.g., after buffering).",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "mediaActive",
+          "summary": "Media actively playing",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaPause",
+      "summary": "Signal media was paused.",
+      "description": "Signals that media playback has been paused.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "mediaPaused",
+          "summary": "Playback paused",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaWaiting",
+      "summary": "Signal media is buffering.",
+      "description": "Signals that media playback is waiting (buffering) for data.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "mediaBuffering",
+          "summary": "Media is buffering",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaSeeking",
+      "summary": "Signal user is seeking.",
+      "description": "Signals that the user is seeking to a new playback position.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "userSeeking",
+          "summary": "User initiated seek",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaSeeked",
+      "summary": "Signal seek completed.",
+      "description": "Signals that the user has completed seeking to a new position.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "seekComplete",
+          "summary": "Seek operation completed",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaRateChanged",
+      "summary": "Signal playback rate changed.",
+      "description": "Signals that media playback rate has changed (e.g., speed up, slow down).",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "rateChanged",
+          "summary": "Playback rate changed",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaRenditionChanged",
+      "summary": "Signal rendition/quality changed.",
+      "description": "Signals that media rendition (quality) has changed.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "qualityChanged",
+          "summary": "Media quality changed to 1080p",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.mediaEnded",
+      "summary": "Signal media playback ended.",
+      "description": "Signals that media playback has ended.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "playbackEnded",
+          "summary": "Media playback completed",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.event",
+      "summary": "Log a custom event.",
+      "description": "Generic event telemetry allowing apps to log custom metrics and analytics events.",
+      "params": [
+        {
+          "name": "eventName",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Event name identifier"
+        },
+        {
+          "name": "eventData",
+          "required": false,
+          "schema": { "type": "string" },
+          "description": "Arbitrary event data as a JSON string"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "customEvent",
+          "summary": "Custom analytics event",
+          "params": [
+            { "name": "eventName", "value": "user_action" },
+            { "name": "eventData", "value": "{\"action\":\"favorite\",\"contentId\":\"123\"}" }
+          ],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.appInfo",
+      "summary": "Send app-specific metrics.",
+      "description": "Sends app-specific metrics to the platform. Params include agePolicy indicating content maturity if applicable.",
+      "params": [
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Content age policy/rating"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "appInfoWithRating",
+          "summary": "App info with content rating",
+          "params": [
+            { "name": "agePolicy", "value": { "ratings": { "us": "TV-14" } } }
+          ],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ErrorType": {
+        "title": "ErrorType",
+        "type": "string",
+        "enum": ["network", "playback", "entitlement", "parse", "aborted", "unknown"],
+        "description": "Classification of error type.",
+        "examples": ["network"]
+      }
+    }
+  }
+}

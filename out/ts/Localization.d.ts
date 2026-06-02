@@ -2,8 +2,24 @@
 // Module: Localization
 
 declare namespace Localization {
-  /** Fires when the platform's active country setting changes. Payload is an ISO 3166-1 alpha-2 country code (e.g. "US", "GB", "DE"). Corresponds to the Country field in the Devices table.
-   * Constraints — event payload: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
-  function onCountryChanged(callback: (event: string) => void): () => void;
+  /** Returns the country setting. The value is an ISO 3166-1 alpha-2 country code (e.g. "US", "GB", "DE").
+   * Constraints: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
+  function country(): Promise<string>;
+
+  /** Fires when the platform's active country setting changes.
+   * Constraints: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
+  function onCountryChanged(): Promise<string>;
+
+  /** Returns the list of preferred audio languages. A list of zero or more languages in order of decreasing preference. Each code is an ISO 639-2/B language code. */
+  function preferredAudioLanguages(): Promise<string[]>;
+
+  /** Fired when the preferred audio languages setting changes. */
+  function onPreferredAudioLanguagesChanged(): Promise<string[]>;
+
+  /** Returns the presentation language setting. The presentation language is a BCP 47 locale tag. */
+  function presentationLanguage(): Promise<string>;
+
+  /** Fired when the presentation language setting changes. */
+  function onPresentationLanguageChanged(): Promise<string>;
 
 }

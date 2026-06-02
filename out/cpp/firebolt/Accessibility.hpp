@@ -11,13 +11,32 @@
 namespace firebolt {
 namespace accessibility {
 
+struct ClosedCaptionsSettings {
+    bool enabled;
+    std::optional<std::vector<std::string>> preferredLanguages;
+};
+
 struct VoiceGuidanceSettings {
     bool enabled;
     double rate; // minimum=0.1, maximum=10
     bool navigationHints;
 };
 
+FireboltResult<bool> audioDescription();
+
+FireboltResult<bool> onAudioDescriptionChanged();
+
+FireboltResult<ClosedCaptionsSettings> closedCaptionsSettings();
+
+FireboltResult<ClosedCaptionsSettings> onClosedCaptionsSettingsChanged();
+
+FireboltResult<bool> highContrastUI();
+
+FireboltResult<bool> onHighContrastUIChanged();
+
 FireboltResult<VoiceGuidanceSettings> voiceGuidanceSettings();
+
+FireboltResult<VoiceGuidanceSettings> onVoiceGuidanceSettingsChanged();
 
 } // namespace accessibility
 } // namespace firebolt
