@@ -20,24 +20,24 @@ declare namespace Accessibility {
   function audioDescription(): Promise<boolean>;
 
   /** Fired when the audio description setting changes. */
-  function onAudioDescriptionChanged(): Promise<boolean>;
+  function onAudioDescriptionChanged(callback: (event: boolean) => void): () => void;
 
   /** Returns captions settings: enabled, and a list of zero or more languages in order of decreasing preference. */
   function closedCaptionsSettings(): Promise<ClosedCaptionsSettings>;
 
   /** Fired when the closed captions settings change. */
-  function onClosedCaptionsSettingsChanged(): Promise<ClosedCaptionsSettings>;
+  function onClosedCaptionsSettingsChanged(callback: (event: ClosedCaptionsSettings) => void): () => void;
 
   /** Returns the high contrast UI device setting. */
   function highContrastUI(): Promise<boolean>;
 
   /** Fired when the high contrast UI setting changes. */
-  function onHighContrastUIChanged(): Promise<boolean>;
+  function onHighContrastUIChanged(callback: (event: boolean) => void): () => void;
 
   /** Returns the current voice guidance configuration. Voice guidance is a screen-reader feature that reads UI elements aloud. */
   function voiceGuidanceSettings(): Promise<VoiceGuidanceSettings>;
 
   /** Fired when the voice guidance settings change. */
-  function onVoiceGuidanceSettingsChanged(): Promise<VoiceGuidanceSettings>;
+  function onVoiceGuidanceSettingsChanged(callback: (event: VoiceGuidanceSettings) => void): () => void;
 
 }

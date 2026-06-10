@@ -16,6 +16,6 @@ external object Actions {
 
     fun intent(): Promise<IntentPayload>
 
-    fun onIntent(): Promise<IntentPayload>
+    fun onIntent(callback: (IntentPayload) -> Unit): () -> Unit
 
 }

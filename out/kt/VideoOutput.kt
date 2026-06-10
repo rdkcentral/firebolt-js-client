@@ -9,6 +9,6 @@ import kotlin.js.Promise
 external object VideoOutput {
     fun resolution(): Promise<VideoResolution>
 
-    fun onResolutionChanged(): Promise<VideoResolution>
+    fun onResolutionChanged(callback: (VideoResolution) -> Unit): () -> Unit
 
 }

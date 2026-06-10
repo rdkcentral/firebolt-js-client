@@ -24,17 +24,19 @@ struct HdrCapabilities {
     bool hlg;
 };
 
+using UnsubscribeFn = std::function<void()>;
+
 FireboltResult<std::string> uid();
 
 FireboltResult<DeviceClass> deviceClass();
 
 FireboltResult<HdrCapabilities> hdr();
 
-FireboltResult<HdrCapabilities> onHdrChanged();
+UnsubscribeFn onHdrChanged(std::function<void(HdrCapabilities)> callback);
 
 FireboltResult<bool> dolbyAtmosExperienceAvailable();
 
-FireboltResult<bool> onDolbyAtmosExperienceAvailableChanged();
+UnsubscribeFn onDolbyAtmosExperienceAvailableChanged(std::function<void(bool)> callback);
 
 } // namespace device
 } // namespace firebolt

@@ -11,9 +11,11 @@
 namespace firebolt {
 namespace network {
 
+using UnsubscribeFn = std::function<void()>;
+
 FireboltResult<bool> connected();
 
-FireboltResult<bool> onConnectedChanged();
+UnsubscribeFn onConnectedChanged(std::function<void(bool)> callback);
 
 } // namespace network
 } // namespace firebolt

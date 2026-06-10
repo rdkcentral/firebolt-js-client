@@ -14,7 +14,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/VideoResolution" }
+        "schema": {
+          "$ref": "#/components/schemas/VideoResolution"
+        }
       },
       "examples": [
         {
@@ -32,10 +34,21 @@
       "name": "VideoOutput.onResolutionChanged",
       "summary": "Subscribe to video output resolution changes.",
       "description": "Fired when the video output resolution changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/VideoResolution" }
+        "schema": {
+          "$ref": "#/components/schemas/VideoResolution"
+        }
       },
       "examples": [
         {
@@ -56,7 +69,9 @@
         "title": "VideoResolution",
         "type": "string",
         "description": "Video resolution output. The resolution in format WIDTHxHEIGHT.",
-        "examples": ["3840x2160"]
+        "examples": [
+          "3840x2160"
+        ]
       }
     }
   }

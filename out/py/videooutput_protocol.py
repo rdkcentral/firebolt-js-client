@@ -10,5 +10,5 @@ class VideoOutputProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onResolutionChanged(self) -> VideoResolution:
+    def onResolutionChanged(self, callback: Callable[[VideoResolution], None]) -> Callable[[], None]:
         ...

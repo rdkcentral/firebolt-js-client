@@ -11,19 +11,21 @@
 namespace firebolt {
 namespace localization {
 
+using UnsubscribeFn = std::function<void()>;
+
 // Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$
 FireboltResult<std::string> country();
 
 // Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$
-FireboltResult<std::string> onCountryChanged();
+UnsubscribeFn onCountryChanged(std::function<void(std::string)> callback);
 
 FireboltResult<std::vector<std::string>> preferredAudioLanguages();
 
-FireboltResult<std::vector<std::string>> onPreferredAudioLanguagesChanged();
+UnsubscribeFn onPreferredAudioLanguagesChanged(std::function<void(std::vector<std::string>)> callback);
 
 FireboltResult<std::string> presentationLanguage();
 
-FireboltResult<std::string> onPresentationLanguageChanged();
+UnsubscribeFn onPresentationLanguageChanged(std::function<void(std::string)> callback);
 
 } // namespace localization
 } // namespace firebolt

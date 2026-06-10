@@ -35,7 +35,7 @@ class DeviceProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onHdrChanged(self) -> HdrCapabilities:
+    def onHdrChanged(self, callback: Callable[[HdrCapabilities], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -43,5 +43,5 @@ class DeviceProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onDolbyAtmosExperienceAvailableChanged(self) -> bool:
+    def onDolbyAtmosExperienceAvailableChanged(self, callback: Callable[[bool], None]) -> Callable[[], None]:
         ...

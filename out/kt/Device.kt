@@ -26,10 +26,10 @@ external object Device {
 
     fun hdr(): Promise<HdrCapabilities>
 
-    fun onHdrChanged(): Promise<HdrCapabilities>
+    fun onHdrChanged(callback: (HdrCapabilities) -> Unit): () -> Unit
 
     fun dolbyAtmosExperienceAvailable(): Promise<Boolean>
 
-    fun onDolbyAtmosExperienceAvailableChanged(): Promise<Boolean>
+    fun onDolbyAtmosExperienceAvailableChanged(callback: (Boolean) -> Unit): () -> Unit
 
 }

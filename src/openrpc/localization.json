@@ -38,7 +38,16 @@
       "name": "Localization.onCountryChanged",
       "summary": "Subscribe to country setting change notifications.",
       "description": "Fires when the platform's active country setting changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
         "schema": {
@@ -70,7 +79,9 @@
         "name": "result",
         "schema": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "ISO 639-2/B language codes"
         }
       },
@@ -81,7 +92,10 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": ["eng", "spa"]
+            "value": [
+              "eng",
+              "spa"
+            ]
           }
         }
       ]
@@ -90,12 +104,23 @@
       "name": "Localization.onPreferredAudioLanguagesChanged",
       "summary": "Subscribe to preferred audio languages changes.",
       "description": "Fired when the preferred audio languages setting changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
         "schema": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "ISO 639-2/B language codes"
         }
       },
@@ -106,7 +131,10 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": ["eng", "fra"]
+            "value": [
+              "eng",
+              "fra"
+            ]
           }
         }
       ]
@@ -139,7 +167,16 @@
       "name": "Localization.onPresentationLanguageChanged",
       "summary": "Subscribe to presentation language changes.",
       "description": "Fired when the presentation language setting changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
         "schema": {

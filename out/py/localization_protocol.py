@@ -10,7 +10,7 @@ class LocalizationProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onCountryChanged(self) -> Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]:
+    def onCountryChanged(self, callback: Callable[[Annotated[str, "minLength=2, maxLength=2, pattern=^[A-Z]{2}$"]], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -18,7 +18,7 @@ class LocalizationProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onPreferredAudioLanguagesChanged(self) -> list[str]:
+    def onPreferredAudioLanguagesChanged(self, callback: Callable[[list[str]], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -26,5 +26,5 @@ class LocalizationProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onPresentationLanguageChanged(self) -> str:
+    def onPresentationLanguageChanged(self, callback: Callable[[str], None]) -> Callable[[], None]:
         ...

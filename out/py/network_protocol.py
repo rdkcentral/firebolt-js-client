@@ -10,5 +10,5 @@ class NetworkProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onConnectedChanged(self) -> bool:
+    def onConnectedChanged(self, callback: Callable[[bool], None]) -> Callable[[], None]:
         ...

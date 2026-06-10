@@ -9,6 +9,6 @@ import kotlin.js.Promise
 external object Network {
     fun connected(): Promise<Boolean>
 
-    fun onConnectedChanged(): Promise<Boolean>
+    fun onConnectedChanged(callback: (Boolean) -> Unit): () -> Unit
 
 }

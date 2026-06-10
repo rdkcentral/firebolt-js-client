@@ -14,7 +14,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "type": "string" }
+        "schema": {
+          "type": "string"
+        }
       },
       "examples": [
         {
@@ -35,7 +37,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/DeviceClass" }
+        "schema": {
+          "$ref": "#/components/schemas/DeviceClass"
+        }
       },
       "examples": [
         {
@@ -56,7 +60,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/HdrCapabilities" }
+        "schema": {
+          "$ref": "#/components/schemas/HdrCapabilities"
+        }
       },
       "examples": [
         {
@@ -79,10 +85,21 @@
       "name": "Device.onHdrChanged",
       "summary": "Subscribe to HDR capability changes.",
       "description": "Fired when the HDR capabilities change.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/HdrCapabilities" }
+        "schema": {
+          "$ref": "#/components/schemas/HdrCapabilities"
+        }
       },
       "examples": [
         {
@@ -108,7 +125,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -126,10 +145,21 @@
       "name": "Device.onDolbyAtmosExperienceAvailableChanged",
       "summary": "Subscribe to Dolby Atmos availability changes.",
       "description": "Fired when Dolby Atmos availability changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -149,9 +179,15 @@
       "DeviceClass": {
         "title": "DeviceClass",
         "type": "string",
-        "enum": ["ott", "stb", "tv"],
+        "enum": [
+          "ott",
+          "stb",
+          "tv"
+        ],
         "description": "Classification of the device.",
-        "examples": ["stb"]
+        "examples": [
+          "stb"
+        ]
       },
       "HdrCapabilities": {
         "title": "HdrCapabilities",
@@ -175,7 +211,12 @@
             "description": "HLG (Hybrid Log-Gamma) support"
           }
         },
-        "required": ["hdr10", "hdr10Plus", "dolbyVision", "hlg"]
+        "required": [
+          "hdr10",
+          "hdr10Plus",
+          "dolbyVision",
+          "hlg"
+        ]
       }
     }
   }

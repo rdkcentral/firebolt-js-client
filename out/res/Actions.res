@@ -12,4 +12,4 @@ external start: (~intent: string, ~handlerAppId: option<string>=?, unit) => unit
 external intent: (unit) => promise<intentPayload> = "intent"
 
 @val @scope("Actions")
-external onIntent: (unit) => promise<intentPayload> = "onIntent"
+external onIntent: (~callback: (intentPayload => unit)) => (unit => unit) = "onIntent"

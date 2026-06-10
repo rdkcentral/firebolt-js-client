@@ -4,4 +4,4 @@
 external resolution: (unit) => promise<videoResolution> = "resolution"
 
 @val @scope("VideoOutput")
-external onResolutionChanged: (unit) => promise<videoResolution> = "onResolutionChanged"
+external onResolutionChanged: (~callback: (videoResolution => unit)) => (unit => unit) = "onResolutionChanged"

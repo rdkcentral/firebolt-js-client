@@ -15,19 +15,25 @@
         {
           "name": "intent",
           "required": true,
-          "schema": { "type": "string" },
+          "schema": {
+            "type": "string"
+          },
           "description": "The intent as a JSON document"
         },
         {
           "name": "handlerAppId",
           "required": false,
-          "schema": { "type": "string" },
+          "schema": {
+            "type": "string"
+          },
           "description": "The app ID to handle the intent (optional)"
         }
       ],
       "result": {
         "name": "result",
-        "schema": { "type": "null" }
+        "schema": {
+          "type": "null"
+        }
       },
       "examples": [
         {
@@ -53,7 +59,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/IntentPayload" }
+        "schema": {
+          "$ref": "#/components/schemas/IntentPayload"
+        }
       },
       "examples": [
         {
@@ -74,10 +82,21 @@
       "name": "Actions.onIntent",
       "summary": "Subscribe to intent events.",
       "description": "Fired when a new intent is received from the platform.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/IntentPayload" }
+        "schema": {
+          "$ref": "#/components/schemas/IntentPayload"
+        }
       },
       "examples": [
         {
@@ -111,7 +130,10 @@
             "description": "The intent as a JSON document"
           }
         },
-        "required": ["intentId", "intent"]
+        "required": [
+          "intentId",
+          "intent"
+        ]
       }
     }
   }

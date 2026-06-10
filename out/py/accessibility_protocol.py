@@ -28,7 +28,7 @@ class AccessibilityProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onAudioDescriptionChanged(self) -> bool:
+    def onAudioDescriptionChanged(self, callback: Callable[[bool], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -36,7 +36,7 @@ class AccessibilityProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onClosedCaptionsSettingsChanged(self) -> ClosedCaptionsSettings:
+    def onClosedCaptionsSettingsChanged(self, callback: Callable[[ClosedCaptionsSettings], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -44,7 +44,7 @@ class AccessibilityProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onHighContrastUIChanged(self) -> bool:
+    def onHighContrastUIChanged(self, callback: Callable[[bool], None]) -> Callable[[], None]:
         ...
 
     @abstractmethod
@@ -52,5 +52,5 @@ class AccessibilityProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onVoiceGuidanceSettingsChanged(self) -> VoiceGuidanceSettings:
+    def onVoiceGuidanceSettingsChanged(self, callback: Callable[[VoiceGuidanceSettings], None]) -> Callable[[], None]:
         ...

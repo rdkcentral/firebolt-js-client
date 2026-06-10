@@ -11,9 +11,11 @@
 namespace firebolt {
 namespace videooutput {
 
+using UnsubscribeFn = std::function<void()>;
+
 FireboltResult<VideoResolution> resolution();
 
-FireboltResult<VideoResolution> onResolutionChanged();
+UnsubscribeFn onResolutionChanged(std::function<void(VideoResolution)> callback);
 
 } // namespace videooutput
 } // namespace firebolt

@@ -15,22 +15,22 @@ type voiceGuidanceSettings = {
 external audioDescription: (unit) => promise<bool> = "audioDescription"
 
 @val @scope("Accessibility")
-external onAudioDescriptionChanged: (unit) => promise<bool> = "onAudioDescriptionChanged"
+external onAudioDescriptionChanged: (~callback: (bool => unit)) => (unit => unit) = "onAudioDescriptionChanged"
 
 @val @scope("Accessibility")
 external closedCaptionsSettings: (unit) => promise<closedCaptionsSettings> = "closedCaptionsSettings"
 
 @val @scope("Accessibility")
-external onClosedCaptionsSettingsChanged: (unit) => promise<closedCaptionsSettings> = "onClosedCaptionsSettingsChanged"
+external onClosedCaptionsSettingsChanged: (~callback: (closedCaptionsSettings => unit)) => (unit => unit) = "onClosedCaptionsSettingsChanged"
 
 @val @scope("Accessibility")
 external highContrastUI: (unit) => promise<bool> = "highContrastUI"
 
 @val @scope("Accessibility")
-external onHighContrastUIChanged: (unit) => promise<bool> = "onHighContrastUIChanged"
+external onHighContrastUIChanged: (~callback: (bool => unit)) => (unit => unit) = "onHighContrastUIChanged"
 
 @val @scope("Accessibility")
 external voiceGuidanceSettings: (unit) => promise<voiceGuidanceSettings> = "voiceGuidanceSettings"
 
 @val @scope("Accessibility")
-external onVoiceGuidanceSettingsChanged: (unit) => promise<voiceGuidanceSettings> = "onVoiceGuidanceSettingsChanged"
+external onVoiceGuidanceSettingsChanged: (~callback: (voiceGuidanceSettings => unit)) => (unit => unit) = "onVoiceGuidanceSettingsChanged"

@@ -6,6 +6,6 @@ declare namespace VideoOutput {
   function resolution(): Promise<VideoResolution>;
 
   /** Fired when the video output resolution changes. */
-  function onResolutionChanged(): Promise<VideoResolution>;
+  function onResolutionChanged(callback: (event: VideoResolution) => void): () => void;
 
 }

@@ -23,10 +23,10 @@ external deviceClass: (unit) => promise<deviceClass> = "deviceClass"
 external hdr: (unit) => promise<hdrCapabilities> = "hdr"
 
 @val @scope("Device")
-external onHdrChanged: (unit) => promise<hdrCapabilities> = "onHdrChanged"
+external onHdrChanged: (~callback: (hdrCapabilities => unit)) => (unit => unit) = "onHdrChanged"
 
 @val @scope("Device")
 external dolbyAtmosExperienceAvailable: (unit) => promise<bool> = "dolbyAtmosExperienceAvailable"
 
 @val @scope("Device")
-external onDolbyAtmosExperienceAvailableChanged: (unit) => promise<bool> = "onDolbyAtmosExperienceAvailableChanged"
+external onDolbyAtmosExperienceAvailableChanged: (~callback: (bool => unit)) => (unit => unit) = "onDolbyAtmosExperienceAvailableChanged"

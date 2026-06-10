@@ -15,6 +15,6 @@ declare namespace Actions {
   function intent(): Promise<IntentPayload>;
 
   /** Fired when a new intent is received from the platform. */
-  function onIntent(): Promise<IntentPayload>;
+  function onIntent(callback: (event: IntentPayload) => void): () => void;
 
 }

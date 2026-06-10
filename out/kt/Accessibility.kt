@@ -20,18 +20,18 @@ external interface VoiceGuidanceSettings {
 external object Accessibility {
     fun audioDescription(): Promise<Boolean>
 
-    fun onAudioDescriptionChanged(): Promise<Boolean>
+    fun onAudioDescriptionChanged(callback: (Boolean) -> Unit): () -> Unit
 
     fun closedCaptionsSettings(): Promise<ClosedCaptionsSettings>
 
-    fun onClosedCaptionsSettingsChanged(): Promise<ClosedCaptionsSettings>
+    fun onClosedCaptionsSettingsChanged(callback: (ClosedCaptionsSettings) -> Unit): () -> Unit
 
     fun highContrastUI(): Promise<Boolean>
 
-    fun onHighContrastUIChanged(): Promise<Boolean>
+    fun onHighContrastUIChanged(callback: (Boolean) -> Unit): () -> Unit
 
     fun voiceGuidanceSettings(): Promise<VoiceGuidanceSettings>
 
-    fun onVoiceGuidanceSettingsChanged(): Promise<VoiceGuidanceSettings>
+    fun onVoiceGuidanceSettingsChanged(callback: (VoiceGuidanceSettings) -> Unit): () -> Unit
 
 }

@@ -22,21 +22,23 @@ struct VoiceGuidanceSettings {
     bool navigationHints;
 };
 
+using UnsubscribeFn = std::function<void()>;
+
 FireboltResult<bool> audioDescription();
 
-FireboltResult<bool> onAudioDescriptionChanged();
+UnsubscribeFn onAudioDescriptionChanged(std::function<void(bool)> callback);
 
 FireboltResult<ClosedCaptionsSettings> closedCaptionsSettings();
 
-FireboltResult<ClosedCaptionsSettings> onClosedCaptionsSettingsChanged();
+UnsubscribeFn onClosedCaptionsSettingsChanged(std::function<void(ClosedCaptionsSettings)> callback);
 
 FireboltResult<bool> highContrastUI();
 
-FireboltResult<bool> onHighContrastUIChanged();
+UnsubscribeFn onHighContrastUIChanged(std::function<void(bool)> callback);
 
 FireboltResult<VoiceGuidanceSettings> voiceGuidanceSettings();
 
-FireboltResult<VoiceGuidanceSettings> onVoiceGuidanceSettingsChanged();
+UnsubscribeFn onVoiceGuidanceSettingsChanged(std::function<void(VoiceGuidanceSettings)> callback);
 
 } // namespace accessibility
 } // namespace firebolt

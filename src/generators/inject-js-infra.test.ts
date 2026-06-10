@@ -175,7 +175,6 @@ describe("smoke test: generate firebolt-inject.js from real OpenRPC files", () =
     expect(src).toContain("configure");
     expect(src).toContain("_VERSION");
     expect(src).toContain("_methodRegistry");
-    expect(src).toContain("_typeSchemas");
     expect(src.trimEnd()).toMatch(/globalThis.*window.*\);$/);
   });
 
@@ -194,7 +193,5 @@ describe("smoke test: generate firebolt-inject.js from real OpenRPC files", () =
     // Localization and Accessibility are web/both — their methods must be present
     expect(src).toContain("Localization.");
     expect(src).toContain("Accessibility.");
-    // Shared types should be included
-    expect(src).toContain("Shared.");
   });
 });

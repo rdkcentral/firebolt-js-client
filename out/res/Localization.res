@@ -6,16 +6,16 @@ external country: (unit) => promise<string> = "country"
 
 /* Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
 @val @scope("Localization")
-external onCountryChanged: (unit) => promise<string> = "onCountryChanged"
+external onCountryChanged: (~callback: (string => unit)) => (unit => unit) = "onCountryChanged"
 
 @val @scope("Localization")
 external preferredAudioLanguages: (unit) => promise<array<string>> = "preferredAudioLanguages"
 
 @val @scope("Localization")
-external onPreferredAudioLanguagesChanged: (unit) => promise<array<string>> = "onPreferredAudioLanguagesChanged"
+external onPreferredAudioLanguagesChanged: (~callback: (array<string> => unit)) => (unit => unit) = "onPreferredAudioLanguagesChanged"
 
 @val @scope("Localization")
 external presentationLanguage: (unit) => promise<string> = "presentationLanguage"
 
 @val @scope("Localization")
-external onPresentationLanguageChanged: (unit) => promise<string> = "onPresentationLanguageChanged"
+external onPresentationLanguageChanged: (~callback: (string => unit)) => (unit => unit) = "onPresentationLanguageChanged"

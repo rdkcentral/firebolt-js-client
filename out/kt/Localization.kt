@@ -11,14 +11,14 @@ external object Localization {
     fun country(): Promise<String>
 
     /** Constraints — result: minLength=2, maxLength=2, pattern=^[A-Z]{2}$ */
-    fun onCountryChanged(): Promise<String>
+    fun onCountryChanged(callback: (String) -> Unit): () -> Unit
 
     fun preferredAudioLanguages(): Promise<Array<String>>
 
-    fun onPreferredAudioLanguagesChanged(): Promise<Array<String>>
+    fun onPreferredAudioLanguagesChanged(callback: (Array<String>) -> Unit): () -> Unit
 
     fun presentationLanguage(): Promise<String>
 
-    fun onPresentationLanguageChanged(): Promise<String>
+    fun onPresentationLanguageChanged(callback: (String) -> Unit): () -> Unit
 
 }

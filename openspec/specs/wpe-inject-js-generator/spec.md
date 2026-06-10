@@ -82,28 +82,23 @@ The `FireboltClient` returned by `get()` SHALL be a frozen object whose properti
 
 ---
 
-### Requirement: Call method stubs send JSON-RPC and validate both directions
+### Requirement: Call method stubs send JSON-RPC and handle errors
 Each `kind: "call"` method stub SHALL:
-1. Validate user-supplied params against the method's `paramsSchema` before sending; reject the Promise if validation fails.
-2. Allocate a unique integer `id` and send `{ jsonrpc:"2.0", id, method:"Module.methodName", params }` via `transport.send()`.
-3. On receiving `{ id, result }`: validate the result against `resultSchema`; reject if invalid, resolve if valid.
-4. On receiving `{ id, error }`: reject the Promise with an `Error` constructed from `error.message` and `error.code`.
+1. Allocate a unique integer `id` and send `{ jsonrpc:"2.0", id, method:"Module.methodName", params }` via `transport.send()`.
+2. On receiving `{ id, result }`: resolve the Promise with the result value (no validation).
+3. On receiving `{ id, error }`: reject the Promise with an `Error` constructed from `error.message` and `error.code`.
 
-#### Scenario: Call method params validation rejects on bad input
-- **WHEN** a call stub is invoked with params that fail the paramsSchema (e.g., a required string field is missing)
-- **THEN** the returned Promise MUST reject with an Error before any transport send occurs
+#### Scenario: Call method sends params without validation
+- **WHEN** a call stub is invoked with any params (valid or invalid according to schema)
+- **THEN** the transport SHALL send `{ jsonrpc:"2.0", id, method, params }` immediately without pre-validation
 
-#### Scenario: Call method result validation rejects on bad response
-- **WHEN** the backend responds with a result that fails the resultSchema
-- **THEN** the returned Promise MUST reject with an Error describing the validation failure
+#### Scenario: Call method resolves with result
+- **WHEN** the backend responds with `{ id, result: <value> }`
+- **THEN** the returned Promise MUST resolve with the result value as-is (no validation)
 
-#### Scenario: Call method resolves with validated result
-- **WHEN** the backend responds with `{ id, result: <valid> }`
-- **THEN** the returned Promise MUST resolve with the result value
-
-#### Scenario: Call method rejects on JSON-RPC error response
-- **WHEN** the backend responds with `{ id, error: { code: 404, message: "Not found" } }`
-- **THEN** the returned Promise MUST reject with an Error whose message includes "Not found" and code 404
+#### Scenario: Call method rejects on backend error
+- **WHEN** the backend responds with `{ id, error: { code: -32602, message: "Invalid params" } }`
+- **THEN** the returned Promise MUST reject with an Error whose message includes the backend error message and code
 
 ---
 
@@ -136,8 +131,7 @@ Each `kind: "subscribe"` method stub SHALL:
 Incoming messages with a `method` field and no `id` field SHALL be treated as Firebolt 9 event notifications. The runtime SHALL:
 1. Look up the event in `_methodRegistry`.
 2. Extract the payload: if `eventIsPrimitive` is `true`, extract `params.value`; otherwise use `params` directly.
-3. Validate the payload against `eventSchema`; if validation fails, log a warning and do NOT dispatch.
-4. Dispatch the validated payload to all registered callbacks in `_eventListeners[method]`.
+3. Dispatch the payload to all registered callbacks in `_eventListeners[method]` (no validation).
 
 #### Scenario: Primitive event payload extracted from params.value
 - **WHEN** a notification `{ method:"Localization.onCountryChanged", params:{ value:"US" } }` arrives
@@ -150,35 +144,10 @@ Incoming messages with a `method` field and no `id` field SHALL be treated as Fi
 #### Scenario: Array event payload passed as params directly
 - **WHEN** a notification `{ method:"SomeModule.onListChanged", params:["a","b"] }` arrives and `eventIsPrimitive` is `false`
 - **THEN** the callback MUST receive `["a","b"]` (not `{ value: ["a","b"] }`)
-- **NOTE** `ArrayRef` results have `eventIsPrimitive: false`; the generator MUST NOT set it to `true` for array types
-
-#### Scenario: Invalid event payload is not dispatched
-- **WHEN** a notification arrives with a payload that fails eventSchema validation
-- **THEN** the callback MUST NOT be invoked
-- **THEN** a warning MUST be logged to the console
 
 ---
 
-### Requirement: Schema validation is fully recursive
-The runtime validator SHALL recursively validate values against schema nodes of all kinds: `primitive` (with constraints), `object` (with required fields), `array` (each item), `optional`, `union` (any variant matches), `enum` (value is one of the declared wire strings), and `ref` (resolved from `_typeSchemas`). A `null` or absent schema means no validation is applied.
 
-#### Scenario: Object schema validates required properties
-- **WHEN** an object schema declares `required: ["enabled"]` and the value is `{}`
-- **THEN** validation MUST return an error indicating "enabled" is missing
-
-#### Scenario: Array schema validates each item
-- **WHEN** an array schema has `items: { kind:"primitive", type:"string" }` and the value is `[1, 2]`
-- **THEN** validation MUST return an error for each non-string item
-
-#### Scenario: Union schema passes if any variant matches
-- **WHEN** a union schema has variants `[string-schema, object-schema]` and the value is a string
-- **THEN** validation MUST pass
-
-#### Scenario: Primitive string constraint is enforced
-- **WHEN** a primitive string schema has `constraints: { minLength:2, maxLength:2, pattern:"^[A-Z]{2}$" }` and the value is `"usa"`
-- **THEN** validation MUST fail (length > 2 and pattern mismatch)
-
----
 
 ### Requirement: clientId and transport are never accessible from page code
 The `clientId` and the reference to `window.__firebolt_transport__` SHALL be stored exclusively within the IIFE closure. No property on `FireboltServiceManager`, `FireboltClient`, or any module namespace SHALL expose these values.

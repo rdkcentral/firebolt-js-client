@@ -6,6 +6,6 @@ declare namespace Network {
   function connected(): Promise<boolean>;
 
   /** Fired when the network connectivity status changes. */
-  function onConnectedChanged(): Promise<boolean>;
+  function onConnectedChanged(callback: (event: boolean) => void): () => void;
 
 }

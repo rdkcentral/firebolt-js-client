@@ -4,4 +4,4 @@
 external connected: (unit) => promise<bool> = "connected"
 
 @val @scope("Network")
-external onConnectedChanged: (unit) => promise<bool> = "onConnectedChanged"
+external onConnectedChanged: (~callback: (bool => unit)) => (unit => unit) = "onConnectedChanged"

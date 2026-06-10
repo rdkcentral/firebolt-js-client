@@ -14,7 +14,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -32,10 +34,21 @@
       "name": "Network.onConnectedChanged",
       "summary": "Subscribe to network connectivity changes.",
       "description": "Fired when the network connectivity status changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {

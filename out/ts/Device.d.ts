@@ -23,12 +23,12 @@ declare namespace Device {
   function hdr(): Promise<HdrCapabilities>;
 
   /** Fired when the HDR capabilities change. */
-  function onHdrChanged(): Promise<HdrCapabilities>;
+  function onHdrChanged(callback: (event: HdrCapabilities) => void): () => void;
 
   /** Returns whether the user would get a Dolby Atmos experience if a Dolby Atmos track were to be played at this time. */
   function dolbyAtmosExperienceAvailable(): Promise<boolean>;
 
   /** Fired when Dolby Atmos availability changes. */
-  function onDolbyAtmosExperienceAvailableChanged(): Promise<boolean>;
+  function onDolbyAtmosExperienceAvailableChanged(callback: (event: boolean) => void): () => void;
 
 }

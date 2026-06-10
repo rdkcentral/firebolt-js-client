@@ -16,11 +16,13 @@ struct IntentPayload {
     std::string intent;
 };
 
+using UnsubscribeFn = std::function<void()>;
+
 FireboltResult<void> start(std::string intent, std::optional<std::string> handlerAppId = std::nullopt);
 
 FireboltResult<IntentPayload> intent();
 
-FireboltResult<IntentPayload> onIntent();
+UnsubscribeFn onIntent(std::function<void(IntentPayload)> callback);
 
 } // namespace actions
 } // namespace firebolt

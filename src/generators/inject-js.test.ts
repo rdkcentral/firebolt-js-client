@@ -321,9 +321,9 @@ test("5.9 call stub sends correct JSON-RPC message", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5.10  Call stub rejects on params validation failure
+// 5.10  Call stub sends params without validation
 // ---------------------------------------------------------------------------
-test("5.10 call stub rejects on invalid params", async () => {
+test("5.10 call stub sends params without pre-validation", async () => {
   // Module with a call that requires a string param
   const mod: Module = {
     name: "Localization",
@@ -345,14 +345,17 @@ test("5.10 call stub rejects on invalid params", async () => {
   transport.statusCb!("connected");
   const client = await p as { Localization: { setLanguage: (p: Record<string, unknown>) => Promise<unknown> } };
 
-  await expect(client.Localization.setLanguage({ language: 42 as unknown as string }))
-    .rejects.toThrow(/Invalid params/);
+  client.Localization.setLanguage({ language: 42 as unknown as string });
+  // Verify the message was sent (no pre-validation)
+  expect(transport.sentMessages.length).toBe(1);
+  const sent = JSON.parse(transport.sentMessages[0]);
+  expect(sent.params.language).toBe(42);
 });
 
 // ---------------------------------------------------------------------------
-// 5.11  Call stub rejects on result validation failure
+// 5.11  Call stub passes result through without validation
 // ---------------------------------------------------------------------------
-test("5.11 call stub rejects on invalid result", async () => {
+test("5.11 call stub passes result through without validation", async () => {
   const ast = makeAST(); // language() returns string
   const { fsm, transport } = evalBundle(generateBundle(ast));
   fsm.configure({ clientId: "ext-7" });
@@ -363,9 +366,9 @@ test("5.11 call stub rejects on invalid result", async () => {
   const callPromise = client.Localization.language({});
   const id = JSON.parse(transport.sentMessages[0]).id;
 
-  // Return a number instead of string
+  // Return a number instead of string - no validation, so it resolves
   transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id, result: 42 }));
-  await expect(callPromise).rejects.toThrow(/Invalid result/);
+  await expect(callPromise).resolves.toBe(42);
 });
 
 // ---------------------------------------------------------------------------
@@ -501,26 +504,13 @@ test("5.16b array event (params directly) dispatches to callback", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5.17  Invalid event payload → not dispatched, console.warn issued
+// 5.17  Event with invalid payload is dispatched as-is
 // ---------------------------------------------------------------------------
-test("5.17 invalid event payload is not dispatched and console.warn is called", async () => {
+test("5.17 event with invalid payload is dispatched to callback", async () => {
   const ast = makeAST(); // onLanguageChanged → string
-  const transport = makeMockTransport();
-  const warnSpy = jest.fn();
-  const context: Record<string, unknown> = {
-    window: { __firebolt_transport__: transport },
-    globalThis: undefined as unknown,
-    console: { warn: warnSpy, error: jest.fn(), log: jest.fn() },
-    Promise, JSON, Array, Object, RegExp,
-  };
-  context.globalThis = context;
-  vm.createContext(context);
-  vm.runInContext(generateBundle(ast), context);
-  type FSMType = { version: string; configure: (cfg: { clientId: string }) => void; get: () => Promise<unknown> };
-  const fsm2 = context.FireboltServiceManager as FSMType;
-
-  fsm2.configure({ clientId: "ext-13" });
-  const p = (fsm2.get as () => Promise<unknown>)();
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.configure({ clientId: "ext-13" });
+  const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
 
@@ -530,12 +520,9 @@ test("5.17 invalid event payload is not dispatched and console.warn is called", 
   transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: sent.id, result: null }));
   await subPromise;
 
-  // Send a number instead of a string
+  // Send a number instead of a string - no validation, so callback receives it
   transport.msgCb!(JSON.stringify({ method: "Localization.onLanguageChanged", params: { value: 999 } }));
-  expect(cb).not.toHaveBeenCalled();
-  expect(warnSpy).toHaveBeenCalled();
-
-
+  expect(cb).toHaveBeenCalledWith(999);
 });
 
 // ---------------------------------------------------------------------------
@@ -886,17 +873,14 @@ test("6.3 Actions methods are in generated bundle", () => {
 });
 
 // 6.4 — Advertising methods present
-test("6.4 Advertising methods and types are in generated bundle", () => {
+test("6.4 Advertising methods are in generated bundle", () => {
   const ast = makeRDK9WebAST();
   const code = generateBundle(ast);
   expect(code).toContain("Advertising.advertisingId");
-  expect(code).toContain("AdvertisingId");
-  expect(code).toContain("IfaType");
-  expect(code).toContain("Lmt");
 });
 
 // 6.5 — Device methods present
-test("6.5 Device methods and types are in generated bundle", () => {
+test("6.5 Device methods are in generated bundle", () => {
   const ast = makeRDK9WebAST();
   const code = generateBundle(ast);
   expect(code).toContain("Device.uid");
@@ -905,8 +889,6 @@ test("6.5 Device methods and types are in generated bundle", () => {
   expect(code).toContain("Device.onHdrChanged");
   expect(code).toContain("Device.dolbyAtmosExperienceAvailable");
   expect(code).toContain("Device.onDolbyAtmosExperienceAvailableChanged");
-  expect(code).toContain("HdrCapabilities");
-  expect(code).toContain("DeviceClass");
 });
 
 // 6.6 — Display methods present and Display filtered to web
@@ -915,7 +897,6 @@ test("6.6 Display methods present; Display excluded from native generators", () 
   const code = generateBundle(ast);
   expect(code).toContain("Display.colorimetry");
   expect(code).toContain("Display.videoResolutions");
-  expect(code).toContain("ColorimetryValue");
 });
 
 // 6.7 — Network methods present
@@ -948,5 +929,4 @@ test("6.9 All Metrics methods are in generated bundle", () => {
   for (const method of expectedMethods) {
     expect(code).toContain(method);
   }
-  expect(code).toContain("ErrorType");
 });

@@ -22,5 +22,5 @@ class ActionsProtocol(ABC):
         ...
 
     @abstractmethod
-    async def onIntent(self) -> IntentPayload:
+    def onIntent(self, callback: Callable[[IntentPayload], None]) -> Callable[[], None]:
         ...

@@ -14,7 +14,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -32,10 +34,21 @@
       "name": "Accessibility.onAudioDescriptionChanged",
       "summary": "Subscribe to audio description changes.",
       "description": "Fired when the audio description setting changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -56,7 +69,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/ClosedCaptionsSettings" }
+        "schema": {
+          "$ref": "#/components/schemas/ClosedCaptionsSettings"
+        }
       },
       "examples": [
         {
@@ -67,7 +82,10 @@
             "name": "result",
             "value": {
               "enabled": true,
-              "preferredLanguages": ["eng", "spa"]
+              "preferredLanguages": [
+                "eng",
+                "spa"
+              ]
             }
           }
         }
@@ -77,10 +95,21 @@
       "name": "Accessibility.onClosedCaptionsSettingsChanged",
       "summary": "Subscribe to closed captions settings changes.",
       "description": "Fired when the closed captions settings change.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/ClosedCaptionsSettings" }
+        "schema": {
+          "$ref": "#/components/schemas/ClosedCaptionsSettings"
+        }
       },
       "examples": [
         {
@@ -91,7 +120,9 @@
             "name": "result",
             "value": {
               "enabled": true,
-              "preferredLanguages": ["eng"]
+              "preferredLanguages": [
+                "eng"
+              ]
             }
           }
         }
@@ -104,7 +135,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -122,10 +155,21 @@
       "name": "Accessibility.onHighContrastUIChanged",
       "summary": "Subscribe to high contrast UI changes.",
       "description": "Fired when the high contrast UI setting changes.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "type": "boolean" }
+        "schema": {
+          "type": "boolean"
+        }
       },
       "examples": [
         {
@@ -146,7 +190,9 @@
       "params": [],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/VoiceGuidanceSettings" }
+        "schema": {
+          "$ref": "#/components/schemas/VoiceGuidanceSettings"
+        }
       },
       "examples": [
         {
@@ -155,7 +201,11 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": { "enabled": true, "rate": 1.0, "navigationHints": true }
+            "value": {
+              "enabled": true,
+              "rate": 1.0,
+              "navigationHints": true
+            }
           }
         }
       ]
@@ -164,10 +214,21 @@
       "name": "Accessibility.onVoiceGuidanceSettingsChanged",
       "summary": "Subscribe to voice guidance settings changes.",
       "description": "Fired when the voice guidance settings change.",
-      "params": [],
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
       "result": {
         "name": "result",
-        "schema": { "$ref": "#/components/schemas/VoiceGuidanceSettings" }
+        "schema": {
+          "$ref": "#/components/schemas/VoiceGuidanceSettings"
+        }
       },
       "examples": [
         {
@@ -176,7 +237,11 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": { "enabled": true, "rate": 1.5, "navigationHints": true }
+            "value": {
+              "enabled": true,
+              "rate": 1.5,
+              "navigationHints": true
+            }
           }
         }
       ]
@@ -195,11 +260,15 @@
           },
           "preferredLanguages": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "List of ISO 639-2/B language codes in order of user preference."
           }
         },
-        "required": ["enabled"]
+        "required": [
+          "enabled"
+        ]
       },
       "VoiceGuidanceSettings": {
         "title": "VoiceGuidanceSettings",
@@ -222,7 +291,11 @@
             "description": "Whether navigation hints are read aloud"
           }
         },
-        "required": ["enabled", "rate", "navigationHints"]
+        "required": [
+          "enabled",
+          "rate",
+          "navigationHints"
+        ]
       }
     }
   }
