@@ -39,3 +39,20 @@ test('listen hdr', async () => {
     expect(res > 0).toBe(true);
   });
 });
+
+test("Device.dolbyAtmosExperienceAvailable()", async () => {
+  const res = await Device.dolbyAtmosExperienceAvailable();
+  expect(res).toBe(true);
+});
+
+test('listen onDolbyAtmosExperienceAvailableChanged', async () => {
+  return Device.listen('onDolbyAtmosExperienceAvailableChanged', (data: boolean) => {}).then((res: number) => {
+    expect(res > 0).toBe(true);
+  });
+});
+
+test('once onDolbyAtmosExperienceAvailableChanged', async () => {
+  return Device.once('onDolbyAtmosExperienceAvailableChanged', (data: boolean) => {}).then((res: number) => {
+    expect(res > 0).toBe(true);
+  });
+});

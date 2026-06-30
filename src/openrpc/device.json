@@ -166,6 +166,39 @@
       ]
     },
     {
+      "name": "dolbyAtmosExperienceAvailable",
+      "summary": "Returns whether Dolby Atmos experience is available on the device",
+      "params": [],
+      "tags": [
+        {
+          "name": "property:readonly"
+        },
+        {
+          "name": "capabilities",
+          "x-uses": [
+            "xrn:firebolt:capability:device:info"
+          ]
+        }
+      ],
+      "result": {
+        "name": "dolbyAtmosExperienceAvailable",
+        "summary": "Whether Dolby Atmos experience is available on the device",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "Getting Dolby Atmos experience availability",
+          "params": [],
+          "result": {
+            "name": "Default Result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
       "name": "hdr",
       "summary": "Returns the HDR standards that are supported by the attached TV or the integral display",
       "params": [],

@@ -22,7 +22,7 @@ import { test } from '@jest/globals';
 
 import {
   testSubscribeWithOneArgument,
-
+  testListenWithOneArgument,
 } from './utils/subscribeHelper.js';
 
 import { Device } from '../../build/javascript/src/firebolt.mjs';
@@ -30,4 +30,19 @@ import { Device } from '../../build/javascript/src/firebolt.mjs';
 test('Device.onHdrChanged subscription', async () => {
   return testSubscribeWithOneArgument(Device, 'hdr', { "dolbyVision": true, "hdr10": true, "hdr10Plus": true, "hlg": true },
     '{"jsonrpc":"2.0","method":"Device.onHdrChanged","params":{"value":{ "dolbyVision": true, "hdr10": true, "hdr10Plus": true, "hlg": true }}}');
+});
+
+test('Device.dolbyAtmosExperienceAvailable subscription', async () => {
+  return testSubscribeWithOneArgument(Device, 'dolbyAtmosExperienceAvailable', true,
+    '{"jsonrpc":"2.0","method":"Device.onDolbyAtmosExperienceAvailableChanged","params":{"value":true}}');
+});
+
+test('Device.once: onDolbyAtmosExperienceAvailableChanged', async () => {
+  return testListenWithOneArgument(Device, 'once', 'onDolbyAtmosExperienceAvailableChanged', true,
+    '{"jsonrpc":"2.0","method":"Device.onDolbyAtmosExperienceAvailableChanged","params":{"value":true}}');
+});
+
+test('Device.listen: onDolbyAtmosExperienceAvailableChanged', async () => {
+  return testListenWithOneArgument(Device, 'listen', 'onDolbyAtmosExperienceAvailableChanged', true,
+    '{"jsonrpc":"2.0","method":"Device.onDolbyAtmosExperienceAvailableChanged","params":{"value":true}}');
 });

@@ -31,4 +31,8 @@ describe("Device API", () => {
   test("deviceClass returns expected value", async () => {
     await expect(Device.deviceClass()).resolves.toBe("ott");
   });
+
+  test("dolbyAtmosExperienceAvailable returns boolean true", async () => {
+    await expect(Device.dolbyAtmosExperienceAvailable()).resolves.toBe(true);
+  });
 });
