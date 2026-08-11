@@ -101,7 +101,8 @@ const STATIC_PREAMBLE = `
   // ---------------------------------------------------------------------------
   // Private state
   // ---------------------------------------------------------------------------
-  var _clientId = null;
+  var _transport = null;
+  var _transportSet = false;
   var _connecting = false;
   var _connected = false;
   var _fireboltInstance = null;
@@ -182,14 +183,13 @@ const STATIC_RUNTIME = `
   function _rpcCall(methodName, params) {
     return new Promise(function (resolve, reject) {
       var id = _nextId++;
-      var t = window.__firebolt_transport__;
       _pendingCalls[id] = {
         isSubscribe: false,
         resolve: resolve,
         reject: reject,
       };
       var msg = JSON.stringify({ jsonrpc: "2.0", id: id, method: methodName, params: params || {} });
-      var result = t.send(_clientId, msg);
+      var result = _transport.send(msg);
       if (!result.success) {
         delete _pendingCalls[id];
         reject(new Error("Transport send failed (errorCode: " + result.errorCode + ")"));
@@ -203,7 +203,6 @@ const STATIC_RUNTIME = `
 
     return new Promise(function (resolve, reject) {
       var id = _nextId++;
-      var t = window.__firebolt_transport__;
 
       function unsubscribeFn() {
         var ls = _eventListeners[eventName];
@@ -215,7 +214,7 @@ const STATIC_RUNTIME = `
           var unsubId = _nextId++;
           _pendingCalls[unsubId] = { isSubscribe: true, eventName: eventName, callback: null, unsubscribeFn: null, resolve: function(){}, reject: function(){} };
           var unsubMsg = JSON.stringify({ jsonrpc: "2.0", id: unsubId, method: eventName, params: { listen: false } });
-          t.send(_clientId, unsubMsg);
+          _transport.send(unsubMsg);
         }
       }
 
@@ -229,7 +228,7 @@ const STATIC_RUNTIME = `
       };
 
       var msg = JSON.stringify({ jsonrpc: "2.0", id: id, method: eventName, params: { listen: true } });
-      var result = t.send(_clientId, msg);
+      var result = _transport.send(msg);
       if (!result.success) {
         delete _pendingCalls[id];
         var ls = _eventListeners[eventName];
@@ -271,31 +270,78 @@ const STATIC_RUNTIME = `
     }
     var client = Object.create(null);
     for (var mod in modules) { client[mod] = Object.freeze(modules[mod]); }
+    // Add disconnect method
+    client.disconnect = function() {
+      _disconnect();
+      _fireboltInstance = null;
+    };
     return Object.freeze(client);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Disconnect handler
+  // ---------------------------------------------------------------------------
+  function _disconnect() {
+    // Call transport disconnect
+    if (_transport && _transport.disconnect) {
+      _transport.disconnect();
+    }
+    // Clear event listeners
+    for (var key in _eventListeners) {
+      _eventListeners[key] = [];
+    }
+    // Reject all pending calls with DisconnectError
+    for (var id in _pendingCalls) {
+      var pending = _pendingCalls[id];
+      pending.reject(new Error("Disconnected"));
+    }
+    _pendingCalls = Object.create(null);
+    // Clear pending connection resolvers
+    _connectionResolvers = [];
+    // Reset state
+    _connected = false;
+    _connecting = false;
+    _fireboltInstance = null;
   }
 
   // ---------------------------------------------------------------------------
   // configure / get
   // ---------------------------------------------------------------------------
-  function _configure(config) {
-    _clientId = config.clientId;
+  function _setTransport(transport) {
+    if (_transportSet) {
+      throw new Error("Transport already set on FireboltServiceManager");
+    }
+    
+    // Validate that transport has all required methods
+    var requiredMethods = ["send", "onMessage", "onConnectionStatus", "connect", "disconnect"];
+    for (var i = 0; i < requiredMethods.length; i++) {
+      var method = requiredMethods[i];
+      if (typeof transport[method] !== "function") {
+        throw new Error(
+          "Transport object must have a '" + method + "' method. " +
+          "Missing or invalid method: " + method
+        );
+      }
+    }
+    
+    _transport = transport;
+    _transportSet = true;
   }
 
   function _get() {
-    if (!_clientId) {
+    if (!_transport) {
       throw new Error(
-        "FireboltServiceManager.get() called before configure(). " +
-        "The WPE extension must call configure({ clientId }) first."
+        "Transport not set via FireboltServiceManager.transport(). " +
+        "The WPE extension must call FireboltServiceManager.transport(t) first."
       );
     }
     if (_connected && _fireboltInstance) { return Promise.resolve(_fireboltInstance); }
     var p = new Promise(function (resolve) { _connectionResolvers.push(resolve); });
     if (!_connecting) {
       _connecting = true;
-      var t = window.__firebolt_transport__;
-      t.onMessage(_clientId, _onMessage);
-      t.onConnectionStatus(_clientId, _onStatus);
-      t.connect(_clientId);
+      _transport.onMessage(_onMessage);
+      _transport.onConnectionStatus(_onStatus);
+      _transport.connect();
     }
     return p;
   }
@@ -308,7 +354,7 @@ const STATIC_RUNTIME = `
 const STATIC_POSTAMBLE = `
   var _fsm = Object.freeze({
     version: _VERSION,
-    configure: _configure,
+    transport: _setTransport,
     get: _get,
   });
   Object.defineProperty(global, "FireboltServiceManager", {

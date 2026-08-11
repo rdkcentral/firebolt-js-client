@@ -108,11 +108,11 @@ interface MockTransport {
   statusCb: StatusCb | null;
   sentMessages: string[];
   sendResult: { success: boolean; errorCode?: number };
-  connect: (clientId: string) => void;
-  disconnect: (clientId: string) => void;
-  send: (clientId: string, msg: string) => { success: boolean; errorCode?: number };
-  onMessage: (clientId: string, cb: MsgCb) => void;
-  onConnectionStatus: (clientId: string, cb: StatusCb) => void;
+  connect: () => void;
+  disconnect: () => void;
+  send: (msg: string) => { success: boolean; errorCode?: number };
+  onMessage: (cb: MsgCb) => void;
+  onConnectionStatus: (cb: StatusCb) => void;
 }
 
 function makeMockTransport(): MockTransport {
@@ -121,14 +121,14 @@ function makeMockTransport(): MockTransport {
     statusCb: null,
     sentMessages: [],
     sendResult: { success: true },
-    connect: (_clientId) => {},
-    disconnect: (_clientId) => {},
-    send: (_clientId, msg) => {
+    connect: () => {},
+    disconnect: () => {},
+    send: (msg) => {
       t.sentMessages.push(msg);
       return t.sendResult;
     },
-    onMessage: (_clientId, cb) => { t.msgCb = cb; },
-    onConnectionStatus: (_clientId, cb) => { t.statusCb = cb; },
+    onMessage: (cb) => { t.msgCb = cb; },
+    onConnectionStatus: (cb) => { t.statusCb = cb; },
   };
   return t;
 }
@@ -155,7 +155,7 @@ function evalBundle(code: string, mockTransport?: MockTransport) {
   context.globalThis = context;
   vm.createContext(context);
   vm.runInContext(code, context);
-  const fsm = context.FireboltServiceManager as { version: string; configure: (cfg: { clientId: string }) => void; get: () => Promise<unknown> };
+  const fsm = context.FireboltServiceManager as { version: string; transport: (t: unknown) => void; get: () => Promise<unknown> };
   return { context, transport, fsm };
 }
 
@@ -169,41 +169,96 @@ test("5.1 _VERSION matches ast.version", () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5.2  FireboltServiceManager is frozen with exactly version, configure, get
+// 5.2  FireboltServiceManager is frozen with exactly version, transport, get
 // ---------------------------------------------------------------------------
-test("5.2 FireboltServiceManager is frozen and has only version, configure, get", () => {
+test("5.2 FireboltServiceManager is frozen and has only version, transport, get", () => {
   const { fsm } = evalBundle(generateBundle(makeAST()));
   expect(Object.isFrozen(fsm)).toBe(true);
   const keys = Object.keys(fsm as object).sort();
-  expect(keys).toEqual(["configure", "get", "version"].sort());
+  expect(keys).toEqual(["get", "transport", "version"].sort());
 });
 
 // ---------------------------------------------------------------------------
-// 5.3  get() before configure() throws
+// 5.3  get() before transport() throws
 // ---------------------------------------------------------------------------
-test("5.3 get() before configure() throws synchronously", () => {
+test("5.3 get() before transport() throws synchronously", () => {
   const { fsm } = evalBundle(generateBundle(makeAST()));
-  expect(() => fsm.get()).toThrow(/configure/i);
+  expect(() => fsm.get()).toThrow(/transport/i);
 });
 
 // ---------------------------------------------------------------------------
-// 5.4  configure() before transport exists does not throw
+// 5.4  transport() before connection exists does not throw
 // ---------------------------------------------------------------------------
-test("5.4 configure() before __firebolt_transport__ does not throw", () => {
-  // Provide a context without __firebolt_transport__
+test("5.4 transport() does not throw when called", () => {
   const ast = makeAST();
   const code = generateBundle(ast);
-  const context: Record<string, unknown> = {
-    window: {},
-    globalThis: undefined as unknown,
-    console: { warn: jest.fn(), error: jest.fn(), log: jest.fn() },
-    Promise, JSON, Array, Object, RegExp,
-  };
-  context.globalThis = context;
-  vm.createContext(context);
-  vm.runInContext(code, context);
-  const fsm = context.FireboltServiceManager as { configure: (cfg: { clientId: string }) => void };
-  expect(() => fsm.configure({ clientId: "ext-123" })).not.toThrow();
+  const { fsm, transport } = evalBundle(code);
+  expect(() => fsm.transport(transport)).not.toThrow();
+});
+
+// ---------------------------------------------------------------------------
+// 5.4b  transport() throws on double injection
+// ---------------------------------------------------------------------------
+test("5.4b transport() throws on double injection", () => {
+  const { fsm, transport } = evalBundle(generateBundle(makeAST()));
+  fsm.transport(transport);
+  expect(() => fsm.transport(transport)).toThrow(/already set/i);
+});
+
+// ---------------------------------------------------------------------------
+// 5.4c  transport() validates required methods
+// ---------------------------------------------------------------------------
+test("5.4c transport() validates that transport has all required methods", () => {
+  const { fsm } = evalBundle(generateBundle(makeAST()));
+  
+  // Test missing 'send' method
+  expect(() => fsm.transport({
+    onMessage: () => {},
+    onConnectionStatus: () => {},
+    connect: () => {},
+    disconnect: () => {}
+  })).toThrow(/send.*method/i);
+
+  // Test missing 'onMessage' method
+  expect(() => fsm.transport({
+    send: () => {},
+    onConnectionStatus: () => {},
+    connect: () => {},
+    disconnect: () => {}
+  })).toThrow(/onMessage.*method/i);
+
+  // Test missing 'onConnectionStatus' method
+  expect(() => fsm.transport({
+    send: () => {},
+    onMessage: () => {},
+    connect: () => {},
+    disconnect: () => {}
+  })).toThrow(/onConnectionStatus.*method/i);
+
+  // Test missing 'connect' method
+  expect(() => fsm.transport({
+    send: () => {},
+    onMessage: () => {},
+    onConnectionStatus: () => {},
+    disconnect: () => {}
+  })).toThrow(/connect.*method/i);
+
+  // Test missing 'disconnect' method
+  expect(() => fsm.transport({
+    send: () => {},
+    onMessage: () => {},
+    onConnectionStatus: () => {},
+    connect: () => {}
+  })).toThrow(/disconnect.*method/i);
+
+  // Test non-function method
+  expect(() => fsm.transport({
+    send: "not a function",
+    onMessage: () => {},
+    onConnectionStatus: () => {},
+    connect: () => {},
+    disconnect: () => {}
+  })).toThrow(/send.*method/i);
 });
 
 // ---------------------------------------------------------------------------
@@ -212,7 +267,7 @@ test("5.4 configure() before __firebolt_transport__ does not throw", () => {
 test("5.5 get() resolves with FireboltClient after transport emits connected", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-1" });
+  fsm.transport(transport);
 
   const promise = fsm.get();
   // Simulate transport becoming connected
@@ -228,7 +283,7 @@ test("5.5 get() resolves with FireboltClient after transport emits connected", a
 test("5.6 multiple concurrent get() calls resolve to the same FireboltClient", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-2" });
+  fsm.transport(transport);
 
   const p1 = fsm.get();
   const p2 = fsm.get();
@@ -247,7 +302,7 @@ test("5.6 multiple concurrent get() calls resolve to the same FireboltClient", a
 test("5.7 get() after connected resolves immediately", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-3" });
+  fsm.transport(transport);
 
   // Connect first
   const p1 = fsm.get();
@@ -282,7 +337,7 @@ test("5.8 FireboltClient is frozen; web module present; no native-only module", 
   ast.modules.push(nativeMod);
 
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-4" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as Record<string, unknown>;
@@ -294,12 +349,12 @@ test("5.8 FireboltClient is frozen; web module present; no native-only module", 
 });
 
 // ---------------------------------------------------------------------------
-// 5.9  Call stub sends correct JSON-RPC via transport.send
+// 5.9  Call stub sends correct JSON-RPC via transport.send (no clientId)
 // ---------------------------------------------------------------------------
-test("5.9 call stub sends correct JSON-RPC message", async () => {
+test("5.9 call stub sends correct JSON-RPC message without clientId", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-5" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { language: (p?: Record<string, unknown>) => Promise<unknown> } };
@@ -340,7 +395,7 @@ test("5.10 call stub sends params without pre-validation", async () => {
   };
   const ast: CanonicalAST = { version: "9.0", modules: [mod] };
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-6" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { setLanguage: (p: Record<string, unknown>) => Promise<unknown> } };
@@ -358,7 +413,7 @@ test("5.10 call stub sends params without pre-validation", async () => {
 test("5.11 call stub passes result through without validation", async () => {
   const ast = makeAST(); // language() returns string
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-7" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { language: (p?: Record<string, unknown>) => Promise<unknown> } };
@@ -377,7 +432,7 @@ test("5.11 call stub passes result through without validation", async () => {
 test("5.12 call stub rejects on backend {id, error}", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-8" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { language: (p?: Record<string, unknown>) => Promise<unknown> } };
@@ -395,7 +450,7 @@ test("5.12 call stub rejects on backend {id, error}", async () => {
 test("5.13 subscribe sends {listen:true} and resolves with unsubscribeFn on ack", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-9" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -420,7 +475,7 @@ test("5.13 subscribe sends {listen:true} and resolves with unsubscribeFn on ack"
 test("5.14 subscribe rejects on backend error and removes the listener", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-10" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -444,7 +499,7 @@ test("5.14 subscribe rejects on backend error and removes the listener", async (
 test("5.15 primitive event (params.value) dispatches to callback", async () => {
   const ast = makeAST(); // onLanguageChanged → string (primitive)
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-11" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -465,7 +520,7 @@ test("5.15 primitive event (params.value) dispatches to callback", async () => {
 test("5.16 object event (params directly) dispatches to callback", async () => {
   const ast = makeASTWithObjectEvent();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-12" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Discovery: { onAvailableApps: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -487,7 +542,7 @@ test("5.16 object event (params directly) dispatches to callback", async () => {
 test("5.16b array event (params directly) dispatches to callback", async () => {
   const ast = makeASTWithObjectEvent();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-12b" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Discovery: { onAppList: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -509,7 +564,7 @@ test("5.16b array event (params directly) dispatches to callback", async () => {
 test("5.17 event with invalid payload is dispatched to callback", async () => {
   const ast = makeAST(); // onLanguageChanged → string
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-13" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -531,7 +586,7 @@ test("5.17 event with invalid payload is dispatched to callback", async () => {
 test("5.18 unsubscribeFn sends {listen:false} when last listener removed", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-14" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -562,7 +617,7 @@ test("5.18 unsubscribeFn sends {listen:false} when last listener removed", async
 test("5.19 unsubscribeFn does NOT send {listen:false} when other listeners remain", async () => {
   const ast = makeAST();
   const { fsm, transport } = evalBundle(generateBundle(ast));
-  fsm.configure({ clientId: "ext-15" });
+  fsm.transport(transport);
   const p = fsm.get();
   transport.statusCb!("connected");
   const client = await p as { Localization: { onLanguageChanged: (cb: (v: unknown) => void) => Promise<() => void> } };
@@ -590,6 +645,84 @@ test("5.19 unsubscribeFn does NOT send {listen:false} when other listeners remai
   transport.msgCb!(JSON.stringify({ method: "Localization.onLanguageChanged", params: { value: "fr" } }));
   expect(cb2).toHaveBeenCalledWith("fr");
   expect(cb1).not.toHaveBeenCalled();
+});
+
+// ---------------------------------------------------------------------------
+// 5.20  disconnect() clears listeners and resets state
+// ---------------------------------------------------------------------------
+test("5.20 disconnect() clears listeners and resets state", async () => {
+  const ast = makeAST();
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  const p = fsm.get();
+  transport.statusCb!("connected");
+  const client = await p as Record<string, unknown>;
+
+  const cb = jest.fn();
+  const subPromise = (client.Localization as any).onLanguageChanged(cb);
+  const sent = JSON.parse(transport.sentMessages[transport.sentMessages.length - 1]);
+  transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: sent.id, result: null }));
+  await subPromise;
+
+  // Verify listener is registered
+  transport.msgCb!(JSON.stringify({ method: "Localization.onLanguageChanged", params: { value: "en" } }));
+  expect(cb).toHaveBeenCalledWith("en");
+
+  // Disconnect
+  (client.disconnect as () => void)();
+
+  // transport.disconnect should have been called
+  expect(transport.disconnect).toBeDefined();
+
+  // Events should no longer be dispatched
+  cb.mockClear();
+  transport.msgCb!(JSON.stringify({ method: "Localization.onLanguageChanged", params: { value: "fr" } }));
+  expect(cb).not.toHaveBeenCalled();
+});
+
+// ---------------------------------------------------------------------------
+// 5.21  Pending calls are rejected on disconnect
+// ---------------------------------------------------------------------------
+test("5.21 pending calls are rejected on disconnect", async () => {
+  const ast = makeAST();
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  const p = fsm.get();
+  transport.statusCb!("connected");
+  const client = await p as Record<string, unknown>;
+
+  // Start a pending call
+  const callPromise = (client.Localization as any).language({});
+
+  // Disconnect while call is pending
+  (client.disconnect as () => void)();
+
+  // Call should be rejected
+  await expect(callPromise).rejects.toThrow();
+});
+
+// ---------------------------------------------------------------------------
+// 5.22  Reconnection after disconnect initiates fresh connection
+// ---------------------------------------------------------------------------
+test("5.22 reconnection after disconnect initiates fresh connection", async () => {
+  const ast = makeAST();
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  
+  // Initial connection
+  const p1 = fsm.get();
+  transport.statusCb!("connected");
+  let client = await p1 as Record<string, unknown>;
+  expect(client).toBeDefined();
+
+  // Disconnect
+  (client.disconnect as () => void)();
+  
+  // Reconnect - should initiate new connection
+  const p2 = fsm.get();
+  transport.statusCb!("connected");
+  client = await p2 as Record<string, unknown>;
+  expect(client).toBeDefined();
 });
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Bundle exposes a frozen FireboltServiceManager global
 The inject-js generator SHALL emit a self-contained IIFE that:
@@ -73,22 +73,6 @@ The object MUST have exactly three members: `version` (string), `transport` (fun
 #### Scenario: get() after connection resolves immediately
 - **WHEN** `get()` is called after the transport is already connected
 - **THEN** the returned Promise MUST resolve in the same microtask turn with the existing singleton
-
----
-
-### Requirement: FireboltClient is a frozen module-namespaced object
-The `FireboltClient` returned by `get()` SHALL be a frozen object whose properties are the PascalCase module names of all `web` and `both` platform modules in the Canonical AST. Each module property SHALL itself be a frozen object containing the module's methods. The top-level `FireboltClient` and all module namespace objects MUST be immutable.
-
-#### Scenario: FireboltClient has expected module namespaces
-- **WHEN** the AST contains modules `Accessibility` (platform: "both") and `Localization` (platform: "both")
-- **THEN** `firebolt.Accessibility` MUST exist
-- **THEN** `firebolt.Localization` MUST exist
-- **THEN** `Object.isFrozen(firebolt)` MUST return `true`
-- **THEN** `Object.isFrozen(firebolt.Accessibility)` MUST return `true`
-
-#### Scenario: Native-only modules are excluded
-- **WHEN** the AST contains a module with `platform: "native"`
-- **THEN** that module MUST NOT appear as a property on the FireboltClient
 
 ---
 
@@ -168,44 +152,16 @@ The `FireboltClient` returned by `get()` SHALL include a `disconnect()` method t
 
 ---
 
-### Requirement: Event notifications are routed by method field
-Incoming messages with a `method` field and no `id` field SHALL be treated as Firebolt 9 event notifications. The runtime SHALL:
-1. Look up the event in `_methodRegistry`.
-2. Extract the payload: if `eventIsPrimitive` is `true`, extract `params.value`; otherwise use `params` directly.
-3. Dispatch the payload to all registered callbacks in `_eventListeners[method]` (no validation).
+## REMOVED Requirements
 
-#### Scenario: Primitive event payload extracted from params.value
-- **WHEN** a notification `{ method:"Localization.onCountryChanged", params:{ value:"US" } }` arrives
-- **THEN** the callback MUST receive `"US"` (not `{ value: "US" }`)
+### Requirement: configure() stores clientId for later transport use
+**Reason**: Replaced by direct transport injection via `transport()` method. ClientId is no longer stored in IIFE closure; instead, transport is injected directly and clientId management becomes transport-internal.
 
-#### Scenario: Object event payload passed as params directly
-- **WHEN** a notification `{ method:"SomeModule.onSomeChanged", params:{ key:"val" } }` arrives and `eventIsPrimitive` is `false`
-- **THEN** the callback MUST receive `{ key:"val" }`
-
-#### Scenario: Array event payload passed as params directly
-- **WHEN** a notification `{ method:"SomeModule.onListChanged", params:["a","b"] }` arrives and `eventIsPrimitive` is `false`
-- **THEN** the callback MUST receive `["a","b"]` (not `{ value: ["a","b"] }`)
+**Migration**: Replace `FireboltServiceManager.configure({ clientId })` with `FireboltServiceManager.transport(t)` before calling `get()`.
 
 ---
 
-### Requirement: Generated bundle targets web-platform modules only
-The inject-js generator SHALL include only modules whose `platform` is `"web"` or `"both"` in the `_methodRegistry` and the `FireboltClient` namespace. Modules with `platform: "native"` SHALL be silently excluded.
+### Requirement: clientId and transport are never accessible from page code
+**Reason**: Clarified and narrowed; the transport reference is still not accessible, but clientId is no longer part of the IIFE closure (transport owns clientId if needed).
 
-#### Scenario: web module is included
-- **WHEN** the AST contains a module with `platform: "web"`
-- **THEN** that module's methods MUST appear in `_methodRegistry`
-- **THEN** that module MUST appear as a namespace on the FireboltClient
-
-#### Scenario: native module is excluded
-- **WHEN** the AST contains a module with `platform: "native"`
-- **THEN** that module's methods MUST NOT appear in `_methodRegistry`
-- **THEN** that module MUST NOT appear on the FireboltClient
-
----
-
-### Requirement: Bundle version is derived from CanonicalAST.version
-The `_VERSION` constant in the generated bundle SHALL equal the `version` string from the `CanonicalAST` (which originates from the OpenRPC `info.version` field of the processed documents).
-
-#### Scenario: version matches OpenRPC version
-- **WHEN** the OpenRPC documents carry `info.version: "9.0"`
-- **THEN** `FireboltServiceManager.version` MUST equal `"9.0"`
+**Migration**: No app code changes needed; this remains a contract of the implementation.
