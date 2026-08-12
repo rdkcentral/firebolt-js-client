@@ -7,7 +7,7 @@
  *   - Method(call) → function inside `declare namespace`, returns Promise<T>
  *   - Method(subscribe) → callback + () => void unsubscribe pattern
  *   - Optional params → param?: T
- *   - Output: out/ts/<Module>.d.ts
+ *   - Output: generated/ts/<Module>.d.ts
  */
 
 import {

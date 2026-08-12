@@ -6,7 +6,7 @@
  *   - ObjectType → record type
  *   - Method(call) → @val @scope external with labelled optional args (~param=?)
  *   - Method(subscribe) → returns (unit => unit) unsubscribe fn
- *   - Output: out/res/<Module>.res
+ *   - Output: generated/res/<Module>.res
  */
 
 import {

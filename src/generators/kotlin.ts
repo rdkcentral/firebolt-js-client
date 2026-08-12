@@ -8,7 +8,7 @@
  *   - Method(call) → fun in external object, returns Promise<T>
  *   - Optional params → = definedExternally
  *   - Method(subscribe) → callback: (T) -> Unit, returns () -> Unit
- *   - Output: out/kt/<Module>.kt
+ *   - Output: generated/kt/<Module>.kt
  */
 
 import {

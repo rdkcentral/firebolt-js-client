@@ -115,14 +115,14 @@ npx ts-node src/cli.ts generate --outdir /my/output/dir
 
 | Target | Output path pattern |
 |--------|---------------------|
-| TypeScript | `out/ts/<Module>.d.ts` |
-| ReScript | `out/res/<Module>.res` |
-| Kotlin/JS | `out/kt/<Module>.kt` |
-| C++ | `out/cpp/firebolt/<Module>.hpp` |
-| Python stub | `out/py/<module>.pyi` |
-| Python protocol | `out/py/<module>_protocol.py` |
+| TypeScript | `generated/ts/<Module>.d.ts` |
+| ReScript | `generated/res/<Module>.res` |
+| Kotlin/JS | `generated/kt/<Module>.kt` |
+| C++ | `generated/cpp/firebolt/<Module>.hpp` |
+| Python stub | `generated/py/<module>.pyi` |
+| Python protocol | `generated/py/<module>_protocol.py` |
 
-The C++ `result.hpp` is hand-authored and lives at `out/cpp/firebolt/result.hpp`.
+The C++ `result.hpp` is hand-authored and lives at `generated/cpp/firebolt/result.hpp`.
 
 ### Running Tests
 
@@ -190,7 +190,7 @@ src/
 │   └── lifecycle2.json
 └── cli.ts                # CLI entry point
 
-out/
+generated/
 ├── ts/                   # TypeScript .d.ts
 ├── res/                  # ReScript .res
 ├── kt/                   # Kotlin .kt

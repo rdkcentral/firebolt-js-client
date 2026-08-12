@@ -1,7 +1,7 @@
 /**
  * inject-js FullASTGenerator.
  *
- * Emits a single self-contained ES5 IIFE bundle at out/inject-js/firebolt-inject.js
+ * Emits a single self-contained ES5 IIFE bundle at generated/inject-js/firebolt-inject.js
  * that exposes window.FireboltServiceManager for use by the WPE Firebolt extension.
  *
  * Only web-platform modules (platform: "web" | "both") are included.

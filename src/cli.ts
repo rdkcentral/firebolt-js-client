@@ -8,7 +8,7 @@
  * Options:
  *   --modules <list>   Comma-separated list of module names (default: all)
  *   --targets <list>   Comma-separated generator IDs: ts,res,kt,cpp,py (default: all)
- *   --outdir  <path>   Output root directory (default: out)
+ *   --outdir  <path>   Output root directory (default: generated)
  *   --validate         Validate OpenRPC documents before building AST
  */
 
@@ -50,7 +50,7 @@ program
     'Comma-separated generator IDs: ts,res,kt,cpp,py (default: all)',
     ""
   )
-  .option("--outdir <outdir>", "Output root directory", "out")
+  .option("--outdir <outdir>", "Output root directory", "generated")
   .option("--validate", "Validate OpenRPC documents before building", false)
   .action(
     (opts: {

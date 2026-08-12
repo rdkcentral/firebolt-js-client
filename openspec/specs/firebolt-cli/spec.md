@@ -7,12 +7,12 @@ loads OpenRPC files → optionally validates → builds AST → runs generators 
 #### Scenario: generate command produces output files
 - **WHEN** `firebolt-gen generate --modules Discovery,Lifecycle2 --targets ts,res,kt,cpp,py` is run
 - **THEN** the command MUST exit with code 0
-- **THEN** output files MUST exist at `out/ts/Discovery.d.ts`, `out/ts/Lifecycle2.d.ts`,
-  `out/res/Discovery.res`, `out/res/Lifecycle2.res`,
-  `out/kt/Discovery.kt`, `out/kt/Lifecycle2.kt`,
-  `out/cpp/Discovery.hpp`, `out/cpp/Lifecycle2.hpp`,
-  `out/py/discovery.pyi`, `out/py/discovery_protocol.py`,
-  `out/py/lifecycle2.pyi`, `out/py/lifecycle2_protocol.py`
+- **THEN** output files MUST exist at `generated/ts/Discovery.d.ts`, `generated/ts/Lifecycle2.d.ts`,
+  `generated/res/Discovery.res`, `generated/res/Lifecycle2.res`,
+  `generated/kt/Discovery.kt`, `generated/kt/Lifecycle2.kt`,
+  `generated/cpp/Discovery.hpp`, `generated/cpp/Lifecycle2.hpp`,
+  `generated/py/discovery.pyi`, `generated/py/discovery_protocol.py`,
+  `generated/py/lifecycle2.pyi`, `generated/py/lifecycle2_protocol.py`
 
 ### Requirement: CLI validates OpenRPC before generating by default
 The CLI SHALL validate all loaded OpenRPC documents against the OpenRPC 1.2.x schema
@@ -59,14 +59,14 @@ The CLI `generate` subcommand SHALL accept `inject-js` as a valid value in the `
 #### Scenario: inject-js target produces output file
 - **WHEN** `firebolt-gen generate --targets inject-js` is run
 - **THEN** the command MUST exit with code 0
-- **THEN** `out/inject-js/firebolt-inject.js` MUST exist
+- **THEN** `generated/inject-js/firebolt-inject.js` MUST exist
 - **THEN** no `.d.ts`, `.res`, `.kt`, `.hpp`, or `.py` files MUST be written
 
 #### Scenario: inject-js included in default targets
 - **WHEN** `firebolt-gen generate` is run with no `--targets` filter
-- **THEN** `out/inject-js/firebolt-inject.js` MUST be written alongside all other generator outputs
+- **THEN** `generated/inject-js/firebolt-inject.js` MUST be written alongside all other generator outputs
 
 #### Scenario: inject-js target combined with per-module targets
 - **WHEN** `firebolt-gen generate --targets ts,inject-js` is run
 - **THEN** TypeScript `.d.ts` files MUST be written
-- **THEN** `out/inject-js/firebolt-inject.js` MUST be written
+- **THEN** `generated/inject-js/firebolt-inject.js` MUST be written

@@ -7,7 +7,7 @@
  *   - Method(call) → free function returning FireboltResult<T>
  *   - Optional params → std::optional<T>
  *   - Method(subscribe) → using UnsubscribeFn + callback
- *   - Output: out/cpp/firebolt/<Module>.hpp
+ *   - Output: generated/cpp/firebolt/<Module>.hpp
  */
 
 import {

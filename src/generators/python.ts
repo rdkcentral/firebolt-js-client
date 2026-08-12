@@ -7,7 +7,7 @@
  *   - Method(call) → async def stub in .pyi; @abstractmethod in _protocol.py
  *   - Method(subscribe) → Callable[[T], None] callback returning Callable[[], None]
  *   - format:"date-time" string params/props → datetime in .pyi
- *   - Output: out/py/<module>.pyi and out/py/<module>_protocol.py
+ *   - Output: generated/py/<module>.pyi and generated/py/<module>_protocol.py
  */
 
 import {
