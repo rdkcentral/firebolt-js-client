@@ -2,72 +2,84 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Accessibility",
-    "version": "0.0.0",
-    "description": "The `Accessibility` module provides access to the user/device settings for closed captioning and voice guidance.\n\nApps **SHOULD** attempt o respect these settings, rather than manage and persist seprate settings, which would be different per-app."
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to platform accessibility settings."
   },
   "methods": [
     {
-      "name": "audioDescription",
-      "summary": "Returns the audio description setting of the device",
+      "name": "Accessibility.audioDescription",
+      "summary": "Get the audio description setting.",
+      "description": "Returns the audio description setting of the device.",
       "params": [],
-      "tags": [
-        {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:accessibility:audio-descriptions"
-          ]
-        }
-      ],
       "result": {
-        "name": "setting",
-        "summary": "the audio description setting",
+        "name": "result",
         "schema": {
           "type": "boolean"
         }
       },
       "examples": [
         {
-          "name": "Getting the audio description setting",
+          "name": "audioDescriptionEnabled",
+          "summary": "Audio description enabled",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
             "value": true
           }
         }
       ]
     },
     {
-      "name": "closedCaptionsSettings",
-      "summary": "Returns captions settings: enabled, and a list of zero or more languages in order of decreasing preference",
-      "params": [],
-      "tags": [
+      "name": "Accessibility.onAudioDescriptionChanged",
+      "summary": "Subscribe to audio description changes.",
+      "description": "Fired when the audio description setting changes.",
+      "params": [
         {
-          "name": "property:readonly",
-          "x-notifier-params-flattening": "true"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:accessibility:closed-captions"
-          ]
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
         }
       ],
       "result": {
-        "name": "closedCaptionsSettings",
-        "summary": "the closed captions settings",
+        "name": "result",
         "schema": {
-          "$ref": "https://meta.comcast.com/firebolt/accessibility#/definitions/ClosedCaptionsSettings"
+          "type": "boolean"
         }
       },
       "examples": [
         {
-          "name": "Getting the closed captions settings",
+          "name": "audioDescriptionChanged",
+          "summary": "Audio description was enabled",
           "params": [],
           "result": {
-            "name": "settings",
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.closedCaptionsSettings",
+      "summary": "Get the closed captions settings.",
+      "description": "Returns captions settings: enabled, and a list of zero or more languages in order of decreasing preference.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/ClosedCaptionsSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "captionsEnabledWithLanguages",
+          "summary": "Captions enabled with English and Spanish preferences",
+          "params": [],
+          "result": {
+            "name": "result",
             "value": {
               "enabled": true,
               "preferredLanguages": [
@@ -80,70 +92,154 @@
       ]
     },
     {
-      "name": "highContrastUI",
-      "summary": "Returns the high contrast UI device setting",
-      "params": [],
-      "tags": [
+      "name": "Accessibility.onClosedCaptionsSettingsChanged",
+      "summary": "Subscribe to closed captions settings changes.",
+      "description": "Fired when the closed captions settings change.",
+      "params": [
         {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:accessibility:high-contrast-ui"
-          ]
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
         }
       ],
       "result": {
-        "name": "highContrastUI",
-        "summary": "Whether high-contrast UI mode is enabled",
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/ClosedCaptionsSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "captionsSettingsChanged",
+          "summary": "Captions settings were updated",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "enabled": true,
+              "preferredLanguages": [
+                "eng"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.highContrastUI",
+      "summary": "Get the high contrast UI setting.",
+      "description": "Returns the high contrast UI device setting.",
+      "params": [],
+      "result": {
+        "name": "result",
         "schema": {
           "type": "boolean"
         }
       },
       "examples": [
         {
-          "name": "High-contrast UI mode is enabled",
+          "name": "highContrastEnabled",
+          "summary": "High contrast UI enabled",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
             "value": true
           }
         }
       ]
     },
     {
-      "name": "voiceGuidanceSettings",
-      "summary": "Returns voice guidance settings: enabled, rate, and verbosity",
-      "params": [],
-      "tags": [
+      "name": "Accessibility.onHighContrastUIChanged",
+      "summary": "Subscribe to high contrast UI changes.",
+      "description": "Fired when the high contrast UI setting changes.",
+      "params": [
         {
-          "name": "property:readonly",
-          "x-notifier-params-flattening": "true"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:accessibility:voice-guidance"
-          ]
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
         }
       ],
       "result": {
-        "name": "settings",
-        "summary": "the voice guidance settings",
+        "name": "result",
         "schema": {
-          "$ref": "https://meta.comcast.com/firebolt/accessibility#/definitions/VoiceGuidanceSettings"
+          "type": "boolean"
         }
       },
       "examples": [
         {
-          "name": "Getting the voice guidance settings",
+          "name": "highContrastChanged",
+          "summary": "High contrast UI was enabled",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.voiceGuidanceSettings",
+      "summary": "Get the current voice guidance configuration.",
+      "description": "Returns the current voice guidance configuration. Voice guidance is a screen-reader feature that reads UI elements aloud.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/VoiceGuidanceSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "voiceGuidanceEnabled",
+          "summary": "Voice guidance enabled at normal rate",
+          "params": [],
+          "result": {
+            "name": "result",
             "value": {
               "enabled": true,
-              "rate": 0.8,
+              "rate": 1.0,
+              "navigationHints": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accessibility.onVoiceGuidanceSettingsChanged",
+      "summary": "Subscribe to voice guidance settings changes.",
+      "description": "Fired when the voice guidance settings change.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/VoiceGuidanceSettings"
+        }
+      },
+      "examples": [
+        {
+          "name": "voiceGuidanceSettingsChanged",
+          "summary": "Voice guidance rate changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "enabled": true,
+              "rate": 1.5,
               "navigationHints": true
             }
           }
@@ -152,6 +248,55 @@
     }
   ],
   "components": {
-    "schemas": {}
+    "schemas": {
+      "ClosedCaptionsSettings": {
+        "title": "ClosedCaptionsSettings",
+        "type": "object",
+        "description": "Closed captions settings.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether captions are enabled"
+          },
+          "preferredLanguages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of ISO 639-2/B language codes in order of user preference."
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "VoiceGuidanceSettings": {
+        "title": "VoiceGuidanceSettings",
+        "type": "object",
+        "description": "Current voice guidance configuration.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether voice guidance is active"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0.1,
+            "maximum": 10,
+            "description": "Speech rate relative to the platform default. 1.0 = normal speed."
+          },
+          "navigationHints": {
+            "type": "boolean",
+            "description": "Whether navigation hints are read aloud"
+          }
+        },
+        "required": [
+          "enabled",
+          "rate",
+          "navigationHints"
+        ]
+      }
+    }
   }
 }

@@ -2,235 +2,180 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Device",
-    "description": "A module for querying about the device and it's capabilities.",
-    "version": "1.0.0"
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to device information and capabilities. Apps can query device identifiers, class, and display capabilities."
   },
   "methods": [
     {
-      "name": "uid",
-      "summary": "Returns a persistent unique UUID for the current app and device. The UUID is reset when the app or device is reset",
+      "name": "Device.uid",
+      "summary": "Get a persistent unique identifier for this app+device.",
+      "description": "Returns a persistent unique UUID for the current app and device.",
       "params": [],
-      "tags": [
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:uid"
-          ]
-        }
-      ],
       "result": {
-        "name": "uniqueId",
-        "summary": "A unique UUID for this app-device pair.",
+        "name": "result",
         "schema": {
           "type": "string"
         }
       },
       "examples": [
         {
-          "name": "Getting the unique UUID",
+          "name": "getPersistentUid",
+          "summary": "Persistent app+device UUID",
           "params": [],
           "result": {
-            "name": "Default Result",
-            "value": "ee6723b8-7ab3-462c-8d93-dbf61227998e"
+            "name": "result",
+            "value": "550e8400-e29b-41d4-a716-446655440000"
           }
         }
       ]
     },
     {
-      "name": "deviceClass",
-      "summary": "Returns the class of the device",
+      "name": "Device.deviceClass",
+      "summary": "Get the class of the device.",
+      "description": "Returns the class of the device.",
       "params": [],
-      "tags": [
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:device-class"
-          ]
-        }
-      ],
       "result": {
-        "name": "deviceClass",
-        "summary": "The device class",
+        "name": "result",
         "schema": {
           "$ref": "#/components/schemas/DeviceClass"
         }
       },
       "examples": [
         {
-          "name": "Getting the device class",
+          "name": "deviceClassStb",
+          "summary": "Set-top box",
           "params": [],
           "result": {
-            "name": "Default Result",
-            "value": "ott"
+            "name": "result",
+            "value": "stb"
           }
         }
       ]
     },
     {
-      "name": "uptime",
-      "summary": "Returns the number of seconds since most recent device boot, including any time spent during deep sleep",
+      "name": "Device.hdr",
+      "summary": "Get the HDR capabilities of the display.",
+      "description": "Returns the HDR standards supported by the attached TV or integrated display.",
       "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:info"
-          ]
-        }
-      ],
       "result": {
-        "name": "uptime",
-        "summary": "The device uptime",
+        "name": "result",
         "schema": {
-          "type": "number"
+          "$ref": "#/components/schemas/HdrCapabilities"
         }
       },
       "examples": [
         {
-          "name": "Getting the device uptime",
+          "name": "hdrCapabilities",
+          "summary": "HDR10 and Dolby Vision supported",
           "params": [],
           "result": {
-            "name": "Default Result",
-            "value": 123456
-          }
-        }
-      ]
-    },
-    {
-      "name": "timeInActiveState",
-      "summary": "Returns the number of seconds since the device transitioned to the ON power state",
-      "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },        
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:info"
-          ]
-        }
-      ],
-      "result": {
-        "name": "timeInActiveState",
-        "summary": "The device time in active state",
-        "schema": {
-          "type": "number"
-        }
-      },
-      "examples": [
-        {
-          "name": "Getting the number of seconds since the device transitioned to the ON power state",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": 654321
-          }
-        }
-      ]
-    },
-    {
-      "name": "chipsetId",
-      "summary": "Returns chipset ID as a printable string, e.g. BCM72180",
-      "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },        
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:info"
-          ]
-        }
-      ],
-      "result": {
-        "name": "chipsetId",
-        "summary": "The device chipset ID",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "examples": [
-        {
-          "name": "Getting the device chipset ID",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": "BCM72180"
-          }
-        }
-      ]
-    },
-    {
-      "name": "hdr",
-      "summary": "Returns the HDR standards that are supported by the attached TV or the integral display",
-      "params": [],
-      "tags": [
-        {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:device:info"
-          ]
-        }
-      ],
-      "result": {
-        "name": "negotiatedHdrFormats",
-        "summary": "the negotiated HDR formats",
-        "schema": {
-          "$ref": "#/components/schemas/HDRFormatMap"
-        }
-      },
-      "examples": [
-        {
-          "name": "Getting the negotiated HDR formats",
-          "params": [],
-          "result": {
-            "name": "Default Result",
+            "name": "result",
             "value": {
               "hdr10": true,
-              "hdr10Plus": true,
+              "hdr10Plus": false,
               "dolbyVision": true,
-              "hlg": true
+              "hlg": false
             }
           }
         }
       ]
-    }    
+    },
+    {
+      "name": "Device.onHdrChanged",
+      "summary": "Subscribe to HDR capability changes.",
+      "description": "Fired when the HDR capabilities change.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/HdrCapabilities"
+        }
+      },
+      "examples": [
+        {
+          "name": "hdrChanged",
+          "summary": "HDR capabilities were updated",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "hdr10": true,
+              "hdr10Plus": true,
+              "dolbyVision": true,
+              "hlg": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.dolbyAtmosExperienceAvailable",
+      "summary": "Check if Dolby Atmos is available.",
+      "description": "Returns whether the user would get a Dolby Atmos experience if a Dolby Atmos track were to be played at this time.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "dolbyAtmosAvailable",
+          "summary": "Dolby Atmos available",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.onDolbyAtmosExperienceAvailableChanged",
+      "summary": "Subscribe to Dolby Atmos availability changes.",
+      "description": "Fired when Dolby Atmos availability changes.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "dolbyAtmosChanged",
+          "summary": "Dolby Atmos became unavailable",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": false
+          }
+        }
+      ]
+    }
   ],
   "components": {
     "schemas": {
-      "HDRFormatMap": {
-        "title": "HDRFormatMap",
-        "type": "object",
-        "properties": {
-          "hdr10": {
-            "type": "boolean"
-          },
-          "hdr10Plus": {
-            "type": "boolean"
-          },
-          "dolbyVision": {
-            "type": "boolean"
-          },
-          "hlg": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "hdr10",
-          "hdr10Plus",
-          "dolbyVision",
-          "hlg"
-        ],
-        "description": "The type of HDR format"
-      },      
       "DeviceClass": {
         "title": "DeviceClass",
         "type": "string",
@@ -239,7 +184,39 @@
           "stb",
           "tv"
         ],
-        "description": "The type of device"
+        "description": "Classification of the device.",
+        "examples": [
+          "stb"
+        ]
+      },
+      "HdrCapabilities": {
+        "title": "HdrCapabilities",
+        "type": "object",
+        "description": "HDR format support flags.",
+        "properties": {
+          "hdr10": {
+            "type": "boolean",
+            "description": "HDR10 support"
+          },
+          "hdr10Plus": {
+            "type": "boolean",
+            "description": "HDR10+ support"
+          },
+          "dolbyVision": {
+            "type": "boolean",
+            "description": "Dolby Vision support"
+          },
+          "hlg": {
+            "type": "boolean",
+            "description": "HLG (Hybrid Log-Gamma) support"
+          }
+        },
+        "required": [
+          "hdr10",
+          "hdr10Plus",
+          "dolbyVision",
+          "hlg"
+        ]
       }
     }
   }

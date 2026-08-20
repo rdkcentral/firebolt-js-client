@@ -2,63 +2,31 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Advertising",
-    "version": "0.0.0",
-    "description": "A module for platform provided advertising settings and functionality."
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to advertising identifiers. Apps can query the device's IFA and related metadata."
   },
   "methods": [
     {
-      "name": "advertisingId",
-      "tags": [
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:advertising:identifier"
-          ]
-        }
-      ],
-      "summary": "Returns the IFA.",
+      "name": "Advertising.advertisingId",
+      "summary": "Get the IFA and related metadata.",
+      "description": "Returns the IFA (Identifier For Advertising) and related metadata.",
       "params": [],
       "result": {
-        "name": "advertisingId",
-        "summary": "The advertising ID",
-        "schema": {
-          "$ref": "#/components/schemas/AdvertisingIdResult"
-        }
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/AdvertisingId" }
       },
       "examples": [
         {
-          "name": "Getting the advertising ID",
+          "name": "getAdvertisingId",
+          "summary": "IFA with DPID and LMT enabled",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
             "value": {
-              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
-              "ifa_type": "sspid",
-              "lmt": "0"
-            }
-          }
-        },
-        {
-          "name": "Getting the advertising ID with scope browse",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": {
-              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
-              "ifa_type": "sspid",
-              "lmt": "1"
-            }
-          }
-        },
-        {
-          "name": "Getting the advertising ID with scope content",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": {
-              "ifa": "bd87dd10-8d1d-4b93-b1a6-a8e5d410e400",
+              "ifa": "550e8400-e29b-41d4-a716-446655440000",
               "ifa_type": "dpid",
-              "lmt": "0"
+              "lmt": "1"
             }
           }
         }
@@ -67,37 +35,37 @@
   ],
   "components": {
     "schemas": {
-      "AdvertisingIdResult": {
-        "title": "AdvertisingIdResult",
+      "AdvertisingId": {
+        "title": "AdvertisingId",
         "type": "object",
+        "description": "Advertising identifiers and metadata.",
         "properties": {
           "ifa": {
             "type": "string",
-            "description": "UUID conforming to IAB standard"
+            "description": "The Identifier For Advertising as a UUID"
           },
           "ifa_type": {
-            "type": "string",
-            "enum": [
-              "dpid",
-              "sspid",
-              "sessionid"
-            ],
-            "description": "Source of the IFA as defined by IAB"
+            "$ref": "#/components/schemas/IfaType"
           },
           "lmt": {
-            "type": "string",
-            "enum": [
-              "0",
-              "1"
-            ],
-            "description": "Boolean that if set to 1, user has requested ad tracking and measurement is disabled"
+            "$ref": "#/components/schemas/Lmt"
           }
         },
-        "required": [
-          "ifa",
-          "ifa_type",
-          "lmt"
-        ]
+        "required": ["ifa", "ifa_type", "lmt"]
+      },
+      "IfaType": {
+        "title": "IfaType",
+        "type": "string",
+        "enum": ["dpid", "sspid", "sessionid"],
+        "description": "The source of the IFA.",
+        "examples": ["dpid"]
+      },
+      "Lmt": {
+        "title": "Lmt",
+        "type": "string",
+        "enum": ["0", "1"],
+        "description": "Limit Ad Tracking setting. 0 = disabled, 1 = enabled",
+        "examples": ["0"]
       }
     }
   }

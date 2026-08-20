@@ -1,0 +1,47 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Shared",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Shared type definitions used across all Firebolt 9 API modules."
+  },
+  "methods": [],
+  "components": {
+    "schemas": {
+      "ListenResponse": {
+        "title": "ListenResponse",
+        "type": "object",
+        "description": "Returned synchronously when a client subscribes to or unsubscribes from a Firebolt event. Confirms the listen state was received by the platform.",
+        "properties": {
+          "listening": {
+            "type": "boolean",
+            "description": "True if now subscribed; false if now unsubscribed"
+          },
+          "event": {
+            "type": "string",
+            "description": "The fully-qualified event method name, e.g. Lifecycle2.onStateChanged"
+          }
+        },
+        "required": ["listening"]
+      },
+      "FireboltError": {
+        "title": "FireboltError",
+        "type": "object",
+        "description": "Error carrier for failed Firebolt API calls. Matches the JSON-RPC 2.0 error object structure. Error codes: 1=Unknown method, 2=Method not permitted, 3=Generic failure, 4=System failure, 5=Not implemented.",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Numeric Firebolt error code (1-5)"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the error"
+          }
+        },
+        "required": ["code", "message"]
+      }
+    }
+  }
+}

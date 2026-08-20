@@ -2,134 +2,75 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Display",
-    "description": "A module for querying about the display",
-    "version": "1.0.0"
+    "version": "9.0",
+    "x-firebolt-platform": "web",
+    "description": "Provides access to display capabilities. This module is only available in web/JS environments."
   },
   "methods": [
     {
-      "name": "edid",
-      "summary": "Returns the EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
+      "name": "Display.colorimetry",
+      "summary": "Get the display colorimetry standard.",
+      "description": "Returns the colorimetry settings of the attached display.",
       "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:display:info"
-          ]
-        }
-      ],
       "result": {
-        "name": "Base64 EDID",
-        "summary": "The EDID (and extensions) of the connected or integral display, as a Base64 encoded string",
-        "schema": {
-          "type": "string"
-        }
+        "name": "result",
+        "schema": { "$ref": "#/components/schemas/ColorimetryValue" }
       },
       "examples": [
         {
-          "name": "Getting the display EDID",
+          "name": "displayColorimetry",
+          "summary": "Display supports standard color gamut",
           "params": [],
           "result": {
-            "name": "Default Result",
-            "value": "ZWU2NzIzYjgtN2FiMy00NjJjLThkOTMtZGJmNjEyMjc5OThl"
+            "name": "result",
+            "value": "SDR"
           }
         }
       ]
     },
     {
-      "name": "size",
-      "summary": "Returns the physical dimensions of the connected or integral display, in centimeters. Returns 0, 0 on a OTT/STB device when a display is not connected over HDMI",
+      "name": "Display.videoResolutions",
+      "summary": "Get the supported video resolutions.",
+      "description": "Returns a list of video resolutions supported by the display.",
       "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:display:info"
-          ]
-        }
-      ],
       "result": {
-        "name": "size",
-        "summary": "The display size in centimeters",
+        "name": "result",
         "schema": {
-          "type": "object",
-          "properties": {
-            "width": {
-              "type": "integer",
-              "description": "The width of the display in centimeters"
-            },
-            "height": {
-              "type": "integer",
-              "description": "The height of the display in centimeters"
-            }
-          }
+          "type": "array",
+          "items": { "$ref": "#/components/schemas/VideoResolution" }
         }
       },
       "examples": [
         {
-          "name": "Getting the display size",
+          "name": "displayResolutions",
+          "summary": "Display supports 4K and 1080p",
           "params": [],
           "result": {
-            "name": "Default Result",
-            "value": {
-              "width": 48,
-              "height": 27
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "maxResolution",
-      "summary": "Returns the physical/native resolution of the connected or integral display, in pixels. Returns 0, 0 on a OTT/STB device when a display is not connected over HDMI",
-      "params": [],
-      "tags": [
-        {
-          "name": "rpc-only"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:display:info"
-          ]
-        }
-      ],
-      "result": {
-        "name": "maxResolution",
-        "summary": "The display resolution",
-        "schema": {
-          "type": "object",
-          "properties": {
-            "width": {
-              "type": "integer",
-              "description": "The width of the display in pixels"
-            },
-            "height": {
-              "type": "integer",
-              "description": "The height of the display in pixels"
-            }
-          }
-        }
-      },
-      "examples": [
-        {
-          "name": "Getting the display size",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": {
-              "width": 1920,
-              "height": 1080
-            }
+            "name": "result",
+            "value": ["3840x2160", "1920x1080"]
           }
         }
       ]
     }
-  ]
+  ],
+  "components": {
+    "schemas": {
+      "ColorimetryValue": {
+        "title": "ColorimetryValue",
+        "type": "string",
+        "enum": ["SDR", "HDR"],
+        "description": "Colorimetry standard.",
+        "x-firebolt-platform": "web",
+        "examples": ["SDR"]
+      },
+      "VideoResolution": {
+        "title": "VideoResolution",
+        "type": "string",
+        "enum": ["1920x1080", "3840x2160", "7680x4320"],
+        "description": "Video resolution.",
+        "x-firebolt-platform": "web",
+        "examples": ["3840x2160"]
+      }
+    }
+  }
 }

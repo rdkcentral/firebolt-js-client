@@ -2,119 +2,196 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Localization",
-    "description": "Methods for accessing location and language preferences.",
-    "version": "1.0.0"
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to locale and regional settings managed by the platform."
   },
   "methods": [
     {
-      "name": "country",
-      "tags": [
-        {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:localization:country-code"
-          ]
-        }
-      ],
-      "summary": "Returns the ISO 3166-1 alpha-2 code for the country device is located in.",
+      "name": "Localization.country",
+      "summary": "Get the country setting.",
+      "description": "Returns the country setting. The value is an ISO 3166-1 alpha-2 country code (e.g. \"US\", \"GB\", \"DE\").",
       "params": [],
       "result": {
-        "name": "code",
-        "summary": "The device country code.",
+        "name": "result",
         "schema": {
-          "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/CountryCode"
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
         }
       },
       "examples": [
         {
-          "name": "Default example",
+          "name": "countryUS",
+          "summary": "Country is United States",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
             "value": "US"
-          }
-        },
-        {
-          "name": "Another example",
-          "params": [],
-          "result": {
-            "name": "Default Result",
-            "value": "GB"
           }
         }
       ]
     },
     {
-      "name": "preferredAudioLanguages",
-      "summary": "Returns a list of ISO 639-2/B codes for the preferred audio languages on this device.",
-      "params": [],
-      "tags": [
+      "name": "Localization.onCountryChanged",
+      "summary": "Subscribe to country setting change notifications.",
+      "description": "Fires when the platform's active country setting changes.",
+      "params": [
         {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:localization:preferred-audio-languages"
-          ]
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
         }
       ],
       "result": {
-        "name": "languages",
-        "summary": "The preferred audio languages.",
+        "name": "result",
         "schema": {
-          "type": "array",
-          "items": {
-            "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/ISO639_2Language"
-          }
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
         }
       },
       "examples": [
         {
-          "name": "Default example",
+          "name": "countryChangedUS",
+          "summary": "Country changed to United States",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
+            "value": "US"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.preferredAudioLanguages",
+      "summary": "Get the preferred audio languages.",
+      "description": "Returns the list of preferred audio languages. A list of zero or more languages in order of decreasing preference. Each code is an ISO 639-2/B language code.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ISO 639-2/B language codes"
+        }
+      },
+      "examples": [
+        {
+          "name": "preferredLanguagesEngSpa",
+          "summary": "English and Spanish preferences",
+          "params": [],
+          "result": {
+            "name": "result",
             "value": [
-              "spa",
-              "eng"
+              "eng",
+              "spa"
             ]
           }
         }
       ]
     },
     {
-      "name": "presentationLanguage",
-      "tags": [
+      "name": "Localization.onPreferredAudioLanguagesChanged",
+      "summary": "Subscribe to preferred audio languages changes.",
+      "description": "Fired when the preferred audio languages setting changes.",
+      "params": [
         {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:localization:locale"
-          ]
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
         }
       ],
-      "summary": "Get the *full* BCP 47 code, including script, region, variant, etc., for the preferred locale",
-      "params": [],
       "result": {
-        "name": "locale",
-        "summary": "The device locale.",
+        "name": "result",
         "schema": {
-          "$ref": "https://meta.comcast.com/firebolt/localization#/definitions/Locale"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ISO 639-2/B language codes"
         }
       },
       "examples": [
         {
-          "name": "Default example",
+          "name": "languagesChanged",
+          "summary": "Languages were changed",
           "params": [],
           "result": {
-            "name": "Default Result",
+            "name": "result",
+            "value": [
+              "eng",
+              "fra"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.presentationLanguage",
+      "summary": "Get the presentation language.",
+      "description": "Returns the presentation language setting. The presentation language is a BCP 47 locale tag.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "BCP 47 locale tag"
+        }
+      },
+      "examples": [
+        {
+          "name": "presentationLanguageUS",
+          "summary": "US English",
+          "params": [],
+          "result": {
+            "name": "result",
             "value": "en-US"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.onPresentationLanguageChanged",
+      "summary": "Subscribe to presentation language changes.",
+      "description": "Fired when the presentation language setting changes.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "BCP 47 locale tag"
+        }
+      },
+      "examples": [
+        {
+          "name": "languageChanged",
+          "summary": "Presentation language changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "en-GB"
           }
         }
       ]

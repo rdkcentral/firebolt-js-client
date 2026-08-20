@@ -1,0 +1,78 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "VideoOutput",
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to video output configuration. Apps can query and subscribe to video output resolution changes."
+  },
+  "methods": [
+    {
+      "name": "VideoOutput.resolution",
+      "summary": "Get the current video output resolution.",
+      "description": "Returns the current HDMI output resolution of the device.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/VideoResolution"
+        }
+      },
+      "examples": [
+        {
+          "name": "videoOutputResolution",
+          "summary": "Device output resolution is 4K",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "3840x2160"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VideoOutput.onResolutionChanged",
+      "summary": "Subscribe to video output resolution changes.",
+      "description": "Fired when the video output resolution changes.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/VideoResolution"
+        }
+      },
+      "examples": [
+        {
+          "name": "resolutionChanged",
+          "summary": "Resolution changed to 1080p",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "1920x1080"
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "VideoResolution": {
+        "title": "VideoResolution",
+        "type": "string",
+        "description": "Video resolution output. The resolution in format WIDTHxHEIGHT.",
+        "examples": [
+          "3840x2160"
+        ]
+      }
+    }
+  }
+}

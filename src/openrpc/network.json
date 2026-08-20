@@ -2,50 +2,68 @@
   "openrpc": "1.2.4",
   "info": {
     "title": "Network",
-    "description": "Methods for accessing network information.",
-    "version": "1.0.0"
+    "version": "9.0",
+    "x-firebolt-platform": "both",
+    "description": "Provides access to network connectivity status. Apps can query network state and subscribe to connectivity changes."
   },
   "methods": [
     {
-      "name": "connected",
-      "summary": "Returns whether the device currently has a usable network connection.",
-      "tags": [
-        {
-          "name": "property:readonly"
-        },
-        {
-          "name": "capabilities",
-          "x-uses": [
-            "xrn:firebolt:capability:network:connected"
-          ]
-        }
-      ],
+      "name": "Network.connected",
+      "summary": "Get the network connectivity status.",
+      "description": "Returns the network connectivity status: true if internet-accessible, false otherwise.",
       "params": [],
       "result": {
-        "name": "success",
-        "summary": "Whether the device currently has a usable network connection.",
+        "name": "result",
         "schema": {
-          "$ref": "#/components/schemas/Connected"
+          "type": "boolean"
         }
       },
       "examples": [
         {
-          "name": "Connected example",
+          "name": "networkConnected",
+          "summary": "Device is connected to internet",
           "params": [],
           "result": {
-            "name": "success",
+            "name": "result",
             "value": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Network.onConnectedChanged",
+      "summary": "Subscribe to network connectivity changes.",
+      "description": "Fired when the network connectivity status changes.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "examples": [
+        {
+          "name": "networkDisconnected",
+          "summary": "Device lost internet connectivity",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": false
           }
         }
       ]
     }
   ],
   "components": {
-    "schemas": {
-      "Connected": {
-        "type": "boolean",
-        "description": "Indicates whether the device currently has a usable network connection."
-      }
-    }
+    "schemas": {}
   }
 }

@@ -1,208 +1,77 @@
 {
-    "openrpc": "1.2.4",
-    "info": {
-        "title": "Lifecycle2",
-        "description": "Methods and events for responding to Lifecycle changes in your app.",
-        "version": "0.0.0"
-    },
-    "methods": [
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Lifecycle2",
+    "version": "9.0",
+    "x-firebolt-platform": "native",
+    "description": "Manages the lifecycle state of an app as controlled by the platform."
+  },
+  "methods": [
+    {
+      "name": "Lifecycle2.onStateChanged",
+      "summary": "Subscribe to lifecycle state change notifications.",
+      "description": "Subscribe to lifecycle state change notifications. The app remains in initializing until this subscribe call is made.",
+      "params": [
         {
-            "name": "close",
-            "tags": [
-                {
-                    "name": "rpc-only"
-                },
-                {
-                    "name": "capabilities",
-                    "x-uses": [
-                        "xrn:firebolt:capability:lifecycle2:general"
-                    ]
-                }
-            ],
-            "summary": "Request the platform to deactivate the app, and possibly take further action.",
-            "params": [
-                {
-                    "name": "type",
-                    "summary": "The type of the close app is requesting",
-                    "required": true,
-                    "schema": {
-                        "$ref": "#/components/schemas/CloseType"
-                    }
-                }
-            ],
-            "result": {
-                "name": "result",
-                "schema": {
-                    "type": "null"
-                }
-            },
-            "examples": [
-                {
-                    "name": "Close the app when the user presses back on the app home screen",
-                    "params": [
-                        {
-                            "name": "type",
-                            "value": "unload"
-                        }
-                    ],
-                    "result": {
-                        "name": "Default Result",
-                        "value": null
-                    }
-                },
-                {
-                    "name": "Close the app when the user selects an exit menu item",
-                    "params": [
-                        {
-                            "name": "type",
-                            "value": "deactivate"
-                        }
-                    ],
-                    "result": {
-                        "name": "Default Result",
-                        "value": null
-                    }
-                }
-            ]
+          "name": "listen",
+          "required": true,
+          "schema": { "type": "boolean" },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            { "$ref": "shared.json#/components/schemas/ListenResponse" },
+            { "$ref": "#/components/schemas/StateChangedEvent" }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "name": "subscribe",
+          "summary": "Subscribe to state changes",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": { "listening": true, "event": "Lifecycle2.onStateChanged" }
+          }
         },
         {
-            "name": "state",
-            "summary": "Get the current lifecycle state of the app.",
-            "tags": [
-                {
-                    "name": "rpc-only"
-                },
-                {
-                    "name": "capabilities",
-                    "x-uses": [
-                        "xrn:firebolt:capability:lifecycle2:general"
-                    ]
-                }
-            ],
-            "params": [],
-            "result": {
-                "name": "state",
-                "summary": "The current lifecycle state of the app.",
-                "schema": {
-                    "$ref": "#/components/schemas/LifecycleState"
-                }
-            },
-            "examples": [
-                {
-                    "name": "Default Example",
-                    "params": [],
-                    "result": {
-                        "name": "Default Result",
-                        "value": "active"
-                    }
-                }
-            ]
-        },
-        {
-            "name": "onStateChanged",
-            "tags": [
-                {
-                    "name": "rpc-only"
-                },
-                {
-                    "name": "notifier",
-                    "x-contextual-parameters": 0
-                },
-                {
-                    "name": "capabilities",
-                    "x-uses": [
-                        "xrn:firebolt:capability:lifecycle2:general"
-                    ]
-                }
-            ],
-            "summary": "Notification of lifecycle state change, raised after the platform has transitioned the app/runtime to the new lifecycle state",
-            "params": [
-                {
-                    "name": "history",
-                    "schema": {
-                        "type": "array",
-                        "minItems": 1,
-                        "items": {
-                            "title": "StateChange",
-                            "$ref": "#/components/schemas/StateChange"
-                        }
-                    }
-                }
-            ],
-            "examples": [
-                {
-                    "name": "App is active after being initialized",
-                    "params": [
-                        {
-                            "name": "states",
-                            "value": [
-                                {
-                                    "newState": "paused",
-                                    "oldState": "initializing"
-                                },
-                                {
-                                    "newState": "active",
-                                    "oldState": "paused"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "name": "Single transition to paused state",
-                    "params": [
-                        {
-                            "name": "states",
-                            "value": [
-                                {
-                                    "newState": "paused",
-                                    "oldState": "initializing"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
+          "name": "stateChangeActive",
+          "summary": "App becomes active from paused",
+          "params": [
+            { "name": "listen", "value": true }
+          ],
+          "result": {
+            "name": "result",
+            "value": { "oldState": "paused", "newState": "active" }
+          }
         }
-    ],
-    "components": {
-        "schemas": {
-            "CloseType": {
-                "title": "CloseType",
-                "description": "The application close type",
-                "type": "string",
-                "enum": [
-                    "deactivate",
-                    "unload",
-                    "killReload",
-                    "killReactivate"
-                ]
-            },
-            "LifecycleState": {
-                "title": "LifecycleState",
-                "description": "The application Lifecycle state",
-                "type": "string",
-                "enum": [
-                    "initializing",
-                    "active",
-                    "paused",
-                    "suspended",
-                    "hibernated",
-                    "terminating"
-                ]
-            },
-            "StateChange": {
-                "title": "StateChange",
-                "type": "object",
-                "properties": {
-                    "newState": {
-                        "$ref": "#/components/schemas/LifecycleState"
-                    },
-                    "oldState": {
-                        "$ref": "#/components/schemas/LifecycleState"
-                    }
-                }
-            }
-        }
+      ]
     }
+  ],
+  "components": {
+    "schemas": {
+      "LifecycleState": {
+        "title": "LifecycleState",
+        "type": "string",
+        "enum": ["initializing", "paused", "active", "suspended", "hibernated", "terminating"],
+        "description": "Lifecycle state of an app managed by the platform."
+      },
+      "StateChangedEvent": {
+        "title": "StateChangedEvent",
+        "type": "object",
+        "description": "Payload for a lifecycle state transition notification.",
+        "properties": {
+          "oldState": { "$ref": "#/components/schemas/LifecycleState" },
+          "newState": { "$ref": "#/components/schemas/LifecycleState" }
+        },
+        "required": ["oldState", "newState"]
+      }
+    }
+  }
 }
