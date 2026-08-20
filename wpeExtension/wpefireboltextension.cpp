@@ -544,7 +544,7 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
     WPE Browser extension. 
  */
 
-std::string WpeWebKitConfig::fireboltInjectScript() const
+std::string fireboltInjectScript()
 {
     GError *error = nullptr;
     g_print("loading firebolt inject script from resources\n");
@@ -607,7 +607,7 @@ std::string WpeWebKitConfig::fireboltInjectScript() const
                     fireboltEndpoint = g_strdup(firebolt_endpoint);
                     
                     // load user script from resource bundle
-                    fireboltUserScript = fireboltInjectScript().c_str();
+                    fireboltUserScript = g_strdup(fireboltInjectScript().c_str());
 
                     if (fireboltUserScript) {
                         g_print("Firebolt inject script loaded\n");
