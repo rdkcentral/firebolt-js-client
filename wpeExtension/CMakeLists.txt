@@ -47,6 +47,6 @@ target_link_libraries( WpeFireboltExtension
 
 install(
         TARGETS WpeFireboltExtension
-        DESTINATION wpewebkit/extensions
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/wpewebkit/extensions
         COMPONENT ${PROJECT_NAME}
         )
