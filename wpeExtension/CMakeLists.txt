@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package( WPEBackend REQUIRED )
+find_package( WPEWebKit REQUIRED )
 
 add_subdirectory( resources )
 
