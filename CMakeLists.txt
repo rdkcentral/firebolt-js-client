@@ -14,5 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# add the subdirectory for the wpefireboltextension
-add_subdirectory(wpeExtension)
+# add the subdirectory for the webkit firebolt extension
+add_subdirectory(webkitExtension)

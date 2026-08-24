@@ -594,7 +594,7 @@ std::string fireboltInjectScript()
 
         if (settings) {
             g_print("Firebolt extension settings found\n");
-            g_variant_lookup(settings, "wpeFireboltEnabled", "b", &enabled);
+            g_variant_lookup(settings, "webkitFireboltEnabled", "b", &enabled);
 
             if (!enabled) {
                 g_print("WPE Firebolt Extension disabled\n");
