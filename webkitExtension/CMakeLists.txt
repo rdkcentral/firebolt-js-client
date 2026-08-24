@@ -22,9 +22,9 @@ find_package( WPEWebKit REQUIRED )
 
 add_subdirectory( resources )
 
-add_library( WebkitFireboltExtension
+add_library( FireboltExtension
         SHARED
-        webkitfireboltextension.cpp
+        fireboltextension.cpp
         asyncbus.cpp
         websocketclient.cpp
         soupfunctions.cpp
@@ -32,24 +32,24 @@ add_library( WebkitFireboltExtension
         $<TARGET_OBJECTS:firebolt_resourcebundle>
         )
 
-target_compile_definitions( WebkitFireboltExtension
+target_compile_definitions( FireboltExtension
         PRIVATE
-        G_LOG_DOMAIN="WebkitFireboltExtension"
+        G_LOG_DOMAIN="FireboltExtension"
         G_LOG_USE_STRUCTURED=1
         )
 
-target_include_directories( WebkitFireboltExtension
+target_include_directories( FireboltExtension
         PRIVATE
         $<TARGET_PROPERTY:WPEBackend::WPEBackend,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:WPEWebKit::WPEWebKit,INTERFACE_INCLUDE_DIRECTORIES>
         )
 
-target_link_libraries( WebkitFireboltExtension
+target_link_libraries( FireboltExtension
         PRIVATE
         )
 
 install(
-        TARGETS WebkitFireboltExtension
+        TARGETS FireboltExtension
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/wpewebkit/extensions
         COMPONENT ${PROJECT_NAME}
         )
