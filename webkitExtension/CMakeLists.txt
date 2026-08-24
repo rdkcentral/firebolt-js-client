@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Add cmake directory to CMAKE_MODULE_PATH so custom Find*.cmake files can be found
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
+
 find_package( WPEBackend REQUIRED )
 find_package( WPEWebKit REQUIRED )
 
