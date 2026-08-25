@@ -116,6 +116,7 @@ void WebSocketClient::onMessage(gint type, GBytes *message)
         m_onMessage(tmp);
     }
     g_free(tmp);
+}
 
 void WebSocketClient::onError(GError *error)
 {
