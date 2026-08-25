@@ -43,10 +43,15 @@ SoupFunctions::SoupFunctions()
     RESOLVE_FN(websocket_connection_send_text);
 #undef RESOLVE_FN
 
-    if (check_version && check_version(2, 99, 2)) {
-        session_websocket_connect_async_variant = reinterpret_cast<soup_session_websocket_connect_async_v3_t>(dlsym(RTLD_DEFAULT, "soup_session_websocket_connect_async"));
+    const bool isSoup3 = (check_version && check_version(2, 99, 2) == nullptr);
+    if (isSoup3) {
+        auto fn = reinterpret_cast<soup_session_websocket_connect_async_v3_t>(dlsym(RTLD_DEFAULT, "soup_session_websocket_connect_async"));
+        g_assert(fn != 0x0);
+        session_websocket_connect_async_variant = fn;
     } else {
-        session_websocket_connect_async_variant = reinterpret_cast<soup_session_websocket_connect_async_v2_t>(dlsym(RTLD_DEFAULT, "soup_session_websocket_connect_async"));
+        auto fn = reinterpret_cast<soup_session_websocket_connect_async_v2_t>(dlsym(RTLD_DEFAULT, "soup_session_websocket_connect_async"));
+        g_assert(fn != 0x0);
+        session_websocket_connect_async_variant = fn;
     }
 }
 

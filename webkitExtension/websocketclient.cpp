@@ -46,6 +46,10 @@ bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
     SoupMessage *msg = soup().message_new("GET", m_url);
     if (!msg) {
         g_printerr("Failed to create SoupMessage\n");
+        if (m_session) {
+            g_object_unref(m_session);
+            m_session = nullptr;
+        }
         return false;
     }
     m_onConnect = std::move(onConnect);
@@ -74,10 +78,12 @@ void WebSocketClient::onConnection(SoupWebsocketConnection *ws)
     if (!ws)
     {
         g_warning("couldn't establish jsonrpc ws connection.");
-        m_onConnect(false);
+        if (m_onConnect) {
+            m_onConnect(false);
+        }
         return;
     }
-    m_conn = reinterpret_cast<SoupWebsocketConnection*>(g_object_ref(ws));
+    m_conn = ws;
     g_signal_connect(ws, "message", G_CALLBACK(+[](SoupWebsocketConnection *ws, gint type, GBytes *message, gpointer userData) {
         auto *self = reinterpret_cast<WebSocketClient*>(userData);
         self->onMessage(type, message);
@@ -99,12 +105,17 @@ void WebSocketClient::onMessage(gint type, GBytes *message)
         g_printerr("Received non-text WebSocket message, ignoring\n");
         return;
     }
-    gsize sz;
+    gsize sz = 0;
     const void *ptr = g_bytes_get_data(message, &sz);
-    const char* c_message = reinterpret_cast<const char*>(ptr);
-    g_message("recv: %s", c_message);
-    m_onMessage(c_message);
-}
+    if (!ptr || sz == 0) {
+        return;
+    }
+    char* tmp = g_strndup(static_cast<const char*>(ptr), sz);
+    g_message("recv: %s", tmp);
+    if (m_onMessage) {
+        m_onMessage(tmp);
+    }
+    g_free(tmp);
 
 void WebSocketClient::onError(GError *error)
 {
@@ -138,5 +149,7 @@ void WebSocketClient::Disconnect()
         g_object_unref(m_session);
         m_session = nullptr;
     }
-    m_onConnect(false);
+    if (m_onConnect) {
+        m_onConnect(false);
+    }
 }

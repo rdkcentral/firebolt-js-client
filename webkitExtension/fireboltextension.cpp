@@ -122,24 +122,24 @@ static JSCValue* connect_cb(gpointer user_data)
         g_print("Connecting to Firebolt endpoint: %s\n", (*shared_state)->fireboltEndpoint.c_str());
         (*shared_state)->wsClient = std::make_unique<WebSocketClient>((*shared_state)->fireboltEndpoint.c_str());
         g_print("WebSocket client created, attempting to connect...\n");
-        (*shared_state)->connected = (*shared_state)->wsClient->Connect(
+
+        // Use weak_ptr to avoid use-after-free if the page is destroyed before async callbacks run.
+        std::weak_ptr<PageState> weakState = *shared_state;
+
+        (*shared_state)->wsClient->Connect(
             // onConnect callback
-            [ctx, shared_state](const bool success) {
-                if (shared_state) {
-                    (*shared_state)->connected = success;
+            [weakState](const bool success) {
+                if (auto state = weakState.lock()) {
+                    state->connected = success;
                     g_print("WebSocket connection %s\n", success ? "successful" : "failed");
-                    (*shared_state)->connectionBus->emit(success? "connected" : "disconnected");
-                } else {
-                    g_warning("onConnect: invalid state object");
+                    state->connectionBus->emit(success ? "connected" : "disconnected");
                 }
             },
             // onMessage callback
-            [ctx, shared_state](const char* message) {
-                if (shared_state) {
+            [weakState](const char* message) {
+                if (auto state = weakState.lock()) {
                     g_print("Received message: %s\n", message);
-                    (*shared_state)->messageBus->emit(message);
-                } else {
-                    g_warning("onMessage: invalid state object");
+                    state->messageBus->emit(message);
                 }
             }
         );
