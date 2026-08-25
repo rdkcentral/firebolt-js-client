@@ -472,7 +472,6 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
     if (settings) {
         g_variant_lookup(settings, "fireboltEndpoint", "s", &fireboltEndpoint);
         g_variant_lookup(settings, "fireboltUserScript", "s", &fireboltUserScript);
-        g_variant_unref(settings); // Unref the settings after using it
     } else {
         g_warning("no settings found for firebolt extension");
         goto cleanup;
@@ -496,6 +495,11 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
     result = nullptr;
     g_free(js_source);
     js_source = nullptr;
+
+    if (!fireboltEndpoint || fireboltEndpoint[0] == '\0') {
+        g_warning("fireboltEndpoint missing/empty in settings");
+        goto cleanup;
+    }
 
     state = std::make_shared<PageState>();
     state->messageBus = std::make_unique<AsyncBus>(g_main_context_default());
