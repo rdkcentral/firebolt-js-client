@@ -54,7 +54,10 @@ void AsyncBus::cleanup()
         g_object_unref(l.cb);
     }
     m_listeners.clear();
-    g_main_context_unref(m_jsContext);
+    if (m_jsContext) {
+        g_main_context_unref(m_jsContext);
+        m_jsContext = nullptr;
+    }
 }
 
 guint AsyncBus::addListener(JSCContext* ctx, JSCValue* cb)
