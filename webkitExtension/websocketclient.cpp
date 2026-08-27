@@ -43,6 +43,10 @@ bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
                               std::function<void(const char*)>&& onMessage)
 {
     m_session = soup().session_new();
+    if (!m_session) {
+        g_printerr("Failed to create SoupSession\n");
+        return false;
+    }
     SoupMessage *msg = soup().message_new("GET", m_url);
     if (!msg) {
         g_printerr("Failed to create SoupMessage\n");

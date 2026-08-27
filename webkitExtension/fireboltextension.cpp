@@ -257,9 +257,13 @@ static JSCValue* on_connection_status_cb(JSCValue* js_function,
         ctx,
         "off",
         G_CALLBACK(unsubscribe_conn_fn),
-        new std::pair<WebKitWebPage*, guint>(page, id),
+        new std::pair<WebKitWebPage*, guint>(static_cast<WebKitWebPage*>(g_object_ref(page)), id),
         [](gpointer p) {
-            delete static_cast<std::pair<WebKitWebPage*, guint>*>(p);
+            auto* pair = static_cast<std::pair<WebKitWebPage*, guint>*>(p);
+            if (pair->first) {
+                g_object_unref(pair->first);
+            }
+            delete pair;
         },
         JSC_TYPE_VALUE,
         0
@@ -617,16 +621,20 @@ std::string fireboltInjectScript()
                 if (fireboltUserScript) {
                     g_print("Firebolt inject script loaded\n");
                     GVariantBuilder builder;
+                    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+                    g_variant_builder_add(&builder, "{sv}", "fireboltUserScript", g_variant_new_string(fireboltUserScript));
+                    g_variant_builder_add(&builder, "{sv}", "fireboltEndpoint", g_variant_new_string(fireboltEndpoint));
                     GVariant *settings = g_variant_builder_end(&builder);
-                    g_variant_lookup(settings, "fireboltUserScript", "s", &fireboltUserScript);
-                    g_variant_lookup(settings, "fireboltEndpoint", "s", &fireboltEndpoint);
                     g_print("WPE Firebolt Extension enabled with Firebolt Endpoint: %s\n", fireboltEndpoint);
                     // Here you would initialize your extension's functionality, e.g., set up IPC, hooks, etc.
                     // hook the following signal, so we can inject JS code into the page
-                    g_signal_connect(webkit_script_world_get_default(),
+                    g_signal_connect_data(webkit_script_world_get_default(),
                                     "window-object-cleared",
                                     G_CALLBACK(onWindowObjectCleared),
-                                    settings);
+                                    settings,
+                                    (GClosureNotify)g_variant_unref,
+                                    (GConnectFlags)0);
+
                     if (fireboltEndpoint) g_free(fireboltEndpoint);
                     if (fireboltUserScript) g_free(fireboltUserScript);
                 } else {
