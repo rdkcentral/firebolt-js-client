@@ -590,7 +590,7 @@ std::string fireboltInjectScript()
                                                                         GVariant *userData)
     {
         g_print("Initializing WPE Firebolt Extension\n");
-        gboolean enabled = FALSE;
+        gboolean enabled = TRUE;
         gchar *fireboltEndpoint = nullptr;
         gchar *fireboltUserScript = nullptr;
         // check if the firebolt extension should be enabled and if so get the firebolt endpoint url
@@ -599,47 +599,46 @@ std::string fireboltInjectScript()
         if (settings) {
             g_print("Firebolt extension settings found\n");
             g_variant_lookup(settings, "webkitFireboltEnabled", "b", &enabled);
+        }
 
-            if (!enabled) {
+        if (!enabled) {
                 g_print("WPE Firebolt Extension disabled\n");
-            } else {
-                g_print("WPE Firebolt Extension enabled\n");
+        } else {
+            g_print("WPE Firebolt Extension enabled\n");
+            
+            // Read environment variable for FIREBOLT_ENDPOINT
+            const char* firebolt_endpoint = getenv("FIREBOLT_ENDPOINT");
+            if (firebolt_endpoint) {
+                fireboltEndpoint = g_strdup(firebolt_endpoint);
                 
-                // Read environment variable for FIREBOLT_ENDPOINT
-                const char* firebolt_endpoint = getenv("FIREBOLT_ENDPOINT");
-                if (firebolt_endpoint) {
-                    fireboltEndpoint = g_strdup(firebolt_endpoint);
-                    
-                    // load user script from resource bundle
-                    fireboltUserScript = g_strdup(fireboltInjectScript().c_str());
+                // load user script from resource bundle
+                fireboltUserScript = g_strdup(fireboltInjectScript().c_str());
 
-                    if (fireboltUserScript) {
-                        g_print("Firebolt inject script loaded\n");
-                    
-                        g_variant_ref(settings); // Ref the settings so we can pass it to the callback
-                        g_variant_lookup(settings, "fireboltUserScript", "s", &fireboltUserScript);
-                        g_variant_lookup(settings, "fireboltEndpoint", "s", &fireboltEndpoint);
-                        g_print("WPE Firebolt Extension enabled with Firebolt Endpoint: %s\n", fireboltEndpoint);
-                        // Here you would initialize your extension's functionality, e.g., set up IPC, hooks, etc.
-                        // hook the following signal, so we can inject JS code into the page
-                        g_signal_connect(webkit_script_world_get_default(),
-                                        "window-object-cleared",
-                                        G_CALLBACK(onWindowObjectCleared),
-                                        settings);
-                        g_variant_unref(settings); // Unref the settings after connecting the signal
-                    } else {
-                        g_warning("Failed to load firebolt inject script");
-                    }
-
+                if (fireboltUserScript) {
+                    g_print("Firebolt inject script loaded\n");
+                
+                    g_variant_ref(settings); // Ref the settings so we can pass it to the callback
+                    g_variant_lookup(settings, "fireboltUserScript", "s", &fireboltUserScript);
+                    g_variant_lookup(settings, "fireboltEndpoint", "s", &fireboltEndpoint);
+                    g_print("WPE Firebolt Extension enabled with Firebolt Endpoint: %s\n", fireboltEndpoint);
+                    // Here you would initialize your extension's functionality, e.g., set up IPC, hooks, etc.
+                    // hook the following signal, so we can inject JS code into the page
+                    g_signal_connect(webkit_script_world_get_default(),
+                                    "window-object-cleared",
+                                    G_CALLBACK(onWindowObjectCleared),
+                                    settings);
+                    g_variant_unref(settings); // Unref the settings after connecting the signal
+                    if (fireboltEndpoint) g_free(fireboltEndpoint);
+                    if (fireboltUserScript) g_free(fireboltUserScript);
                 } else {
-                    g_warning("FIREBOLT_ENDPOINT environment variable not set");
+                    g_warning("Failed to load firebolt inject script");
                 }
 
-
+            } else {
+                g_warning("FIREBOLT_ENDPOINT environment variable not set");
             }
-    }
 
-    if (fireboltEndpoint) g_free(fireboltEndpoint);
-    if (fireboltUserScript) g_free(fireboltUserScript);
+
+        }
 }
 }
