@@ -30,7 +30,7 @@ typedef SoupSession *(*soup_session_new_t)();
 typedef SoupMessage *(*soup_message_new_t)(const char *method,
                                            const char *uri_string);
 
-typedef const char *(*soup_check_version_t)(guint major,
+typedef gboolean (*soup_check_version_t)(guint major,
                                             guint minor,
                                             guint micro);
 
