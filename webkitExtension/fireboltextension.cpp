@@ -594,11 +594,11 @@ std::string fireboltInjectScript()
         gchar *fireboltEndpoint = nullptr;
         gchar *fireboltUserScript = nullptr;
         // check if the firebolt extension should be enabled and if so get the firebolt endpoint url
-        GVariant *settings = g_variant_lookup_value(userData, "firebolt", G_VARIANT_TYPE_VARDICT);
+        GVariant *injectedSettings = g_variant_lookup_value(userData, "firebolt", G_VARIANT_TYPE_VARDICT);
 
-        if (settings) {
+        if (injectedSettings) {
             g_print("Firebolt extension settings found\n");
-            g_variant_lookup(settings, "webkitFireboltEnabled", "b", &enabled);
+            g_variant_lookup(injectedSettings, "webkitFireboltEnabled", "b", &enabled);
         }
 
         if (!enabled) {
@@ -616,8 +616,8 @@ std::string fireboltInjectScript()
 
                 if (fireboltUserScript) {
                     g_print("Firebolt inject script loaded\n");
-                
-                    g_variant_ref(settings); // Ref the settings so we can pass it to the callback
+                    GVariantBuilder builder;
+                    GVariant *settings = g_variant_builder_end(&builder);
                     g_variant_lookup(settings, "fireboltUserScript", "s", &fireboltUserScript);
                     g_variant_lookup(settings, "fireboltEndpoint", "s", &fireboltEndpoint);
                     g_print("WPE Firebolt Extension enabled with Firebolt Endpoint: %s\n", fireboltEndpoint);
@@ -627,7 +627,6 @@ std::string fireboltInjectScript()
                                     "window-object-cleared",
                                     G_CALLBACK(onWindowObjectCleared),
                                     settings);
-                    g_variant_unref(settings); // Unref the settings after connecting the signal
                     if (fireboltEndpoint) g_free(fireboltEndpoint);
                     if (fireboltUserScript) g_free(fireboltUserScript);
                 } else {
