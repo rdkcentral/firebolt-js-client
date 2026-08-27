@@ -133,7 +133,9 @@ void WebSocketClient::onError(GError *error)
 void WebSocketClient::onClosed()
 {
     g_info("ws connection closed");
-    m_onConnect(false);
+    if (m_onConnect) {
+        m_onConnect(false);
+    }
 }
 
 void WebSocketClient::SendMessage(const char* jsMessage)
