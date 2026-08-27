@@ -323,9 +323,13 @@ static JSCValue* on_message_cb(JSCValue* js_function,
         ctx,
         "off",
         G_CALLBACK(unsubscribe_msg_fn),
-        new std::pair<WebKitWebPage*, guint>(page, id),
+        new std::pair<WebKitWebPage*, guint>(static_cast<WebKitWebPage*>(g_object_ref(page)), id),
         [](gpointer p) {
-            delete static_cast<std::pair<WebKitWebPage*, guint>*>(p);
+            auto* pair = static_cast<std::pair<WebKitWebPage*, guint>*>(p);
+            if (pair->first) {
+                g_object_unref(pair->first);
+            }
+            delete pair;
         },
         JSC_TYPE_VALUE,
         0

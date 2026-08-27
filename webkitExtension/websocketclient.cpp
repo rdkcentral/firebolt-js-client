@@ -124,8 +124,10 @@ void WebSocketClient::onMessage(gint type, GBytes *message)
 
 void WebSocketClient::onError(GError *error)
 {
-    g_warning("error detected - %s", error->message);
-    m_onConnect(false);
+    g_warning("error detected - %s", error ? error->message : "unknown");
+    if (m_onConnect) {
+        m_onConnect(false);
+    }
 }
 
 void WebSocketClient::onClosed()
