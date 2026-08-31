@@ -32,7 +32,7 @@ public:
     ~WebSocketClient();
 
     bool Connect(std::function<void(const bool)>&& onConnect,
-                 std::function<void(const char*)>&& onMessage);
+                 std::function<void(const char*, size_t)>&& onMessage);
     
     void SendMessage(const char* jsMessage);
 
@@ -44,9 +44,10 @@ private:
     char *m_url;
     SoupSession *m_session { nullptr };
     SoupWebsocketConnection *m_conn { nullptr };
+    GCancellable *m_cancellable { nullptr };
 
     std::function<void(const bool)> m_onConnect;
-    std::function<void(const char*)> m_onMessage;
+    std::function<void(const char*, size_t)> m_onMessage;
 
     void onConnection(SoupWebsocketConnection *ws);
     void onMessage(gint type, GBytes *message);

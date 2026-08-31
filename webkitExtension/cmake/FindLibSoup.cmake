@@ -22,7 +22,7 @@
 #  LIBSOUP_LIBRARIES - The libraries needed to use libsoup
 
 find_package(PkgConfig)
-pkg_check_modules(PC_LIBSOUP QUIET libsoup-2.4)
+pkg_check_modules(PC_LIBSOUP QUIET libsoup)
 
 find_path(LIBSOUP_INCLUDE_DIRS
     NAMES libsoup/soup.h
@@ -30,7 +30,7 @@ find_path(LIBSOUP_INCLUDE_DIRS
 )
 
 find_library(LIBSOUP_LIBRARIES
-    NAMES soup-2.4
+    NAMES soup
     HINTS ${PC_LIBSOUP_LIBDIR} ${PC_LIBSOUP_LIBRARY_DIRS}
 )
 

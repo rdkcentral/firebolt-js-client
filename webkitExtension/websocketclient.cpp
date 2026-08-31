@@ -31,16 +31,18 @@ WebSocketClient::WebSocketClient(const char *url)
 WebSocketClient::~WebSocketClient()
 {
     Cleanup();
-    g_free(m_url);
+    g_clear_pointer(&m_url, g_free);
 }
 
 void WebSocketClient::Cleanup()
 {
     Disconnect();
+    // Ensure cancellable is cleaned up even if Disconnect wasn't called
+    g_clear_object(&m_cancellable);
 }
 
 bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
-                              std::function<void(const char*)>&& onMessage)
+                              std::function<void(const char*, size_t)>&& onMessage)
 {
     m_session = soup().session_new();
     if (!m_session) {
@@ -50,30 +52,48 @@ bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
     SoupMessage *msg = soup().message_new("GET", m_url);
     if (!msg) {
         g_printerr("Failed to create SoupMessage\n");
-        if (m_session) {
-            g_object_unref(m_session);
-            m_session = nullptr;
-        }
+        g_clear_object(&m_session);
         return false;
     }
     m_onConnect = std::move(onConnect);
     m_onMessage = std::move(onMessage);
 
+    // Create cancellable for this connection attempt
+    m_cancellable = g_cancellable_new();
+
     auto connectCallback = [](GObject *source_object, GAsyncResult *res, gpointer user_data) {
         WebSocketClient *self = static_cast<WebSocketClient*>(user_data);
+        
+        // Check if connection was cancelled before dereferencing self
+        if (g_cancellable_is_cancelled(self->m_cancellable)) {
+            g_printerr("WebSocket connection was cancelled\n");
+            g_clear_object(&self->m_cancellable);
+            if (self->m_onConnect) {
+                self->m_onConnect(false);
+            }
+            return;
+        }
+
         GError *error = nullptr;
-        self->m_conn = soup().session_websocket_connect_finish(self->m_session, res, &error);
+        SoupWebsocketConnection *conn = soup().session_websocket_connect_finish(self->m_session, res, &error);
+        
+        // Clear the cancellable as the connection attempt is complete
+        g_clear_object(&self->m_cancellable);
+        
         if (error) {
             g_printerr("WebSocket connection failed: %s\n", error->message);
             g_error_free(error);
+            if (self->m_onConnect) {
+                self->m_onConnect(false);
+            }
             return;
         }
-        self->onConnection(self->m_conn);
+        self->onConnection(conn);
     };
 
-    soup().session_websocket_connect_async(m_session, msg, nullptr, nullptr, G_PRIORITY_DEFAULT, nullptr, connectCallback, this);
+    soup().session_websocket_connect_async(m_session, msg, nullptr, nullptr, G_PRIORITY_DEFAULT, m_cancellable, connectCallback, this);
 
-    g_object_unref(msg);
+    g_clear_object(&msg);
     return true;
 }
 
@@ -87,6 +107,17 @@ void WebSocketClient::onConnection(SoupWebsocketConnection *ws)
         }
         return;
     }
+    
+    // Check if we were cancelled during connection
+    if (m_cancellable && g_cancellable_is_cancelled(m_cancellable)) {
+        g_warning("Connection was cancelled, ignoring successful connection");
+        g_clear_object(&ws);
+        if (m_onConnect) {
+            m_onConnect(false);
+        }
+        return;
+    }
+    
     m_conn = ws;
     g_signal_connect(ws, "message", G_CALLBACK(+[](SoupWebsocketConnection *ws, gint type, GBytes *message, gpointer userData) {
         auto *self = reinterpret_cast<WebSocketClient*>(userData);
@@ -114,12 +145,11 @@ void WebSocketClient::onMessage(gint type, GBytes *message)
     if (!ptr || sz == 0) {
         return;
     }
-    char* tmp = g_strndup(static_cast<const char*>(ptr), sz);
-    g_message("recv: %s", tmp);
+    // Pass the data pointer and size to preserve size information
+    // The callback is responsible for handling the data appropriately
     if (m_onMessage) {
-        m_onMessage(tmp);
+        m_onMessage(static_cast<const char*>(ptr), sz);
     }
-    g_free(tmp);
 }
 
 void WebSocketClient::onError(GError *error)
@@ -149,15 +179,17 @@ void WebSocketClient::SendMessage(const char* jsMessage)
 
 void WebSocketClient::Disconnect()
 {
+    // Cancel any ongoing connection attempt
+    if (m_cancellable) {
+        g_cancellable_cancel(m_cancellable);
+        g_clear_object(&m_cancellable);
+    }
+    
     if (m_conn) {
         soup_websocket_connection_close(m_conn, 1000, "Normal Closure");
-        g_object_unref(m_conn);
-        m_conn = nullptr;
+        g_clear_object(&m_conn);
     }
-    if (m_session) {
-        g_object_unref(m_session);
-        m_session = nullptr;
-    }
+    g_clear_object(&m_session);
     if (m_onConnect) {
         m_onConnect(false);
     }

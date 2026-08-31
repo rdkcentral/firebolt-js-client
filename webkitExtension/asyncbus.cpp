@@ -20,13 +20,14 @@
 struct EmitData {
     AsyncBus* bus;
     char* payload;
+    size_t size;
 };
 
 static gboolean deliver_cb(gpointer data)
 {
     auto* d = static_cast<EmitData*>(data);
-    d->bus->deliverOnJsThread(d->payload);
-    g_free(d->payload);
+    d->bus->deliverOnJsThread(d->payload, d->size);
+    g_clear_pointer(&d->payload, g_free);
     delete d;
     return G_SOURCE_REMOVE;
 }
@@ -50,8 +51,8 @@ void AsyncBus::cleanup()
 {
     std::lock_guard<std::mutex> lock(m_lock);
     for (auto& [id, l] : m_listeners) {
-        g_object_unref(l.ctx);
-        g_object_unref(l.cb);
+        g_clear_object(&l.ctx);
+        g_clear_object(&l.cb);
     }
     m_listeners.clear();
     if (m_jsContext) {
@@ -78,23 +79,32 @@ void AsyncBus::removeListener(guint id)
     std::lock_guard<std::mutex> lock(m_lock);
     auto it = m_listeners.find(id);
     if (it != m_listeners.end()) {
-        g_object_unref(it->second.ctx);
-        g_object_unref(it->second.cb);
+        g_clear_object(&it->second.ctx);
+        g_clear_object(&it->second.cb);
         m_listeners.erase(it);
     }
 }
 
-void AsyncBus::emit(const char* payload)
+bool AsyncBus::hasListeners() const
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+    return !m_listeners.empty();
+}
+
+void AsyncBus::emit(const char* payload, size_t size)
+{
+    // For now, we still duplicate the payload since we need to ensure it's null-terminated
+    // The size parameter is preserved for future optimization
     auto* data = new EmitData{
         this,
-        g_strdup(payload)
+        g_strdup(payload),
+        size
     };
 
     g_main_context_invoke(m_jsContext, deliver_cb, data);
 }
 
-void AsyncBus::deliverOnJsThread(char* payload)
+void AsyncBus::deliverOnJsThread(char* payload, size_t size)
 {
     std::vector<Listener> snapshot;
 
@@ -110,6 +120,8 @@ void AsyncBus::deliverOnJsThread(char* payload)
 
     // Invoke callbacks without holding lock
     for (auto& l : snapshot) {
+        // Create JSC string from the payload
+        // Note: JavaScript strings are null-terminated, so we rely on the payload being properly null-terminated
         JSCValue* arg = jsc_value_new_string(l.ctx, payload);
         JSCValue* ret = jsc_value_function_call(
             l.cb,
@@ -117,9 +129,9 @@ void AsyncBus::deliverOnJsThread(char* payload)
             G_TYPE_NONE
         );
 
-        if (ret) g_object_unref(ret);
-        g_object_unref(arg);
-        g_object_unref(l.cb);
-        g_object_unref(l.ctx);
+        g_clear_object(&ret);
+        g_clear_object(&arg);
+        g_clear_object(&l.cb);
+        g_clear_object(&l.ctx);
     }
 }

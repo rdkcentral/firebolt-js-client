@@ -17,7 +17,6 @@
 # Add cmake directory to CMAKE_MODULE_PATH so custom Find*.cmake files can be found
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 
-find_package( WPEBackend REQUIRED )
 find_package( WPEWebKit REQUIRED )
 
 add_subdirectory( resources )
@@ -40,7 +39,6 @@ target_compile_definitions( FireboltExtension
 
 target_include_directories( FireboltExtension
         PRIVATE
-        $<TARGET_PROPERTY:WPEBackend::WPEBackend,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:WPEWebKit::WPEWebKit,INTERFACE_INCLUDE_DIRECTORIES>
         )
 

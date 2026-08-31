@@ -37,16 +37,23 @@ public:
     guint addListener(JSCContext* ctx, JSCValue* cb);
     void  removeListener(guint id);
 
+    // Check if there are any active listeners
+    bool hasListeners() const;
+
     // Safe from any thread
-    void emit(const char* payload);
+    // size parameter preserves size information from WebSocket messages
+    // Currently the payload is still duplicated to ensure null-termination for JavaScript
+    void emit(const char* payload, size_t size = 0);
 
-    void deliverOnJsThread(char* payload);
+    void deliverOnJsThread(char* payload, size_t size);
 
+    // Must be called when the associated page is being destroyed
+    // to release JavaScript object references and prevent memory leaks
     void cleanup();
 
 private:
 
-    std::mutex m_lock;
+    mutable std::mutex m_lock;
     std::unordered_map<guint, Listener> m_listeners;
     guint m_nextId {1};
 
