@@ -55,6 +55,15 @@ bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
         g_clear_object(&m_session);
         return false;
     }
+
+    if(m_onConnect) {
+       m_onConnect = nullptr;
+    }
+
+    if(m_onMessage) {
+        m_onMessage = nullptr;
+    }
+
     m_onConnect = std::move(onConnect);
     m_onMessage = std::move(onMessage);
 
