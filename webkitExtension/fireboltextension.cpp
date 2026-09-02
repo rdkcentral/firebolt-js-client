@@ -443,12 +443,11 @@ static JSCValue* on_message_cb(JSCValue* js_function,
 
 static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState* state)
 {
-    JSCValue *result = jsc_context_evaluate(ctx, state->fireboltBridgeScript, -1);
-    if (!result) {
+    JSCValue *setBuilderFactory = jsc_context_evaluate(ctx, state->fireboltBridgeScript, -1);
+    if (!setBuilderFactory) {
         g_warning("failed to evaluate the injected JS code");
         return false;
     }
-    g_clear_object(&result);
 
     g_print("Bridge script evaluated successfully\n");
 
@@ -460,16 +459,6 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
         g_warning("failed to get the FireboltServiceManager object");
         return false;
     }
-
-    // check if FireboltServiceManager has a builder function, if not exit
-    JSCValue *serviceManagerBuilder = jsc_value_object_get_property(serviceManager, "builderFactory");
-    if (!serviceManagerBuilder || !jsc_value_is_function(serviceManagerBuilder)) {
-        g_warning("FireboltServiceManager.builderFactory is not a function");
-        g_clear_object(&serviceManagerBuilder);
-        g_clear_object(&serviceManager);
-        return false;
-    }
-    g_clear_object(&serviceManager);
 
     // Create platform object
     JSCValue *builder = jsc_value_new_object(ctx, NULL, NULL);
@@ -491,7 +480,7 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
     g_clear_object(&builder_fn);
 
     bool finalResult = false;
-    JSCValue *serviceManagerBuilderResult = jsc_value_function_call(serviceManagerBuilder, JSC_TYPE_VALUE, builder, G_TYPE_NONE);
+    JSCValue *serviceManagerBuilderResult = jsc_value_function_call(setBuilderFactory, JSC_TYPE_VALUE, builder, G_TYPE_NONE);
     if (!serviceManagerBuilderResult) {
         g_warning("failed to call FireboltServiceManager.builder");
     } else {
@@ -500,7 +489,7 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
         finalResult = true;
     }
     
-    g_clear_object(&serviceManagerBuilder);
+    g_clear_object(&setBuilderFactory);
     g_clear_object(&builder);
    
     return finalResult;
