@@ -44,6 +44,9 @@ void WebSocketClient::Cleanup()
 bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
                               std::function<void(const char*, size_t)>&& onMessage)
 {
+    if (m_session) {
+        g_clear_object(&m_session);
+    }
     m_session = soup().session_new();
     if (!m_session) {
         g_printerr("Failed to create SoupSession\n");
@@ -140,7 +143,9 @@ void WebSocketClient::onConnection(SoupWebsocketConnection *ws)
         auto *self = reinterpret_cast<WebSocketClient*>(userData);
         self->onClosed();
     }), this);
-    m_onConnect(true);
+    if (m_onConnect) {
+        m_onConnect(true);
+    }
 }
 
 void WebSocketClient::onMessage(gint type, GBytes *message)

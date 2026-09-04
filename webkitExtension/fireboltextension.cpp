@@ -45,6 +45,10 @@ struct PageState {
 constexpr int PAGE_STATE_UNAVAILABLE = 1001;
 const char* INVALID_STATE_ERROR = "Invalid PageState pointer";
 
+constexpr int BUILDER_BUILD_FAILED = 1002;
+const char* BUILDER_BUILD_FAILED_ERROR = "Failed to build using transport";
+
+
 static PageState* get_page_state(WebKitWebPage* page, bool suppress_warning = false)
 {
 
@@ -246,13 +250,12 @@ static JSCValue* builder_cb(gpointer user_data)
     JSCValue *extnScript = jsc_value_new_string(ctx, state->extensionScript);
     jsc_value_object_set_property(builderOpts, "extensionSchema", extnScript);
     
-    bool finalResult = false;
     JSCValue *builderResult = jsc_value_function_call(builder, JSC_TYPE_VALUE, builderOpts, G_TYPE_NONE);
     if (!builderResult) {
         g_warning("failed to build using transport");
+        builderResult = create_result(ctx, false, BUILDER_BUILD_FAILED);
     } else {
         g_message("Firebolt transport injected successfully to builder");
-        finalResult = true;
     }
     g_clear_object(&extnScript);
     g_clear_object(&builderOpts);
@@ -312,12 +315,14 @@ static JSCValue* connect_cb(gpointer user_data)
                 if (state) {
                     g_message("Received message: %.*s", (int)size, message);
                     if (state->messageListener.cb && state->messageListener.ctx) {
-                        JSCValue* arg = jsc_value_new_string(state->messageListener.ctx, message);
+                        std::string msg(message, size);
+                        JSCValue* arg = jsc_value_new_string(state->messageListener.ctx, msg.c_str());
                         JSCValue* ret = jsc_value_function_call(
                                         state->messageListener.cb,
                                         JSC_TYPE_VALUE, arg,
                                         G_TYPE_NONE
                                     );
+                        g_clear_object(&arg);
                         g_clear_object(&ret);
                     }
                 }
@@ -463,6 +468,8 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
 
     if (!serviceManager || !jsc_value_is_object(serviceManager)) {
         g_warning("failed to get the FireboltServiceManager object");
+        g_clear_object(&setBuilderFactory);
+        g_clear_object(&serviceManager);
         return false;
     }
 
@@ -687,9 +694,12 @@ std::string fireboltBuilderScript()
             // check for extensions
             g_variant_lookup(injectedSettings, "fireboltExtensionPath", "s", &extensionPath);
         }
+        g_object_unref(injectedSettings);
             
         if (!fireboltEndpoint || fireboltEndpoint[0] == '\0') {
             g_warning("FIREBOLT_ENDPOINT not set, exiting");
+            g_clear_pointer(&fireboltEndpoint, g_free);
+            g_clear_pointer(&extensionPath, g_free);
             return;
         }
         
@@ -700,6 +710,8 @@ std::string fireboltBuilderScript()
 
         if (!fireboltBridgeScriptStr) {
             g_warning("Failed to load firebolt bridge script");
+            g_clear_pointer(&fireboltEndpoint, g_free);
+            g_clear_pointer(&extensionPath, g_free);
             return;
         }
 
@@ -710,6 +722,9 @@ std::string fireboltBuilderScript()
         
         if (!fireboltBuilderScriptStr) {
             g_warning("Failed to load firebolt builder script");
+            g_clear_pointer(&fireboltEndpoint, g_free);
+            g_clear_pointer(&extensionPath, g_free);
+            g_clear_pointer(&fireboltBridgeScriptStr, g_free);
             return;
         }     
         
@@ -720,6 +735,7 @@ std::string fireboltBuilderScript()
             g_free(extensionPath);
             if (!success) {
                 g_warning("Failed to load firebolt extension script continue without extension");
+                g_clear_pointer(&extensionScriptStr, g_free);
             }
         }
         
@@ -733,7 +749,7 @@ std::string fireboltBuilderScript()
             g_message("WPE Firebolt Extension loaded with extension script");
             g_message("Extension script size: %zu bytes", strlen(extensionScriptStr));
             g_variant_builder_add(&builder, "{sv}", "extensionScript", g_variant_new_string(extensionScriptStr));
-            g_free(extensionScriptStr);
+            g_clear_pointer(&extensionScriptStr, g_free);
         } else {
             // add blank extension script
             g_variant_builder_add(&builder, "{sv}", "extensionScript", g_variant_new_string(""));
@@ -749,7 +765,7 @@ std::string fireboltBuilderScript()
                         settings,
                         (GClosureNotify)g_variant_unref,
                         (GConnectFlags)0);
-
+        g_object_unref(settings);
         g_clear_pointer(&fireboltEndpoint, g_free);
         g_clear_pointer(&fireboltBridgeScriptStr, g_free);
         g_clear_pointer(&fireboltBuilderScriptStr, g_free);
