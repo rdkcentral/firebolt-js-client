@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/org/rdk/browser/extensions">
-    <file compressed="true" alias="firebolt-builder.js">firebolt-builder.min.js</file>
+    <file compressed="true" alias="firebolt-builder.js">firebolt-builder.js</file>
   </gresource>
   <gresource prefix="/org/rdk/browser/extensions">
-    <file compressed="true" alias="firebolt-bridge.js">firebolt-bridge.min.js</file>
+    <file compressed="true" alias="firebolt-bridge.js">firebolt-bridge.js</file>
   </gresource>
 
 </gresources>

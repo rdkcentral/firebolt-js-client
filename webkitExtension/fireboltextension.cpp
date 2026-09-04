@@ -102,7 +102,7 @@ static void reset_page_state(PageState* state)
 	 state->connectionListener.cb = nullptr;
 	}
 
-	g_message("reset_page_state: reset page state\n");
+	g_message("reset_page_state: reset page state");
 }
 
 static void clear_page_state(PageState* state)
@@ -116,7 +116,7 @@ static void clear_page_state(PageState* state)
     g_clear_pointer(&state->fireboltBuilderScript, g_free);
     g_clear_pointer(&state->extensionScript, g_free);
     reset_page_state(state);
-    g_message("clear_page_state: cleared page state\n");
+    g_message("clear_page_state: cleared page state");
 }
 
 
@@ -251,14 +251,14 @@ static JSCValue* builder_cb(gpointer user_data)
     if (!builderResult) {
         g_warning("failed to build using transport");
     } else {
-        g_message("Firebolt transport injected successfully to builder\n");
+        g_message("Firebolt transport injected successfully to builder");
         finalResult = true;
     }
     g_clear_object(&extnScript);
     g_clear_object(&builderOpts);
     g_clear_object(&transport);
     g_clear_object(&builder);
-    g_message("builder_cb: injected transport into builder returning builder \n");
+    g_message("builder_cb: injected transport into builder returning builder");
     return builderResult;
 }
 
@@ -266,7 +266,7 @@ static JSCValue* connect_cb(gpointer user_data)
 {
     // Native implementation
     // params[] are JS arguments
-    g_message("connect called\n");
+    g_message("connect called");
     JSCContext* ctx = jsc_context_get_current();
 
     auto state = validate_page_state(user_data);
@@ -278,12 +278,12 @@ static JSCValue* connect_cb(gpointer user_data)
     // connect using websocket to the firebolt endpoint and set state->connected = true if successful
     // check page state for already connected
     if (state->connected) {
-        g_message("Already connected, ignoring connect call\n");
+        g_message("Already connected, ignoring connect call");
         return create_result(ctx, true, 0);
     } else {
-        g_message("Connecting to Firebolt endpoint: %s\n", state->fireboltEndpoint);
+        g_message("Connecting to Firebolt endpoint: %s", state->fireboltEndpoint);
         state->wsClient = std::make_unique<WebSocketClient>(state->fireboltEndpoint);
-        g_message("WebSocket client created, attempting to connect...\n");
+        g_message("WebSocket client created, attempting to connect...");
 
         // Use page pointer to validate state is still valid in async callbacks
         auto page = reinterpret_cast<WebKitWebPage*>(user_data);
@@ -294,7 +294,7 @@ static JSCValue* connect_cb(gpointer user_data)
                 auto state = get_page_state(page);
                 if (state) {
                     state->connected = success;
-                    g_message("WebSocket connection %s\n", success ? "successful" : "failed");
+                    g_message("WebSocket connection %s", success ? "successful" : "failed");
                     if (state->connectionListener.cb && state->connectionListener.ctx) {
                         JSCValue* arg = jsc_value_new_string(state->connectionListener.ctx, success ? "connected" : "disconnected");
                         JSCValue* ret = jsc_value_function_call(
@@ -310,7 +310,7 @@ static JSCValue* connect_cb(gpointer user_data)
             [page](const char* message, size_t size) {
                 auto state = get_page_state(page);
                 if (state) {
-                    g_message("Received message: %.*s\n", (int)size, message);
+                    g_message("Received message: %.*s", (int)size, message);
                     if (state->messageListener.cb && state->messageListener.ctx) {
                         JSCValue* arg = jsc_value_new_string(state->messageListener.ctx, message);
                         JSCValue* ret = jsc_value_function_call(
@@ -323,7 +323,7 @@ static JSCValue* connect_cb(gpointer user_data)
                 }
             }
         );
-        g_message("WebSocket Connect method returned, connection state: %s\n", state->connected ? "connected" : "not connected");
+        g_message("WebSocket Connect method returned, connection state: %s", state->connected ? "connected" : "not connected");
         if (state->connected) {
             return create_result(ctx, true, 0);
         }
@@ -334,14 +334,14 @@ static JSCValue* connect_cb(gpointer user_data)
 
 static JSCValue* disconnect_cb(gpointer user_data)
 {
-    g_message("disconnect called\n");
+    g_message("disconnect called");
     JSCContext* ctx = jsc_context_get_current();
     auto state = validate_page_state(user_data);
     if (!state) {
         g_warning("disconnect_cb: invalid page state");
         return create_result(ctx, false, PAGE_STATE_UNAVAILABLE);
     }
-    g_message("Page state obtained for disconnect\n");
+    g_message("Page state obtained for disconnect");
     if (state->connected && state->wsClient) {
         state->wsClient->Disconnect();
         state->connected = false;
@@ -377,7 +377,7 @@ static JSCValue* send_cb(const char* jsMessage,
         if (jsMessage) {
             state->wsClient->SendMessage(jsMessage);
         }
-        g_message("send called with message: %s\n", jsMessage);
+        g_message("send called with message: %s", jsMessage);
     } else {
         if (!state->connected) {
             g_warning("send called but not connected to Firebolt endpoint");
@@ -392,14 +392,14 @@ static JSCValue* send_cb(const char* jsMessage,
 static JSCValue* on_connection_status_cb(JSCValue* js_function,
               gpointer user_data)
 {
-    g_message("onConnectionStatus callback called\n");
+    g_message("onConnectionStatus callback called");
 
     JSCContext* ctx = jsc_context_get_current();
     if (!js_function || !jsc_value_is_function(js_function)) {
         g_warning("onConnectionStatus requires a function parameter");
         return create_result(ctx, false, INVALID_PARAMETERS);
     }
-    g_message("onConnectionStatus parameter is a valid function\n");
+    g_message("onConnectionStatus parameter is a valid function");
 
     auto state = validate_page_state(user_data);
     if (!state) {
@@ -455,7 +455,7 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
         return false;
     }
 
-    g_message("Bridge script evaluated successfully\n");
+    g_message("Bridge script evaluated successfully");
 
     JSCValue *global = jsc_context_get_global_object(ctx);
     JSCValue *serviceManager = jsc_value_object_get_property(global, "FireboltServiceManager");
@@ -490,7 +490,7 @@ static bool setup_bridge_script(JSCContext *ctx, WebKitWebPage* page, PageState*
     if (!serviceManagerBuilderResult) {
         g_warning("failed to call FireboltServiceManager.builder");
     } else {
-        g_message("Firebolt builder factory injected successfully\n");
+        g_message("Firebolt builder factory injected successfully");
         g_clear_object(&serviceManagerBuilderResult);
         finalResult = true;
     }
@@ -516,7 +516,7 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
                                   WebKitFrame *frame,
                                   gpointer userData)
 {
-    g_message("onWindowObjectCleared called for frame\n");
+    g_message("onWindowObjectCleared called for frame");
     // We only want to inject our JS code into the main frame, not into iframes
     if (webkit_frame_is_main_frame(frame) == FALSE)
         return;
@@ -541,7 +541,7 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
         g_variant_lookup(settings, "fireboltBridgeScript", "s", &pageState->fireboltBridgeScript);
         g_variant_lookup(settings, "fireboltBuilderScript", "s", &pageState->fireboltBuilderScript);
         g_variant_lookup(settings, "extensionScript", "s", &pageState->extensionScript);
-        g_message("Successfully loaded settings to state\n");
+        g_message("Successfully loaded settings to state");
 
         // Below code is only for safety - it should never happen based on initialization
         if (!pageState->fireboltEndpoint || pageState->fireboltEndpoint[0] == '\0') {
@@ -665,7 +665,7 @@ std::string fireboltBuilderScript()
     G_MODULE_EXPORT void webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
                                                                         GVariant *userData)
     {
-        g_message("Initializing WPE Firebolt Extension\n");
+        g_message("Initializing WPE Firebolt Extension");
         // Read environment variable for FIREBOLT_ENDPOINT
         const char* firebolt_endpoint_env = getenv("FIREBOLT_ENDPOINT");
         // if firebolt _endpoint is valid set it, otherwise use the default
@@ -681,7 +681,7 @@ std::string fireboltBuilderScript()
         GVariant *injectedSettings = g_variant_lookup_value(userData, "firebolt", G_VARIANT_TYPE_VARDICT);
 
         if (injectedSettings) {
-            g_message("Firebolt extension settings found\n");
+            g_message("Firebolt extension settings found");
             // override the firebolt endpoint if it is set in the injected settings
             g_variant_lookup(injectedSettings, "fireboltEndpoint", "s", &fireboltEndpoint);
             // check for extensions
@@ -689,7 +689,7 @@ std::string fireboltBuilderScript()
         }
             
         if (!fireboltEndpoint || fireboltEndpoint[0] == '\0') {
-            g_warning("FIREBOLT_ENDPOINT not set, exiting\n");
+            g_warning("FIREBOLT_ENDPOINT not set, exiting");
             return;
         }
         
@@ -699,7 +699,7 @@ std::string fireboltBuilderScript()
         fireboltBridgeScriptStr = g_strdup(fireboltBridgeScript().c_str());
 
         if (!fireboltBridgeScriptStr) {
-            g_warning("Failed to load firebolt bridge script\n");
+            g_warning("Failed to load firebolt bridge script");
             return;
         }
 
@@ -709,7 +709,7 @@ std::string fireboltBuilderScript()
         fireboltBuilderScriptStr = g_strdup(fireboltBuilderScript().c_str());
         
         if (!fireboltBuilderScriptStr) {
-            g_warning("Failed to load firebolt builder script\n");
+            g_warning("Failed to load firebolt builder script");
             return;
         }     
         
@@ -719,7 +719,7 @@ std::string fireboltBuilderScript()
             auto success = g_file_get_contents(extensionPath, &extensionScriptStr, nullptr, nullptr);
             g_free(extensionPath);
             if (!success) {
-                g_warning("Failed to load firebolt extension script continue without extension\n");
+                g_warning("Failed to load firebolt extension script continue without extension");
             }
         }
         
@@ -730,8 +730,8 @@ std::string fireboltBuilderScript()
         g_variant_builder_add(&builder, "{sv}", "fireboltBuilderScript", g_variant_new_string(fireboltBuilderScriptStr));
         g_variant_builder_add(&builder, "{sv}", "fireboltEndpoint", g_variant_new_string(fireboltEndpoint));
         if (extensionScriptStr) {
-            g_message("WPE Firebolt Extension loaded with extension script\n");
-            g_message("Extension script size: %zu bytes\n", strlen(extensionScriptStr));
+            g_message("WPE Firebolt Extension loaded with extension script");
+            g_message("Extension script size: %zu bytes", strlen(extensionScriptStr));
             g_variant_builder_add(&builder, "{sv}", "extensionScript", g_variant_new_string(extensionScriptStr));
             g_free(extensionScriptStr);
         } else {
@@ -740,7 +740,7 @@ std::string fireboltBuilderScript()
         }
 
         GVariant *settings = g_variant_builder_end(&builder);
-        g_message("WPE Firebolt Extension enabled with Firebolt Endpoint: %s\n", fireboltEndpoint);
+        g_message("WPE Firebolt Extension enabled with Firebolt Endpoint: %s", fireboltEndpoint);
         // Here you would initialize your extension's functionality, e.g., set up IPC, hooks, etc.
         // hook the following signal, so we can inject JS code into the page
         g_signal_connect_data(webkit_script_world_get_default(),
