@@ -77,6 +77,7 @@
 	}
 
 	function _onOpen() {
+		console.log("Firebolt transport opened");
 		_connected = true;
 		if (!_fireboltInstance) {
 				_fireboltInstance = _buildFireboltInstance()
@@ -88,16 +89,24 @@
 	}
 
 	function _onClose() {
+		console.log("Firebolt transport closed");
 		_connected = false;
-		_disconnect();
 	}
 
 	function _onError(error) {
-		console.error("Transport error:", error);
+		console.error("Firebolt transport error:", error);
 		clearPendingCalls();
 		clearEventListeners();
+		_connected = false;
+		_connect()
+	}
+
+	function _connect() {
+		if (_connected){
+			return false;
+		}
 		_transport.open();
-		console.log("Trigger reconnect");
+		_connecting = true;
 	}
 
 	function _notConnectedError() {
@@ -210,23 +219,6 @@
 	}
 	var _fireboltRegistry = Object.create(null);
 
-	function _addMethod(module, methodName, moduleName, paramNames) {
-		Object.defineProperty(module, methodName, {
-			value: function() {
-				var params = {};
-				for (var i = 0; i < paramNames.length; i++) {
-					if (arguments[i] !== undefined) {
-						params[paramNames[i]] = arguments[i]
-					}
-				}
-				return _rpcCall(moduleName + "." + methodName, params)
-			},
-			writable: false,
-			enumerable: true,
-			configurable: false
-		})
-	}
-
 	function _addMethodNoParams(module, methodName, moduleName) {
 		Object.defineProperty(module, methodName, {
 			value: function() {
@@ -279,8 +271,8 @@
 	_addEvent(_accessibilityModule, "onVoiceGuidanceSettingsChanged", "Accessibility");
 	_registerModule("Accessibility", _accessibilityModule);
 	var _actionsModule = Object.create(null);
-	_addMethod(_actionsModule, "start", "Actions", ["intent", "handleAppId"]);
-	_addMethod(_actionsModule, "intent", "Actions", ["intent", "handleAppId"]);
+	_addMethodWithObjectParam(_actionsModule, "start", "Actions");
+	_addMethodWithObjectParam(_actionsModule, "intent", "Actions");
 	_addEvent(_actionsModule, "onIntent", "Actions");
 	_registerModule("Actions", _actionsModule);
 	var _advertisingModule = Object.create(null);
@@ -303,7 +295,7 @@
 	_addEvent(_deviceModule, "onNameChanged", "Device");
 	_registerModule("Device", _deviceModule);
 	var _discoveryModule = Object.create(null);
-	_addMethod(_discoveryModule, "watched", "Discovery", ["entityId", "progress", "completed", "watchedOn", "agePolicy"]);
+	_addMethodWithObjectParam(_discoveryModule, "watched", "Discovery");
 	_registerModule("Discovery", _discoveryModule);
 	var _displayModule = Object.create(null);
 	_addMethodNoParams(_displayModule, "colorimetry", "Display");
@@ -323,21 +315,21 @@
 	_addMethodNoParams(_metricsModule, "ready", "Metrics");
 	_addMethodNoParams(_metricsModule, "signIn", "Metrics");
 	_addMethodNoParams(_metricsModule, "signOut", "Metrics");
-	_addMethod(_metricsModule, "startContent", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "stopContent", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "page", "Metrics", ["pageId", "agePolicy"]);
-	_addMethod(_metricsModule, "error", "Metrics", ["type", "code", "description", "visible", "parameters", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaLoadStart", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaPlay", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaPause", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaWaiting", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaSeeking", "Metrics", ["entityId", "target", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaSeeked", "Metrics", ["entityId", "position", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaRateChanged", "Metrics", ["entityId", "rate", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaRenditionChanged", "Metrics", ["entityId", "bitrate", "width", "height", "profile", "agePolicy"]);
-	_addMethod(_metricsModule, "mediaEnded", "Metrics", ["entityId", "agePolicy"]);
-	_addMethod(_metricsModule, "event", "Metrics", ["schema", "data", "agePolicy"]);
-	_addMethod(_metricsModule, "appInfo", "Metrics", ["build"]);
+	_addMethodWithObjectParam(_metricsModule, "startContent", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "stopContent", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "page", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "error", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaLoadStart", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaPlay", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaPause", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaWaiting", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaSeeking", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaSeeked", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaRateChanged", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaRenditionChanged", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "mediaEnded", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "event", "Metrics");
+	_addMethodWithObjectParam(_metricsModule, "appInfo", "Metrics");
 	_registerModule("Metrics", _metricsModule);
 	var _networkModule = Object.create(null);
 	_addMethodNoParams(_networkModule, "connected", "Network");
@@ -351,8 +343,11 @@
 	_registerModule("VideoOutput", _videoOutputModule);
 	Object.defineProperty(_fireboltRegistry, "cleanup", {
 		value: function() {
-			_disconnect();
-			_fireboltInstance = null
+			reset();
+			if (_transport && _transport.close) {
+				_transport.close()
+			}
+			_fireboltInstance = null;
 		},
 		writable: false,
 		enumerable: true,
@@ -391,7 +386,6 @@
 						let module = _fireboltRegistry[moduleName] || Object.create(null);
 						loadMethods(schema.methods, method => method, (o, c) => _addMethodNoParams(module, c, moduleName), moduleName);
 						loadMethods(schema.events, event => event, (o, c) => _addEvent(module, c, moduleName), moduleName);
-						loadMethods(schema.methodsWithParams, method => method.name, (o, c) => _addMethodWithParams(module, c, moduleName, o.params), moduleName);
 						loadMethods(schema.methodsWithObject, method => method, (o, c) => _addMethodWithObjectParam(module, c, moduleName), moduleName);
 						if (!existingModule) {
 							_registerModule(moduleName, module)
@@ -433,13 +427,6 @@
 		_connecting = false;
 	}
 
-	function _disconnect() {
-if (_transport && _transport.close) {
-			_transport.close()
-		}
-		reset();
-		_fireboltInstance = null;
-	}
 	return function({
 		transport,
 		extensionSchema,
@@ -492,8 +479,7 @@ if (_transport && _transport.close) {
 						_transport.onError = _onError;
 						_transportSet = true;
 					}
-					_transport.open();
-					_connecting = true;
+					_connect();
 				}
 				return p
 			}

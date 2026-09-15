@@ -36,12 +36,14 @@ static JSCValue* builder_cb(gpointer user_data)
     if (!config) {
         g_warning("builder_cb: invalid page config");
         jsc_context_throw(jsc_context_get_current(), INVALID_STATE_ERROR);
+        return nullptr;
     }
 
     JSCValue *builder = evaluate_builder_script(ctx);
     if (!builder) {
         g_warning("failed to evaluate the injected JS code");
         jsc_context_throw(jsc_context_get_current(), INVALID_STATE_ERROR);
+        return nullptr;
     }
 
     g_message("Builder script evaluated successfully");
@@ -52,6 +54,7 @@ static JSCValue* builder_cb(gpointer user_data)
     if (!transport) {
         g_warning("failed to create transport object");
         jsc_context_throw(jsc_context_get_current(), INVALID_STATE_ERROR);
+        return nullptr;
     }
     
     // final builder opts
