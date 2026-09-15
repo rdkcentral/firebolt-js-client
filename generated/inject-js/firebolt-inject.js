@@ -19,53 +19,53 @@
   var _VERSION = "9.0";
   
   var _methodRegistry = {
-    "Accessibility.audioDescription": {"kind":"call"},
+    "Accessibility.audioDescription": {"kind":"call","paramCount":0},
     "Accessibility.onAudioDescriptionChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "Accessibility.closedCaptionsSettings": {"kind":"call"},
+    "Accessibility.closedCaptionsSettings": {"kind":"call","paramCount":0},
     "Accessibility.onClosedCaptionsSettingsChanged": {"kind":"subscribe","eventIsPrimitive":false},
-    "Accessibility.highContrastUI": {"kind":"call"},
+    "Accessibility.highContrastUI": {"kind":"call","paramCount":0},
     "Accessibility.onHighContrastUIChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "Accessibility.voiceGuidanceSettings": {"kind":"call"},
+    "Accessibility.voiceGuidanceSettings": {"kind":"call","paramCount":0},
     "Accessibility.onVoiceGuidanceSettingsChanged": {"kind":"subscribe","eventIsPrimitive":false},
-    "Actions.start": {"kind":"call"},
-    "Actions.intent": {"kind":"call"},
+    "Actions.start": {"kind":"call","paramCount":2},
+    "Actions.intent": {"kind":"call","paramCount":0},
     "Actions.onIntent": {"kind":"subscribe","eventIsPrimitive":false},
-    "Advertising.advertisingId": {"kind":"call"},
-    "Device.uid": {"kind":"call"},
-    "Device.deviceClass": {"kind":"call"},
-    "Device.hdr": {"kind":"call"},
+    "Advertising.advertisingId": {"kind":"call","paramCount":0},
+    "Device.uid": {"kind":"call","paramCount":0},
+    "Device.deviceClass": {"kind":"call","paramCount":0},
+    "Device.hdr": {"kind":"call","paramCount":0},
     "Device.onHdrChanged": {"kind":"subscribe","eventIsPrimitive":false},
-    "Device.dolbyAtmosExperienceAvailable": {"kind":"call"},
+    "Device.dolbyAtmosExperienceAvailable": {"kind":"call","paramCount":0},
     "Device.onDolbyAtmosExperienceAvailableChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "Discovery.watched": {"kind":"call"},
-    "Display.colorimetry": {"kind":"call"},
-    "Display.videoResolutions": {"kind":"call"},
-    "Localization.country": {"kind":"call"},
+    "Discovery.watched": {"kind":"call","paramCount":5},
+    "Display.colorimetry": {"kind":"call","paramCount":0},
+    "Display.videoResolutions": {"kind":"call","paramCount":0},
+    "Localization.country": {"kind":"call","paramCount":0},
     "Localization.onCountryChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "Localization.preferredAudioLanguages": {"kind":"call"},
+    "Localization.preferredAudioLanguages": {"kind":"call","paramCount":0},
     "Localization.onPreferredAudioLanguagesChanged": {"kind":"subscribe","eventIsPrimitive":false},
-    "Localization.presentationLanguage": {"kind":"call"},
+    "Localization.presentationLanguage": {"kind":"call","paramCount":0},
     "Localization.onPresentationLanguageChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "Metrics.ready": {"kind":"call"},
-    "Metrics.startContent": {"kind":"call"},
-    "Metrics.stopContent": {"kind":"call"},
-    "Metrics.page": {"kind":"call"},
-    "Metrics.error": {"kind":"call"},
-    "Metrics.mediaLoadStart": {"kind":"call"},
-    "Metrics.mediaPlay": {"kind":"call"},
-    "Metrics.mediaPlaying": {"kind":"call"},
-    "Metrics.mediaPause": {"kind":"call"},
-    "Metrics.mediaWaiting": {"kind":"call"},
-    "Metrics.mediaSeeking": {"kind":"call"},
-    "Metrics.mediaSeeked": {"kind":"call"},
-    "Metrics.mediaRateChanged": {"kind":"call"},
-    "Metrics.mediaRenditionChanged": {"kind":"call"},
-    "Metrics.mediaEnded": {"kind":"call"},
-    "Metrics.event": {"kind":"call"},
-    "Metrics.appInfo": {"kind":"call"},
-    "Network.connected": {"kind":"call"},
+    "Metrics.ready": {"kind":"call","paramCount":0},
+    "Metrics.startContent": {"kind":"call","paramCount":0},
+    "Metrics.stopContent": {"kind":"call","paramCount":0},
+    "Metrics.page": {"kind":"call","paramCount":1},
+    "Metrics.error": {"kind":"call","paramCount":2},
+    "Metrics.mediaLoadStart": {"kind":"call","paramCount":0},
+    "Metrics.mediaPlay": {"kind":"call","paramCount":0},
+    "Metrics.mediaPlaying": {"kind":"call","paramCount":0},
+    "Metrics.mediaPause": {"kind":"call","paramCount":0},
+    "Metrics.mediaWaiting": {"kind":"call","paramCount":0},
+    "Metrics.mediaSeeking": {"kind":"call","paramCount":0},
+    "Metrics.mediaSeeked": {"kind":"call","paramCount":0},
+    "Metrics.mediaRateChanged": {"kind":"call","paramCount":0},
+    "Metrics.mediaRenditionChanged": {"kind":"call","paramCount":0},
+    "Metrics.mediaEnded": {"kind":"call","paramCount":0},
+    "Metrics.event": {"kind":"call","paramCount":2},
+    "Metrics.appInfo": {"kind":"call","paramCount":1},
+    "Network.connected": {"kind":"call","paramCount":0},
     "Network.onConnectedChanged": {"kind":"subscribe","eventIsPrimitive":true},
-    "VideoOutput.resolution": {"kind":"call"},
+    "VideoOutput.resolution": {"kind":"call","paramCount":0},
     "VideoOutput.onResolutionChanged": {"kind":"subscribe","eventIsPrimitive":true}
   };
   
@@ -196,9 +196,15 @@
   // ---------------------------------------------------------------------------
   // Stub factories
   // ---------------------------------------------------------------------------
+  function _makeCallStubNoParams(fullMethodName) {
+    return function () {
+      return _rpcCall(fullMethodName, {});
+    };
+  }
+
   function _makeCallStub(fullMethodName) {
-    return function (params) {
-      return _rpcCall(fullMethodName, params || {});
+    return function (param) {
+      return _rpcCall(fullMethodName, param || {});
     };
   }
 
@@ -219,9 +225,14 @@
       var methodName = fullName.slice(dotIdx + 1);
       var desc = _methodRegistry[fullName];
       if (!modules[modName]) { modules[modName] = Object.create(null); }
-      modules[modName][methodName] = desc.kind === "subscribe"
-        ? _makeSubscribeStub(fullName)
-        : _makeCallStub(fullName);
+      
+      if (desc.kind === "subscribe") {
+        modules[modName][methodName] = _makeSubscribeStub(fullName);
+      } else if (desc.paramCount === 0) {
+        modules[modName][methodName] = _makeCallStubNoParams(fullName);
+      } else {
+        modules[modName][methodName] = _makeCallStub(fullName);
+      }
     }
     var client = Object.create(null);
     for (var mod in modules) { client[mod] = Object.freeze(modules[mod]); }

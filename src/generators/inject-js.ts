@@ -65,6 +65,7 @@ function emitMethodRegistry(modules: Module[]): string {
       if (method.kind === "call") {
         const entry = {
           kind: "call",
+          paramCount: method.params.length,
         };
         entries.push(`  ${JSON.stringify(fullName)}: ${JSON.stringify(entry)}`);
       } else {
@@ -241,9 +242,15 @@ const STATIC_RUNTIME = `
   // ---------------------------------------------------------------------------
   // Stub factories
   // ---------------------------------------------------------------------------
+  function _makeCallStubNoParams(fullMethodName) {
+    return function () {
+      return _rpcCall(fullMethodName, {});
+    };
+  }
+
   function _makeCallStub(fullMethodName) {
-    return function (params) {
-      return _rpcCall(fullMethodName, params || {});
+    return function (param) {
+      return _rpcCall(fullMethodName, param || {});
     };
   }
 
@@ -264,9 +271,14 @@ const STATIC_RUNTIME = `
       var methodName = fullName.slice(dotIdx + 1);
       var desc = _methodRegistry[fullName];
       if (!modules[modName]) { modules[modName] = Object.create(null); }
-      modules[modName][methodName] = desc.kind === "subscribe"
-        ? _makeSubscribeStub(fullName)
-        : _makeCallStub(fullName);
+      
+      if (desc.kind === "subscribe") {
+        modules[modName][methodName] = _makeSubscribeStub(fullName);
+      } else if (desc.paramCount === 0) {
+        modules[modName][methodName] = _makeCallStubNoParams(fullName);
+      } else {
+        modules[modName][methodName] = _makeCallStub(fullName);
+      }
     }
     var client = Object.create(null);
     for (var mod in modules) { client[mod] = Object.freeze(modules[mod]); }

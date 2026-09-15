@@ -531,9 +531,110 @@ test("5.16 object event (params directly) dispatches to callback", async () => {
   transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: sent.id, result: null }));
   await subPromise;
 
-  const app = { id: "app1", title: "App One" };
-  transport.msgCb!(JSON.stringify({ method: "Discovery.onAvailableApps", params: app }));
-  expect(cb).toHaveBeenCalledWith(app);
+  transport.msgCb!(JSON.stringify({ method: "Discovery.onAvailableApps", params: { id: "app1", title: "App 1" } }));
+  expect(cb).toHaveBeenCalledWith({ id: "app1", title: "App 1" });
+});
+
+// ---------------------------------------------------------------------------
+// 5.17  No-param method stub works correctly
+// ---------------------------------------------------------------------------
+test("5.17 no-param method stub sends empty params object", async () => {
+  const ast = makeAST(); // language() has no params
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  const p = fsm.get();
+  transport.statusCb!("connected");
+  const client = await p as { Localization: { language: () => Promise<unknown> } };
+
+  const callPromise = client.Localization.language();
+
+  expect(transport.sentMessages).toHaveLength(1);
+  const msg = JSON.parse(transport.sentMessages[0]);
+  expect(msg.jsonrpc).toBe("2.0");
+  expect(msg.method).toBe("Localization.language");
+  expect(msg.params).toEqual({});
+
+  // Simulate response
+  transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: msg.id, result: "en" }));
+  const result = await callPromise;
+  expect(result).toBe("en");
+});
+
+// ---------------------------------------------------------------------------
+// 5.18  Single-param method stub with primitive value works correctly
+// ---------------------------------------------------------------------------
+test("5.18 single-param method stub accepts primitive value", async () => {
+  const mod: Module = {
+    name: "Discovery",
+    platform: "web",
+    types: [],
+    methods: [
+      {
+        kind: "call",
+        name: "watched",
+        params: [{ name: "entityId", type: { kind: "primitive", primitive: "string" } as never, required: true }],
+        result: { kind: "null" } as never,
+      } as never,
+    ],
+  };
+  const ast: CanonicalAST = { version: "9.0", modules: [mod] };
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  const p = fsm.get();
+  transport.statusCb!("connected");
+  const client = await p as { Discovery: { watched: (param: unknown) => Promise<unknown> } };
+
+  const callPromise = client.Discovery.watched("entity123");
+
+  expect(transport.sentMessages).toHaveLength(1);
+  const msg = JSON.parse(transport.sentMessages[0]);
+  expect(msg.jsonrpc).toBe("2.0");
+  expect(msg.method).toBe("Discovery.watched");
+  expect(msg.params).toBe("entity123");
+
+  // Simulate response
+  transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: msg.id, result: null }));
+  await callPromise;
+});
+
+// ---------------------------------------------------------------------------
+// 5.19  Single-param method stub with object value works correctly
+// ---------------------------------------------------------------------------
+test("5.19 single-param method stub accepts object value", async () => {
+  const mod: Module = {
+    name: "Actions",
+    platform: "web",
+    types: [],
+    methods: [
+      {
+        kind: "call",
+        name: "start",
+        params: [
+          { name: "intent", type: { kind: "primitive", primitive: "string" } as never, required: true },
+          { name: "handleAppId", type: { kind: "primitive", primitive: "string" } as never, required: false },
+        ],
+        result: { kind: "null" } as never,
+      } as never,
+    ],
+  };
+  const ast: CanonicalAST = { version: "9.0", modules: [mod] };
+  const { fsm, transport } = evalBundle(generateBundle(ast));
+  fsm.transport(transport);
+  const p = fsm.get();
+  transport.statusCb!("connected");
+  const client = await p as { Actions: { start: (param: unknown) => Promise<unknown> } };
+
+  const callPromise = client.Actions.start({ intent: "watch", handleAppId: "app123" });
+
+  expect(transport.sentMessages).toHaveLength(1);
+  const msg = JSON.parse(transport.sentMessages[0]);
+  expect(msg.jsonrpc).toBe("2.0");
+  expect(msg.method).toBe("Actions.start");
+  expect(msg.params).toEqual({ intent: "watch", handleAppId: "app123" });
+
+  // Simulate response
+  transport.msgCb!(JSON.stringify({ jsonrpc: "2.0", id: msg.id, result: null }));
+  await callPromise;
 });
 
 // ---------------------------------------------------------------------------
