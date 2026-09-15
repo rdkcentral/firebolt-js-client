@@ -23,7 +23,9 @@ add_subdirectory( resources )
 
 add_library( FireboltExtension
         SHARED
+        helper.cpp
         fireboltextension.cpp
+        wstransport.cpp
         websocketclient.cpp
         soupfunctions.cpp
 

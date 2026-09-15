@@ -23,9 +23,13 @@ static inline SoupFunctions& soup() {
     return SoupFunctions::get();
 }
 
-WebSocketClient::WebSocketClient(const char *url)
-    : m_url(g_strdup(url))
+WebSocketClient::WebSocketClient(const char *url, WebSocketCallback callbacks)
+    : m_url(g_strdup(url)), m_callbacks(callbacks)
 {
+    if (!m_callbacks.onMessage || !m_callbacks.onOpen || !m_callbacks.onError || !m_callbacks.onClosed) {
+        g_printerr("WebSocketClient: Missing required callbacks\n");
+        return;
+    }
 }
 
 WebSocketClient::~WebSocketClient()
@@ -41,95 +45,86 @@ void WebSocketClient::Cleanup()
     g_clear_object(&m_cancellable);
 }
 
-bool WebSocketClient::Connect(std::function<void(const bool)>&& onConnect,
-                              std::function<void(const char*, size_t)>&& onMessage)
+bool WebSocketClient::Connect()
 {
+    g_print("WebSocketClient::Connect called\n");
     if (m_session) {
+        g_print("Cleaning up existing session\n");
         g_clear_object(&m_session);
     }
+    g_print("Creating new SoupSession\n");
     m_session = soup().session_new();
     if (!m_session) {
         g_printerr("Failed to create SoupSession\n");
         return false;
     }
+    g_print("Creating SoupMessage\n");
     SoupMessage *msg = soup().message_new("GET", m_url);
     if (!msg) {
         g_printerr("Failed to create SoupMessage\n");
         g_clear_object(&m_session);
         return false;
     }
-
-    if(m_onConnect) {
-       m_onConnect = nullptr;
-    }
-
-    if(m_onMessage) {
-        m_onMessage = nullptr;
-    }
-
-    m_onConnect = std::move(onConnect);
-    m_onMessage = std::move(onMessage);
-
+    g_print("Creating cancellable\n");
     // Create cancellable for this connection attempt
     m_cancellable = g_cancellable_new();
 
-    auto connectCallback = [](GObject *source_object, GAsyncResult *res, gpointer user_data) {
-        WebSocketClient *self = static_cast<WebSocketClient*>(user_data);
-        
-        // Check if connection was cancelled before dereferencing self
-        if (g_cancellable_is_cancelled(self->m_cancellable)) {
-            g_printerr("WebSocket connection was cancelled\n");
-            g_clear_object(&self->m_cancellable);
-            if (self->m_onConnect) {
-                self->m_onConnect(false);
-            }
-            return;
-        }
+    auto connectCallback = [](GObject *session, GAsyncResult *res, gpointer user_data) {
 
-        GError *error = nullptr;
-        SoupWebsocketConnection *conn = soup().session_websocket_connect_finish(self->m_session, res, &error);
-        
-        // Clear the cancellable as the connection attempt is complete
-        g_clear_object(&self->m_cancellable);
-        
-        if (error) {
-            g_printerr("WebSocket connection failed: %s\n", error->message);
-            g_error_free(error);
-            if (self->m_onConnect) {
-                self->m_onConnect(false);
+        GError *err = nullptr;
+        g_print("In connectCallback\n");
+        SoupWebsocketConnection *conn = soup().session_websocket_connect_finish(SOUP_SESSION(session), res, &err);
+        if (err) {
+            g_print("Error in connectCallback\n");
+            if (g_error_matches(err, G_IO_ERROR, G_IO_ERROR_CANCELLED)) {
+                // cancelled, do nothing
+                g_error_free(err);
+                return;
+            }else {
+                g_printerr("WebSocket connection failed: %s\n", err->message);
+                g_error_free(err);
+                WebSocketClient *self = static_cast<WebSocketClient*>(user_data);
+                self->m_callbacks.onError("WebSocket connection failed");
+                if (g_cancellable_is_cancelled(self->m_cancellable)) {
+                    g_printerr("WebSocket connection was cancelled\n");    
+                }
+
+                // Clear the cancellable as the connection attempt is complete
+                g_clear_object(&self->m_cancellable);
+                return;
             }
+        } else {
+            g_print("No error in connectCallback\n");
+            WebSocketClient *self = static_cast<WebSocketClient*>(user_data);
+            self->onConnection(conn);
             return;
         }
-        self->onConnection(conn);
     };
-
+    g_print("Calling soup().session_websocket_connect_async\n");
     soup().session_websocket_connect_async(m_session, msg, nullptr, nullptr, G_PRIORITY_DEFAULT, m_cancellable, connectCallback, this);
 
     g_clear_object(&msg);
+    g_print("WebSocketClient::Connect returning true\n");
     return true;
 }
 
 void WebSocketClient::onConnection(SoupWebsocketConnection *ws)
 {
+    g_print("In onConnection\n");
     if (!ws)
     {
         g_warning("couldn't establish jsonrpc ws connection.");
-        if (m_onConnect) {
-            m_onConnect(false);
-        }
+        m_callbacks.onError("couldn't establish jsonrpc ws connection");
         return;
     }
-    
+    g_print("WebSocket connection established\n");
     // Check if we were cancelled during connection
     if (m_cancellable && g_cancellable_is_cancelled(m_cancellable)) {
         g_warning("Connection was cancelled, ignoring successful connection");
         g_clear_object(&ws);
-        if (m_onConnect) {
-            m_onConnect(false);
-        }
         return;
     }
-    
+    g_print("Setting m_conn\n");
     m_conn = ws;
     g_signal_connect(ws, "message", G_CALLBACK(+[](SoupWebsocketConnection *ws, gint type, GBytes *message, gpointer userData) {
         auto *self = reinterpret_cast<WebSocketClient*>(userData);
@@ -143,43 +138,31 @@ void WebSocketClient::onConnection(SoupWebsocketConnection *ws)
         auto *self = reinterpret_cast<WebSocketClient*>(userData);
         self->onClosed();
     }), this);
-    if (m_onConnect) {
-        m_onConnect(true);
-    }
+    g_print("Calling m_callbacks.onOpen()\n");
+    m_callbacks.onOpen();
 }
 
 void WebSocketClient::onMessage(gint type, GBytes *message)
 {
+    g_print("In onMessage\n");
     if (type != SOUP_WEBSOCKET_DATA_TEXT) {
         g_printerr("Received non-text WebSocket message, ignoring\n");
         return;
     }
-    gsize sz = 0;
-    const void *ptr = g_bytes_get_data(message, &sz);
-    if (!ptr || sz == 0) {
-        return;
-    }
-    // Pass the data pointer and size to preserve size information
-    // The callback is responsible for handling the data appropriately
-    if (m_onMessage) {
-        m_onMessage(static_cast<const char*>(ptr), sz);
-    }
+    g_print("Calling m_callbacks.onMessage()\n");
+    m_callbacks.onMessage(message);
 }
 
 void WebSocketClient::onError(GError *error)
 {
     g_warning("error detected - %s", error ? error->message : "unknown");
-    if (m_onConnect) {
-        m_onConnect(false);
-    }
+    m_callbacks.onError(error ? error->message : "unknown");
 }
 
 void WebSocketClient::onClosed()
 {
-    g_info("ws connection closed");
-    if (m_onConnect) {
-        m_onConnect(false);
-    }
+    g_message("ws connection closed");
+    m_callbacks.onClosed();
 }
 
 void WebSocketClient::SendMessage(const char* jsMessage)
@@ -204,7 +187,4 @@ void WebSocketClient::Disconnect()
         g_clear_object(&m_conn);
     }
     g_clear_object(&m_session);
-    if (m_onConnect) {
-        m_onConnect(false);
-    }
 }

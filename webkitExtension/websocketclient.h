@@ -23,16 +23,20 @@
  #include "soupfunctions.h"
  #include <functional>
 
-
+struct WebSocketCallback {
+    std::function<void(GBytes*)> onMessage;
+    std::function<void()> onOpen;
+    std::function<void(const char*)> onError;
+    std::function<void()> onClosed;
+};
 
 class WebSocketClient
 {
 public:
-    WebSocketClient(const char *url);
+    WebSocketClient(const char *url, WebSocketCallback callbacks);
     ~WebSocketClient();
 
-    bool Connect(std::function<void(const bool)>&& onConnect,
-                 std::function<void(const char*, size_t)>&& onMessage);
+    bool Connect();
     
     void SendMessage(const char* jsMessage);
 
@@ -40,14 +44,14 @@ public:
 
     void Cleanup();
 
+
 private:
     char *m_url;
+    WebSocketCallback m_callbacks;
+
     SoupSession *m_session { nullptr };
     SoupWebsocketConnection *m_conn { nullptr };
     GCancellable *m_cancellable { nullptr };
-
-    std::function<void(const bool)> m_onConnect;
-    std::function<void(const char*, size_t)> m_onMessage;
 
     void onConnection(SoupWebsocketConnection *ws);
     void onMessage(gint type, GBytes *message);
