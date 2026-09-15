@@ -196,7 +196,8 @@ static void onWindowObjectCleared(WebKitScriptWorld *world,
             // check for debug
             g_variant_lookup(injectedSettings, "enableDebug", "b", &enableDebug);
         }
-        g_variant_unref(injectedSettings);
+        if (injectedSettings)
+            g_variant_unref(injectedSettings);
             
         
         if (!fireboltEndpoint || fireboltEndpoint[0] == '\0') {

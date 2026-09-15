@@ -53,7 +53,9 @@
 			var eventName = message.method;
 			var cbs = _eventListeners[eventName];
 			if (cbs) {
-				var payload = message.params ? message.params.value ? message.params.value : message.params : undefined;
+				var payload = message.params && Object.prototype.hasOwnProperty.call(message.params, "value")
+					? message.params.value
+					: message.params;
 				for (var i = 0; i < cbs.length; i++) {
 					cbs[i](payload)
 				}
@@ -432,7 +434,7 @@
 	}
 
 	function _disconnect() {
-		if (_transport && _transport.disconnect) {
+if (_transport && _transport.close) {
 			_transport.close()
 		}
 		reset();

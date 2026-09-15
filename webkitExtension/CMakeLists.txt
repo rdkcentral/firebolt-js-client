@@ -32,6 +32,8 @@ add_library( FireboltExtension
         $<TARGET_OBJECTS:firebolt_resourcebundle>
         )
 
+target_compile_features( FireboltExtension PRIVATE cxx_std_17 )
+
 target_compile_definitions( FireboltExtension
         PRIVATE
         G_LOG_DOMAIN="FireboltExtension"

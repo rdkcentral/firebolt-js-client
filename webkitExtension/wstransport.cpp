@@ -191,7 +191,10 @@ void WebSocketTransport::open()
         return;
     }
     _state = Opening;
-    _ws->Connect();
+    if (!_ws->Connect()) {
+        _state = Closed;
+        jsc_context_throw(jsc_context_get_current(), "Failed to start WebSocket connection.");
+    }
 }
 
 void WebSocketTransport::on_open()
