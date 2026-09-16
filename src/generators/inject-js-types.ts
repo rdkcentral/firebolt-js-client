@@ -150,7 +150,7 @@ function emitFireboltClientInterface(modules: Module[]): string[] {
   ];
 
   for (const mod of modules) {
-    lines.push(`  ${mod.name}: typeof ${mod.name};`);
+    lines.push(`  ${mod.name}: typeof Firebolt.${mod.name};`);
   }
 
   lines.push(`  /** Cleanup and close connection */`);

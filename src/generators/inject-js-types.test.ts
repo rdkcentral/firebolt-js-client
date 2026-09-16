@@ -222,7 +222,7 @@ describe("2.6 Factory configuration interface structure", () => {
 describe("2.7 FireboltClient interface with all modules", () => {
   test("FireboltClient includes web/both modules", () => {
     const content = generateDefinitions(makeAST());
-    expect(content).toContain("Localization: typeof Localization");
+    expect(content).toContain("Localization: typeof Firebolt.Localization");
   });
 
   test("FireboltClient includes cleanup method", () => {
