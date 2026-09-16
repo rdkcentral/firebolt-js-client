@@ -45,7 +45,20 @@ Methods that take one or more parameters should accept a single parameter that c
 Discovery.watched("entity123")
 
 // Single object parameter
-Actions.start({ intent: "watch", handleAppId: "app123" })
+Actions.start({ intent: "watch", handlerAppId: "app123" })
+```
+
+**TypeScript Definition:**
+```typescript
+// For single primitive parameter
+function watched(params: string): Promise<void>;
+
+// For single object parameter
+interface ActionsStartParams {
+  intent: string;
+  handlerAppId?: string;
+}
+function start(params: ActionsStartParams): Promise<void>;
 ```
 
 **Generated Stub:**
@@ -69,14 +82,50 @@ function _makeCallStub(fullMethodName) {
   - A primitive value (string, number, boolean) for single-parameter methods
   - An object containing all named parameters for multi-parameter methods
 
+### Pattern 3: Event Callbacks with Cancellation
+
+Event subscription methods use callbacks that accept two parameters: the event payload and a cancellation flag.
+
+**Usage:**
+```javascript
+Actions.onIntent((event, cancelled) => {
+  if (cancelled) {
+    console.log("Event subscription was cancelled");
+    return;
+  }
+  console.log("Intent received:", event);
+});
+```
+
+**TypeScript Definition:**
+```typescript
+function onIntent(callback: (event: IntentPayload, cancelled: boolean) => void): () => void;
+```
+
+**Event Callback Signature:**
+- First parameter: Event payload (the actual event data)
+- Second parameter: Cancellation flag (boolean, true when subscription is cancelled due to connection failure)
+
+**Applicability:**
+- All `kind: "subscribe"` methods
+- The cancelled parameter is true when event listeners are cleared due to connection failures
+
 ## Pattern Selection Logic
 
-The generator should categorize methods based on their parameter count:
+The generator should categorize methods based on their parameter count and kind:
 
 ```typescript
 function getParamPattern(method: Method): "no-params" | "single-param" {
   if (method.params.length === 0) {
     return "no-params";
+  }
+  return "single-param";
+}
+
+function getEventCallbackPattern(method: Method): "single-param" | "two-param" {
+  // All subscribe methods use two-parameter callback signature
+  if (method.kind === "subscribe") {
+    return "two-param";
   }
   return "single-param";
 }
@@ -257,27 +306,45 @@ Actions.start = function(param) {
 
 **Usage:**
 ```javascript
-await Actions.start({ intent: "watch", handleAppId: "app123" });
+await Actions.start({ intent: "watch", handlerAppId: "app123" });
 ```
 
 ## Migration Path
 
-Existing code using the current single-parameter pattern will continue to work:
+Since there are no current developers using the TypeScript definitions, this is a clean breaking change. The migration path for future developers is:
 
-```javascript
-// Old pattern (still works)
-Accessibility.audioDescription({})
+### For Call Methods
 
-// New pattern (cleaner)
-Accessibility.audioDescription()
+**Old pattern (positional parameters):**
+```typescript
+Actions.start("watch", "app123")
+Discovery.watched("entity123", 0.5, false, "2026-09-15", "app:adult")
 ```
 
-For methods with parameters, the usage remains the same:
+**New pattern (object parameters):**
+```typescript
+Actions.start({ intent: "watch", handlerAppId: "app123" })
+Discovery.watched({ entityId: "entity123", progress: 0.5, completed: false, watchedOn: "2026-09-15", agePolicy: "app:adult" })
+```
 
-```javascript
-// Both patterns work the same
-Discovery.watched("entity123")
-Discovery.watched({ entityId: "entity123" })
+### For Event Callbacks
+
+**Old pattern (single parameter):**
+```typescript
+Actions.onIntent((event) => {
+  console.log("Intent received:", event);
+});
+```
+
+**New pattern (two parameters with cancellation):**
+```typescript
+Actions.onIntent((event, cancelled) => {
+  if (cancelled) {
+    console.log("Event subscription was cancelled");
+    return;
+  }
+  console.log("Intent received:", event);
+});
 ```
 
 ## References

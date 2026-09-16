@@ -5,3 +5,5 @@ src/sdks/core/dist/*
 src/sdks/core/test/transpiled-suite/*
 node_modules/*
 .DS_Store
+generated/**
+firebolt-inject.d.ts

@@ -14,6 +14,18 @@ actions:
     params: []
     result: null
 
+  signIn:
+    description: Log a sign in event. Platform will automatically detect the id.
+    since: "9.0.0"
+    params: []
+    result: null
+
+  signOut:
+    description: Log a sign out event. Platform will automatically detect the id.
+    since: "9.0.0"
+    params: []
+    result: null
+
   startContent:
     description: Signals the app is starting to show video or audio content.
     since: "9.0.0"
@@ -51,65 +63,174 @@ actions:
         description: Human-readable error description
 
   mediaLoadStart:
-    description: Signals that the app has started loading media content.
+    description: Called when setting the URL of a media asset to play, in order to infer load time.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaPlay:
-    description: Signals that media playback has begun.
+    description: Called when media playback should start due to autoplay, user-initiated play, or unpausing.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaPlaying:
     description: |
-      Signals that media is actively playing
-      (distinguishes from play intent, e.g., after buffering).
+      Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaPause:
     description: Signals that media playback has been paused.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaWaiting:
     description: Signals that media playback is waiting (buffering) for data.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaSeeking:
     description: Signals that the user is seeking to a new playback position.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaSeeked:
     description: Signals that the user has completed seeking to a new position.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaRateChanged:
     description: Signals that media playback rate has changed (e.g., speed up, slow down).
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaRenditionChanged:
     description: Signals that media rendition (quality) has changed.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   mediaEnded:
     description: Signals that media playback has ended.
     since: "9.0.0"
-    params: []
+    params:
+      - name: params
+        type: object
+        required: true
+        properties:
+          entityId:
+            type: string
+            description: Entity identifier for the media asset
+          agePolicy:
+            type: string
+            required: false
+            description: Age policy for the content
     result: null
 
   event:

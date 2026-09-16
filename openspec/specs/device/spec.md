@@ -27,6 +27,66 @@ actions:
       - description: Set-top box
         result: "stb"
 
+  uptime:
+    description: Returns the number of seconds since most recent device boot, including any time spent during deep sleep.
+    since: "9.0.0"
+    params: []
+    result:
+      type: number
+    examples:
+      - description: Device uptime
+        result: 86400
+
+  brandName:
+    description: Returns the brand name under which the device was marketed to consumers. Typically also shown on the TV bezel, device label or remote either "" (if not initialized) 1 or more characters.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Device brand
+        result: "Acme"
+
+  modelId:
+    description: Returns the model identifier assigned to the device hardware. Typically also shown on the device label or UI.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Device model
+        result: "ABC123"
+
+  osName:
+    description: Returns the operating system name as defined by the operator.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Operating system name
+        result: "FireboltOS"
+
+  osVersion:
+    description: Returns the operating system version as defined by the operator.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Operating system version
+        result: "9.0.0"
+
+  firmware:
+    description: Returns a string that identifies the firmware image of the device.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Firmware version
+        result: "1.2.3"
+
 properties:
   hdr:
     description: |
@@ -52,6 +112,26 @@ properties:
     examples:
       - description: Dolby Atmos available
         result: true
+
+  name:
+    description: Returns the device friendly name. Used by network services (DIAL, Miracast, AirPlay) so that other devices can more easily identify this device during device discovery.
+    since: "9.0.0"
+    result:
+      type: string
+    examples:
+      - description: Device friendly name
+        result: "Living Room TV"
+
+events:
+  onNameChanged:
+    description: Event for when Device.name changed.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Device name changed
+        result: "Bedroom TV"
 
 types:
   DeviceClass:

@@ -2,102 +2,81 @@
  * inject-js FullASTGenerator.
  *
  * Emits a single self-contained ES5 IIFE bundle at generated/inject-js/firebolt-inject.js
- * that exposes window.FireboltServiceManager for use by the WPE Firebolt extension.
+ * that returns a factory function for use by the WPE Firebolt extension.
  *
  * Only web-platform modules (platform: "web" | "both") are included.
  *
  * The generated file has three sections:
- *   [STATIC PREAMBLE]   — private state, transport layer, stubs, configure, get
- *   [GENERATED DATA]    — _VERSION, _methodRegistry (synthesised from AST)
- *   [STATIC POSTAMBLE]  — Object.freeze + Object.defineProperty for FireboltServiceManager
+ *   [STATIC PREAMBLE]   — private state, helper functions, transport layer
+ *   [STATIC MODULES]    — static module definitions using Object.defineProperty
+ *   [STATIC POSTAMBLE]  — factory function return
  */
 
 import {
   CanonicalAST,
   Module,
-  NamedRef,
-  OptionalRef,
-  TypeDecl,
-  TypeRef,
 } from "../ast/types";
 import { GenConfig, GeneratorOutput, registerFullASTGenerator } from "./index";
 
 
 
 // ---------------------------------------------------------------------------
-// Task 3.4 — isEventIsPrimitive
+// Helper functions for parameter pattern detection
 // ---------------------------------------------------------------------------
 
-function isEventIsPrimitive(ref: TypeRef, types: TypeDecl[]): boolean {
-  // Unwrap optional
-  if (ref.kind === "optional") return isEventIsPrimitive((ref as OptionalRef).inner, types);
-  // Primitive → wrap in params.value
-  if (ref.kind === "primitive") return true;
-  // Array → params IS the array
-  if (ref.kind === "array") return false;
-  // Named ref — look up the decl
-  if (ref.kind === "named") {
-    const nr = ref as NamedRef;
-    const decl = types.find(t => t.name === nr.name);
-    if (!decl) return true; // unknown — assume primitive-wrapped
-    if (decl.kind === "object") return false;
-    if (decl.kind === "array-alias") return false;
-    // enum, scalar-alias, union → treated as primitive-wrapped
-    return true;
+function getParamPattern(method: any): "no-params" | "single-param" {
+  if (method.params.length === 0) {
+    return "no-params";
   }
-  return true;
+  return "single-param";
 }
 
-
-
 // ---------------------------------------------------------------------------
-// Task 3.6 — emitMethodRegistry
+// Emit static module definitions
 // ---------------------------------------------------------------------------
 
-
-function emitMethodRegistry(modules: Module[]): string {
-  const entries: string[] = [];
+function emitStaticModules(modules: Module[]): string {
+  const lines: string[] = [];
 
   for (const mod of modules) {
+    lines.push(`  // Module: ${mod.name}`);
+    lines.push(`  var _${mod.name} = Object.create(null);`);
+
     for (const method of mod.methods) {
-      const fullName = `${mod.name}.${method.name}`;
+      const pattern = getParamPattern(method);
 
       if (method.kind === "call") {
-        const entry = {
-          kind: "call",
-          paramCount: method.params.length,
-        };
-        entries.push(`  ${JSON.stringify(fullName)}: ${JSON.stringify(entry)}`);
+        if (pattern === "no-params") {
+          lines.push(`  _addMethodNoParams(_${mod.name}, "${method.name}", "${mod.name}");`);
+        } else {
+          lines.push(`  _addMethodWithObjectParam(_${mod.name}, "${method.name}", "${mod.name}");`);
+        }
       } else {
         // subscribe
-        const primitive = method.result ? isEventIsPrimitive(method.result, mod.types) : false;
-        const entry = {
-          kind: "subscribe",
-          eventIsPrimitive: primitive,
-        };
-        entries.push(`  ${JSON.stringify(fullName)}: ${JSON.stringify(entry)}`);
+        lines.push(`  _addEvent(_${mod.name}, "${method.name}", "${mod.name}");`);
       }
     }
+
+    lines.push(`  _registerModule("${mod.name}", _${mod.name});`);
+    lines.push("");
   }
 
-  if (entries.length === 0) return "var _methodRegistry = {};\n";
-  return `var _methodRegistry = {\n${entries.join(",\n")}\n};\n`;
+  return lines.join("\n");
 }
 
 // ---------------------------------------------------------------------------
-// Task 3.7 — emitVersionVar
-// ---------------------------------------------------------------------------
-
-function emitVersionVar(version: string): string {
-  return `var _VERSION = ${JSON.stringify(version)};\n`;
-}
-
-// ---------------------------------------------------------------------------
-// Task 3.8 — Static preamble (private state + validator)
+// Static preamble (private state + helper functions)
 // ---------------------------------------------------------------------------
 
 const STATIC_PREAMBLE = `
   "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Common function references
+  // ---------------------------------------------------------------------------
+  let _commonStringify = JSON.stringify;
+  let _commonParse = JSON.parse;
+  let _commonArrayCheck = Array.isArray;
 
   // ---------------------------------------------------------------------------
   // Private state
@@ -109,22 +88,25 @@ const STATIC_PREAMBLE = `
   var _fireboltInstance = null;
   var _connectionResolvers = [];
   var _nextId = 1;
-  var _pendingCalls = Object.create(null); // id → { isSubscribe, resolve, reject }
-  var _eventListeners = Object.create(null); // "Module.onEvent" → [callbacks]
-`;
-// ---------------------------------------------------------------------------
-// Task 3.9 — Static runtime (transport layer, stubs, configure, get)
-// ---------------------------------------------------------------------------
+  var _pendingCalls = Object.create(null);
+  var _eventListeners = Object.create(null);
+  var _extensionSchema = null;
+  var _debug = false;
+  var _VERSION = "9.0";
 
-const STATIC_RUNTIME = `
   // ---------------------------------------------------------------------------
   // Transport layer
   // ---------------------------------------------------------------------------
   function _onMessage(raw) {
     var message;
-    try { message = JSON.parse(raw); } catch (e) { return; }
-
-    // Has id → call response or subscribe ack
+    try {
+      message = _commonParse(raw)
+      if(_debug) {
+        console.log("-->" + raw);
+      }
+    } catch (e) {
+      return
+    }
     if (message.id !== undefined) {
       var pending = _pendingCalls[message.id];
       if (!pending) return;
@@ -133,252 +115,398 @@ const STATIC_RUNTIME = `
       if (message.error) {
         var errMsg = (message.error.message || "Firebolt error") + " (code: " + message.error.code + ")";
         if (pending.isSubscribe) {
-          // Remove eagerly-registered listener on subscribe failure
           var listeners = _eventListeners[pending.eventName];
           if (listeners) {
             var idx = listeners.indexOf(pending.callback);
-            if (idx !== -1) listeners.splice(idx, 1);
+            if (idx !== -1) listeners.splice(idx, 1)
           }
         }
         pending.reject(new Error(errMsg));
-        return;
+        return
       }
 
       if (pending.isSubscribe) {
-        // result: null → subscription confirmed; resolve with unsubscribe fn
         pending.resolve(pending.unsubscribeFn);
-        return;
+        return
       }
 
-      // Regular call response
       pending.resolve(message.result);
-      return;
+      return
     }
-
-    // No id, has method → Firebolt 9 event notification
     if (message.method) {
       var eventName = message.method;
-      var entry = _methodRegistry[eventName];
-      if (!entry || entry.kind !== "subscribe") return;
-
-      var payload = entry.eventIsPrimitive
-        ? (message.params ? message.params.value : undefined)
-        : message.params;
-
       var cbs = _eventListeners[eventName];
       if (cbs) {
-        for (var i = 0; i < cbs.length; i++) { cbs[i](payload); }
+        var payload = message.params && Object.prototype.hasOwnProperty.call(message.params, "value")
+          ? message.params.value
+          : message.params;
+        for (var i = 0; i < cbs.length; i++) {
+          cbs[i](payload)
+        }
       }
     }
   }
 
-  function _onStatus(status) {
-    _connected = (status === "connected");
-    if (_connected) {
-      if (!_fireboltInstance) { _fireboltInstance = _buildFireboltInstance(); }
-      var resolvers = _connectionResolvers.splice(0);
-      for (var i = 0; i < resolvers.length; i++) { resolvers[i](_fireboltInstance); }
+  function _onOpen() {
+    console.log("Firebolt transport opened");
+    _connected = true;
+    if (!_fireboltInstance) {
+      _fireboltInstance = _buildFireboltInstance()
+    }
+    var resolvers = _connectionResolvers.splice(0);
+    for (var i = 0; i < resolvers.length; i++) {
+      resolvers[i](_fireboltInstance)
+    }
+  }
+
+  function _onClose() {
+    console.log("Firebolt transport closed");
+    _connected = false;
+  }
+
+  function _onError(error) {
+    console.error("Firebolt transport error:", error);
+    clearPendingCalls();
+    clearEventListeners();
+    _connected = false;
+    _connect()
+  }
+
+  function _connect() {
+    if (_connected){
+      return false;
+    }
+    _transport.open();
+    _connecting = true;
+  }
+
+  function _notConnectedError() {
+    return new Error("Not connected");
+  }
+  
+  function _send(data, failureCallback) {
+    try {
+      _transport.send(data);
+      if(_debug) {
+        console.log("<--" + data);
+      }
+    } catch(e) {
+      if (failureCallback) {
+        failureCallback(e);
+      }
     }
   }
 
   function _rpcCall(methodName, params) {
-    return new Promise(function (resolve, reject) {
+    if (!_connected) {
+      return Promise.reject(_notConnectedError());
+    }
+    return new Promise(function(resolve, reject) {
       var id = _nextId++;
       _pendingCalls[id] = {
         isSubscribe: false,
-        resolve: resolve,
-        reject: reject,
+        resolve,
+        reject
       };
-      var msg = JSON.stringify({ jsonrpc: "2.0", id: id, method: methodName, params: params || {} });
-      var result = _transport.send(msg);
-      if (!result.success) {
+      var msg = _commonStringify({
+        jsonrpc: "2.0",
+        id,
+        method: methodName,
+        params: params || {}
+      });
+      _send(msg,(e) => {
         delete _pendingCalls[id];
-        reject(new Error("Transport send failed (errorCode: " + result.errorCode + ")"));
-      }
-    });
+        reject(e);
+      });
+    })
   }
 
   function _subscribe(eventName, callback) {
-    if (!_eventListeners[eventName]) { _eventListeners[eventName] = []; }
-    _eventListeners[eventName].push(callback); // eager registration
-
-    return new Promise(function (resolve, reject) {
+    if (!_connected) {
+      return Promise.reject(_notConnectedError());
+    }
+    if (!_eventListeners[eventName]) {
+      _eventListeners[eventName] = []
+    }
+    _eventListeners[eventName].push(callback);
+    return new Promise(function(resolve, reject) {
       var id = _nextId++;
 
       function unsubscribeFn() {
         var ls = _eventListeners[eventName];
         if (ls) {
           var i = ls.indexOf(callback);
-          if (i !== -1) ls.splice(i, 1);
+          if (i !== -1) ls.splice(i, 1)
         }
         if (!ls || ls.length === 0) {
           var unsubId = _nextId++;
-          _pendingCalls[unsubId] = { isSubscribe: true, eventName: eventName, callback: null, unsubscribeFn: null, resolve: function(){}, reject: function(){} };
-          var unsubMsg = JSON.stringify({ jsonrpc: "2.0", id: unsubId, method: eventName, params: { listen: false } });
-          _transport.send(unsubMsg);
+          _pendingCalls[unsubId] = {
+            isSubscribe: true,
+            eventName,
+            callback: null,
+            unsubscribeFn: null,
+            resolve: function(){},
+            reject: function(){}
+          };
+          var unsubMsg = _commonStringify({
+            jsonrpc: "2.0",
+            id: unsubId,
+            method: eventName,
+            params: {
+              listen: false
+            }
+          });
+          _send(unsubMsg, (e) => {
+            console.error("Failed to unsubscribe from event:", eventName, e);
+          });
         }
       }
 
       _pendingCalls[id] = {
         isSubscribe: true,
-        eventName: eventName,
-        callback: callback,
-        unsubscribeFn: unsubscribeFn,
-        resolve: resolve,
-        reject: reject,
+        eventName,
+        callback,
+        unsubscribeFn,
+        resolve,
+        reject
       };
 
-      var msg = JSON.stringify({ jsonrpc: "2.0", id: id, method: eventName, params: { listen: true } });
-      var result = _transport.send(msg);
-      if (!result.success) {
+      var msg = _commonStringify({
+        jsonrpc: "2.0",
+        id,
+        method: eventName,
+        params: {
+          listen: true
+        }
+      });
+      _send(msg, (e) => {
         delete _pendingCalls[id];
         var ls = _eventListeners[eventName];
-        if (ls) { var i = ls.indexOf(callback); if (i !== -1) ls.splice(i, 1); }
-        reject(new Error("Transport send failed (errorCode: " + result.errorCode + ")"));
-      }
-    });
+        if (ls) {
+          var i = ls.indexOf(callback);
+          if (i !== -1) ls.splice(i, 1)
+        }
+        reject(e);
+      });
+    })
   }
 
   // ---------------------------------------------------------------------------
   // Stub factories
   // ---------------------------------------------------------------------------
-  function _makeCallStubNoParams(fullMethodName) {
-    return function () {
-      return _rpcCall(fullMethodName, {});
-    };
+  function _addMethodNoParams(module, methodName, moduleName) {
+    Object.defineProperty(module, methodName, {
+      value: function() {
+        return _rpcCall(moduleName + "." + methodName, {})
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false
+    })
   }
 
-  function _makeCallStub(fullMethodName) {
-    return function (param) {
-      return _rpcCall(fullMethodName, param || {});
-    };
+  function _addMethodWithObjectParam(module, methodName, moduleName) {
+    Object.defineProperty(module, methodName, {
+      value: function(params) {
+        return _rpcCall(moduleName + "." + methodName, params || {})
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false
+    })
   }
 
-  function _makeSubscribeStub(fullMethodName) {
-    return function (callback) {
-      return _subscribe(fullMethodName, callback);
-    };
+  function _addEvent(module, eventName, moduleName) {
+    Object.defineProperty(module, eventName, {
+      value: function(callback) {
+        return _subscribe(moduleName + "." + eventName, callback)
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false
+    })
+  }
+
+  function _registerModule(moduleName, module) {
+    Object.defineProperty(_fireboltRegistry, moduleName, {
+      value: module,
+      writable: false,
+      enumerable: true,
+      configurable: false
+    })
   }
 
   // ---------------------------------------------------------------------------
-  // FireboltClient builder
+  // Extension schema loading
   // ---------------------------------------------------------------------------
+  function _addExtensions() {
+    if (_extensionSchema) {
+      var methodCheck = function(method) {
+        return typeof method === "string" && method.length > 0
+      };
+      var fullcheck = function(module, method) {
+        return methodCheck(method) && (!_fireboltRegistry[module] || !_fireboltRegistry[module][method])
+      };
+      var loadMethods = function(obj, mfn, ifn, moduleName) {
+        if (_commonArrayCheck(obj)) {
+          obj.forEach(o => {
+            var c = mfn(o);
+            if (fullcheck(moduleName, c)) {
+              ifn(o, c);
+              console.log("Extended Method " + c + " added to module " + moduleName)
+            } else {
+              console.warn("Method " + c + " already exists in module " + moduleName)
+            }
+          })
+        }
+      };
+      _extensionSchema.forEach(schema => {
+        if (schema) {
+          if (typeof schema.name === "string" && schema.name.length > 0) {
+            let moduleName = schema.name;
+            var existingModule = false;
+            if (_fireboltRegistry[moduleName]) {
+              existingModule = true
+            }
+            let module = _fireboltRegistry[moduleName] || Object.create(null);
+            loadMethods(schema.methods, method => method, (o, c) => _addMethodNoParams(module, c, moduleName), moduleName);
+            loadMethods(schema.events, event => event, (o, c) => _addEvent(module, c, moduleName), moduleName);
+            loadMethods(schema.methodsWithObject, method => method, (o, c) => _addMethodWithObjectParam(module, c, moduleName), moduleName);
+            if (!existingModule) {
+              _registerModule(moduleName, module)
+            }
+          }
+        }
+      })
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Registry and instance building
+  // ---------------------------------------------------------------------------
+  var _fireboltRegistry = Object.create(null);
+
   function _buildFireboltInstance() {
-    var modules = Object.create(null);
-    for (var fullName in _methodRegistry) {
-      var dotIdx = fullName.indexOf(".");
-      var modName = fullName.slice(0, dotIdx);
-      var methodName = fullName.slice(dotIdx + 1);
-      var desc = _methodRegistry[fullName];
-      if (!modules[modName]) { modules[modName] = Object.create(null); }
-      
-      if (desc.kind === "subscribe") {
-        modules[modName][methodName] = _makeSubscribeStub(fullName);
-      } else if (desc.paramCount === 0) {
-        modules[modName][methodName] = _makeCallStubNoParams(fullName);
-      } else {
-        modules[modName][methodName] = _makeCallStub(fullName);
-      }
-    }
-    var client = Object.create(null);
-    for (var mod in modules) { client[mod] = Object.freeze(modules[mod]); }
-    // Add disconnect method
-    client.disconnect = function() {
-      _disconnect();
-      _fireboltInstance = null;
-    };
-    return Object.freeze(client);
+    _addExtensions();
+    _fireboltInstance = Object.freeze(_fireboltRegistry);
+    return _fireboltInstance
   }
 
-  // ---------------------------------------------------------------------------
-  // Disconnect handler
-  // ---------------------------------------------------------------------------
-  function _disconnect() {
-    // Call transport disconnect
-    if (_transport && _transport.disconnect) {
-      _transport.disconnect();
-    }
-    // Clear event listeners
-    for (var key in _eventListeners) {
-      _eventListeners[key] = [];
-    }
-    // Reject all pending calls with DisconnectError
+  function clearPendingCalls() {
     for (var id in _pendingCalls) {
       var pending = _pendingCalls[id];
-      pending.reject(new Error("Disconnected"));
+      pending.reject(new Error("Disconnected"))
     }
     _pendingCalls = Object.create(null);
-    // Clear pending connection resolvers
-    _connectionResolvers = [];
-    // Reset state
-    _connected = false;
-    _connecting = false;
-    _fireboltInstance = null;
   }
 
-  // ---------------------------------------------------------------------------
-  // configure / get
-  // ---------------------------------------------------------------------------
-  function _setTransport(transport) {
-    if (_transportSet) {
-      throw new Error("Transport already set on FireboltServiceManager");
-    }
-    
-    // Validate that transport has all required methods
-    var requiredMethods = ["send", "onMessage", "onConnectionStatus", "connect", "disconnect"];
-    for (var i = 0; i < requiredMethods.length; i++) {
-      var method = requiredMethods[i];
-      if (typeof transport[method] !== "function") {
-        throw new Error(
-          "Transport object must have a '" + method + "' method. " +
-          "Missing or invalid method: " + method
-        );
+  function clearEventListeners() {
+    for (var eventName in _eventListeners) {
+      for (var i = 0; i < _eventListeners[eventName].length; i++) {
+        _eventListeners[eventName][i](null, false);
       }
     }
-    
-    _transport = transport;
-    _transportSet = true;
+    _eventListeners = Object.create(null);
   }
 
-  function _get() {
-    if (!_transport) {
-      throw new Error(
-        "Transport not set via FireboltServiceManager.transport(). " +
-        "The WPE extension must call FireboltServiceManager.transport(t) first."
-      );
-    }
-    if (_connected && _fireboltInstance) { return Promise.resolve(_fireboltInstance); }
-    var p = new Promise(function (resolve) { _connectionResolvers.push(resolve); });
-    if (!_connecting) {
-      _connecting = true;
-      _transport.onMessage(_onMessage);
-      _transport.onConnectionStatus(_onStatus);
-      _transport.connect();
-    }
-    return p;
+  function reset() {
+    clearEventListeners();
+    clearPendingCalls();
+    _connectionResolvers = [];
+    _connected = false;
+    _connecting = false;
   }
 `;
 
 // ---------------------------------------------------------------------------
-// Task 3.10 — Static postamble (FireboltServiceManager freeze + defineProperty)
+// Static postamble (factory function return)
 // ---------------------------------------------------------------------------
 
 const STATIC_POSTAMBLE = `
-  var _fsm = Object.freeze({
-    version: _VERSION,
-    transport: _setTransport,
-    get: _get,
+  Object.defineProperty(_fireboltRegistry, "cleanup", {
+    value: function() {
+      reset();
+      if (_transport && _transport.close) {
+        _transport.close()
+      }
+      _fireboltInstance = null;
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false
   });
-  Object.defineProperty(global, "FireboltServiceManager", {
-    value: _fsm,
+
+  var factory = function({
+    transport,
+    extensionSchema,
+    enableDebug
+  }) {
+    if (!transport) {
+      throw new Error("Transport is required")
+    }
+    if (typeof extensionSchema === "string" && extensionSchema.length > 0) {
+      let parsedExtensionSchema = _commonParse(extensionSchema);
+      if (_commonArrayCheck(parsedExtensionSchema)) {
+        _extensionSchema = parsedExtensionSchema
+      } else {
+        console.warn("invalid extension after parsing")
+      }
+    }
+  
+    var requiredMethods = ["send", "open", "close"];
+    for (var i = 0; i < requiredMethods.length; i++) {
+      var method = requiredMethods[i];
+      if (!transport[method]) {
+        throw new Error("Transport object must have a '" + method + "' method. " + "Missing method: " + method);
+      } else {
+        if (typeof transport[method] === "function") {
+          continue;
+        } else {
+          throw new Error("Transport object must have a '" + method + "' method. " + "Missing or invalid method: " + method);
+        }
+      }
+    }
+    _transport = transport;
+
+    if (enableDebug && enableDebug === true) {
+      _debug = true;
+      window.___fireboltTransport___ = _transport;
+    }
+    return {
+      build: function() {
+        if (_connected && _fireboltInstance) {
+          return Promise.resolve(_fireboltInstance)
+        }
+        var p = new Promise(function(resolve) {
+          _connectionResolvers.push(resolve)
+        });
+        if (!_connecting) {
+          if (!_transportSet) {
+            _transport.onMessage = _onMessage;
+            _transport.onOpen = _onOpen;
+            _transport.onClose = _onClose;
+            _transport.onError = _onError;
+            _transportSet = true;
+          }
+          _connect();
+        }
+        return p
+      }
+    }
+  };
+
+  Object.defineProperty(global, "factory", {
+    value: factory,
     writable: false,
     configurable: false,
-    enumerable: true,
+    enumerable: true
   });
+
+  return factory;
 `;
 
 // ---------------------------------------------------------------------------
-// Task 3.11 — Assemble generate()
+// Assemble generate()
 // ---------------------------------------------------------------------------
 
 function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
@@ -387,18 +515,14 @@ function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
     (m) => m.platform === "web" || m.platform === "both"
   );
 
-  const generatedData = [
-    emitVersionVar(ast.version),
-    emitMethodRegistry(webModules),
-  ].join("\n");
+  const staticModules = emitStaticModules(webModules);
 
   const content = [
     `(function(global) {`,
     STATIC_PREAMBLE,
-    `  // --- Generated data ---`,
-    generatedData.split("\n").map((l) => `  ${l}`).join("\n"),
-    `  // --- End generated data ---`,
-    STATIC_RUNTIME,
+    `  // --- Static module definitions ---`,
+    staticModules,
+    `  // --- End static module definitions ---`,
     STATIC_POSTAMBLE,
     `})(typeof globalThis !== "undefined" ? globalThis : window);`,
   ].join("\n");

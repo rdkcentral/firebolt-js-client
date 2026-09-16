@@ -1,0 +1,14 @@
+{
+  "name": "firebolt-type-reference-app",
+  "version": "1.0.0",
+  "description": "Reference app for testing Firebolt TypeScript definitions",
+  "main": "src/main.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Manual testing required - open in VS Code to test IDE features\""
+  },
+  "devDependencies": {
+    "@firebolt-js/types": "file:../../package",
+    "typescript": "^5.4.5"
+  }
+}
