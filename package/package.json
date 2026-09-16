@@ -1,0 +1,16 @@
+{
+  "name": "@firebolt-js/types",
+  "version": "9.0.0",
+  "description": "TypeScript definitions for Firebolt 9 inject-js factory/builder pattern",
+  "types": "firebolt-inject.d.ts",
+  "files": [
+    "firebolt-inject.d.ts"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "cd .. && npm run build && npm run generate -- --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts .",
+    "prepublishOnly": "npm run build"
+  }
+}

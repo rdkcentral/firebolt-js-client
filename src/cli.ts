@@ -25,6 +25,7 @@ import "./generators/kotlin";
 import "./generators/cpp";
 import "./generators/python";
 import "./generators/inject-js";
+import "./generators/inject-js-types";
 
 // ---------------------------------------------------------------------------
 // CLI definition

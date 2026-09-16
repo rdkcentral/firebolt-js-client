@@ -61,6 +61,61 @@
           }
         }
       ]
+    },
+    {
+      "name": "VideoOutput.hdcp",
+      "summary": "Get the current HDCP state.",
+      "description": "Returns the current state of output protection on the video output. OTT/STB device: returns the negotiated HDCP version on the video output, or none if an encrypted connection has not been made between the OTT/STB device and any attached TV. TV device: returns direct.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/HdcpType"
+        }
+      },
+      "examples": [
+        {
+          "name": "hdcpState",
+          "summary": "HDCP 2.2 negotiated",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "hdcp2.2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VideoOutput.onHdcpChanged",
+      "summary": "Subscribe to HDCP state changes.",
+      "description": "Event for when VideoOutput.hdcp changed.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/HdcpType"
+        }
+      },
+      "examples": [
+        {
+          "name": "hdcpChanged",
+          "summary": "HDCP state changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "hdcp1.4"
+          }
+        }
+      ]
     }
   ],
   "components": {
@@ -71,6 +126,20 @@
         "description": "Video resolution output. The resolution in format WIDTHxHEIGHT.",
         "examples": [
           "3840x2160"
+        ]
+      },
+      "HdcpType": {
+        "title": "HdcpType",
+        "type": "string",
+        "enum": [
+          "hdcp1.4",
+          "hdcp2.2",
+          "none",
+          "direct"
+        ],
+        "description": "HDCP output protection state",
+        "examples": [
+          "hdcp2.2"
         ]
       }
     }

@@ -54,6 +54,199 @@
       ]
     },
     {
+      "name": "Device.uptime",
+      "summary": "Get device uptime.",
+      "description": "Returns the number of seconds since most recent device boot, including any time spent during deep sleep.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "examples": [
+        {
+          "name": "deviceUptime",
+          "summary": "Device uptime",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": 86400
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.brandName",
+      "summary": "Get device brand name.",
+      "description": "Returns the brand name under which the device was marketed to consumers. Typically also shown on the TV bezel, device label or remote either \"\" (if not initialized) 1 or more characters.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "deviceBrand",
+          "summary": "Device brand",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "Acme"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.modelId",
+      "summary": "Get device model identifier.",
+      "description": "Returns the model identifier assigned to the device hardware. Typically also shown on the device label or UI.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "deviceModel",
+          "summary": "Device model",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "ABC123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.osName",
+      "summary": "Get operating system name.",
+      "description": "Returns the operating system name as defined by the operator.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "osName",
+          "summary": "Operating system name",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "FireboltOS"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.osVersion",
+      "summary": "Get operating system version.",
+      "description": "Returns the operating system version as defined by the operator.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "osVersion",
+          "summary": "Operating system version",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "9.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.firmware",
+      "summary": "Get firmware version.",
+      "description": "Returns a string that identifies the firmware image of the device.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "firmwareVersion",
+          "summary": "Firmware version",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "1.2.3"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.name",
+      "summary": "Get device friendly name.",
+      "description": "Returns the device friendly name. Used by network services (DIAL, Miracast, AirPlay) so that other devices can more easily identify this device during device discovery.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "deviceName",
+          "summary": "Device friendly name",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "Living Room TV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device.onNameChanged",
+      "summary": "Subscribe to device name changes.",
+      "description": "Event for when Device.name changed.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "examples": [
+        {
+          "name": "nameChanged",
+          "summary": "Device name changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "Bedroom TV"
+          }
+        }
+      ]
+    },
+    {
       "name": "Device.hdr",
       "summary": "Get the HDR capabilities of the display.",
       "description": "Returns the HDR standards supported by the attached TV or integrated display.",

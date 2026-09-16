@@ -51,4 +51,25 @@ properties:
     examples:
       - description: US English
         result: "en-US"
+
+  timeZone:
+    description: Returns the IANA time zone format.
+    since: "9.0.0"
+    result:
+      type: string
+      description: IANA time zone format (e.g., "America/New_York", "Europe/London")
+    examples:
+      - description: New York time zone
+        result: "America/New_York"
+
+events:
+  onTimeZoneChanged:
+    description: Event for when Localization.timeZone changed.
+    since: "9.0.0"
+    params: []
+    result:
+      type: string
+    examples:
+      - description: Time zone changed
+        result: "Europe/London"
 ---

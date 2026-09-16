@@ -36,18 +36,43 @@ function generate(module: Module, _config: GenConfig): GeneratorOutput[] {
   lines.push(`// Module: ${module.name}`);
   lines.push(``);
 
+  // Emit Firebolt namespace with module namespace
+  lines.push(`declare namespace Firebolt {`);
+  lines.push(`  namespace ${module.name} {`);
+  lines.push(``);
+
   // Emit type declarations
   for (const decl of module.types) {
-    lines.push(...emitTypeDecl(decl));
+    const typeLines = emitTypeDecl(decl);
+    for (const line of typeLines) {
+      lines.push(`    ${line}`);
+    }
     lines.push(``);
   }
 
-  // Emit methods in a declare namespace
-  lines.push(`declare namespace ${module.name} {`);
+  // Emit parameter interfaces for methods with parameters
   for (const method of module.methods) {
-    lines.push(...emitMethod(method).map((l) => `  ${l}`));
+    if (method.kind === "call" && method.params.length > 0) {
+      const paramInterface = emitParamInterface(method);
+      if (paramInterface.length > 0) {
+        for (const line of paramInterface) {
+          lines.push(`    ${line}`);
+        }
+        lines.push(``);
+      }
+    }
+  }
+
+  // Emit method signatures
+  for (const method of module.methods) {
+    const methodLines = emitMethod(method, module.name);
+    for (const line of methodLines) {
+      lines.push(`    ${line}`);
+    }
     lines.push(``);
   }
+
+  lines.push(`  }`);
   lines.push(`}`);
   lines.push(``);
 
@@ -106,33 +131,91 @@ function emitObject(decl: ObjectTypeDecl): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Helper functions for parameter interface generation
+// ---------------------------------------------------------------------------
+
+function getParamInterfaceName(method: Method): string {
+  // Capitalize first letter of method name
+  const capitalizedMethod = method.name.charAt(0).toUpperCase() + method.name.slice(1);
+  return `${capitalizedMethod}Params`;
+}
+
+function emitParamInterface(method: Method): string[] {
+  if (method.params.length === 0) {
+    return [];
+  }
+
+  const interfaceName = getParamInterfaceName(method);
+  const lines: string[] = [];
+
+  lines.push(`/** Parameters for ${method.name} */`);
+  lines.push(`interface ${interfaceName} {`);
+
+  for (const param of method.params) {
+    const isOptional = param.type.kind === "optional";
+    const opt = isOptional ? "?" : "";
+    const ref = isOptional
+      ? (param.type as OptionalRef).inner
+      : param.type;
+    const inner = typeRefToTS(ref);
+    const c = extractConstraints(ref);
+    if (c) lines.push(`  /** Constraints: ${formatConstraintNote(c)} */`);
+    lines.push(`  ${param.name}${opt}: ${inner};`);
+  }
+
+  lines.push(`}`);
+  return lines;
+}
+
+// ---------------------------------------------------------------------------
 // Methods
 // ---------------------------------------------------------------------------
 
-function emitMethod(method: Method): string[] {
+function emitMethod(method: Method, moduleName: string): string[] {
   if (method.kind === "call") {
-    return emitCallMethod(method);
+    return emitCallMethod(method, moduleName);
   }
-  return emitSubscribeMethod(method);
+  return emitSubscribeMethod(method, moduleName);
 }
 
-function emitCallMethod(method: Method): string[] {
-  const paramStr = method.params.map(paramToTS).join(", ");
+function emitCallMethod(method: Method, moduleName: string): string[] {
+  let paramStr: string;
+  
+  if (method.params.length === 0) {
+    // No parameters
+    paramStr = "";
+  } else {
+    // All methods with parameters use parameter interface
+    const interfaceName = getParamInterfaceName(method);
+    paramStr = `params: ${interfaceName}`;
+  }
+  
   const resultType =
     method.result === null ? "void" : typeRefToTS(method.result);
   const constraintLines = collectConstraintLines(method);
-  const doc = constraintLines.length
-    ? `/** ${method.description}\n   * Constraints: ${constraintLines.join(" | ")} */`
-    : `/** ${method.description} */`;
+  const exampleLines = emitExample(method, moduleName);
+  
+  let doc = `/** ${method.description}`;
+  if (constraintLines.length) {
+    doc += `\n   * Constraints: ${constraintLines.join(" | ")}`;
+  }
+  if (exampleLines.length) {
+    doc += `\n   * @example`;
+    for (const line of exampleLines) {
+      doc += `\n   *   ${line}`;
+    }
+  }
+  doc += ` */`;
+  
   return [
     doc,
     `function ${method.name}(${paramStr}): Promise<${resultType}>;`,
   ];
 }
 
-function emitSubscribeMethod(method: Method): string[] {
+function emitSubscribeMethod(method: Method, _moduleName: string): string[] {
   const callbackType =
-    method.result === null ? "() => void" : `(event: ${typeRefToTS(method.result)}) => void`;
+    method.result === null ? "(event: null, cancelled: boolean) => void" : `(event: ${typeRefToTS(method.result)}, cancelled: boolean) => void`;
   const paramStr = method.params.map(paramToTS).join(", ");
   const sep = paramStr ? ", " : "";
   const constraintLines = collectConstraintLines(method);
@@ -164,6 +247,106 @@ function paramToTS(p: Param): string {
     return `${p.name}?: ${typeRefToTS((p.type as OptionalRef).inner)}`;
   }
   return `${p.name}: ${typeRefToTS(p.type)}`;
+}
+
+function emitExample(method: Method, moduleName: string): string[] {
+  if (method.params.length === 0) {
+    return [];
+  }
+
+  const lines: string[] = [];
+  const interfaceName = getParamInterfaceName(method);
+  
+  // Generate example values for each parameter
+  const exampleParams: string[] = [];
+  for (const param of method.params) {
+    const isOptional = param.type.kind === "optional";
+    // Skip optional parameters in examples to keep them clean
+    if (isOptional) continue;
+    
+    const exampleValue = generateExampleValue(param);
+    exampleParams.push(`  ${param.name}: ${exampleValue}`);
+  }
+  
+  lines.push(`const params: Firebolt.${moduleName}.${interfaceName} = {`);
+  lines.push(...exampleParams);
+  lines.push(`};`);
+  lines.push(`Firebolt.${moduleName}.${method.name}(params);`);
+  
+  return lines;
+}
+
+function generateExampleValue(param: Param): string {
+  const type = param.type;
+  const paramName = param.name.toLowerCase();
+  
+  if (type.kind === "primitive") {
+    const primitive = type as PrimitiveRef;
+    switch (primitive.primitive) {
+      case "string":
+        // Generate more realistic example values based on parameter name
+        if (paramName.includes("intent")) return `'{"action":"play","entityId":"entity-123"}'`;
+        if (paramName.includes("appid")) return `"app123"`;
+        if (paramName.includes("entity")) return `"entity-123"`;
+        if (paramName.includes("page")) return `"details"`;
+        if (paramName.includes("error")) return `"network"`;
+        if (paramName.includes("message")) return `"Connection failed"`;
+        if (paramName.includes("event")) return `"user_action"`;
+        if (paramName.includes("data")) return `'{"action":"favorite"}'`;
+        if (paramName.includes("name")) return `"My Device"`;
+        if (paramName.includes("id")) return `"12345"`;
+        if (paramName.includes("date") || paramName.includes("time")) return `"2026-09-16T05:43:00.000Z"`;
+        if (paramName.includes("watchedon")) return `"2026-09-16T05:43:00.000Z"`;
+        return `"${param.name}"`;
+      case "bool":
+        return "true";
+      case "unsigned":
+      case "double":
+        // Generate more realistic numeric examples
+        if (paramName.includes("progress")) return "0.75";
+        if (paramName.includes("id")) return "1";
+        return "0";
+    }
+  } else if (type.kind === "optional") {
+    const inner = (type as OptionalRef).inner;
+    if (inner.kind === "primitive") {
+      const primitive = inner as PrimitiveRef;
+      switch (primitive.primitive) {
+        case "string":
+          if (paramName.includes("intent")) return `'{"action":"play","entityId":"entity-123"}'`;
+          if (paramName.includes("appid")) return `"app123"`;
+          if (paramName.includes("entity")) return `"entity-123"`;
+          if (paramName.includes("page")) return `"details"`;
+          if (paramName.includes("error")) return `"network"`;
+          if (paramName.includes("message")) return `"Connection failed"`;
+          if (paramName.includes("event")) return `"user_action"`;
+          if (paramName.includes("data")) return `'{"action":"favorite"}'`;
+          if (paramName.includes("name")) return `"My Device"`;
+          if (paramName.includes("id")) return `"12345"`;
+          if (paramName.includes("date") || paramName.includes("time")) return `"2026-09-16T05:43:00.000Z"`;
+          if (paramName.includes("watchedon")) return `"2026-09-16T05:43:00.000Z"`;
+          return `"${param.name}"`;
+        case "bool":
+          return "true";
+        case "unsigned":
+        case "double":
+          if (paramName.includes("progress")) return "0.75";
+          if (paramName.includes("id")) return "1";
+          return "0";
+      }
+    }
+    return "undefined";
+  } else if (type.kind === "named") {
+    const named = type as NamedRef;
+    // Handle enum types with realistic values
+    if (named.name === "AgePolicy") return `"app:adult"`;
+    if (named.name === "ErrorType") return `"network"`;
+    return `${named.name}`;
+  } else if (type.kind === "array") {
+    return `["${param.name}1", "${param.name}2"]`;
+  }
+  
+  return "null";
 }
 
 // ---------------------------------------------------------------------------

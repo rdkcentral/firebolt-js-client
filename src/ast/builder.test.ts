@@ -218,7 +218,7 @@ describe("Rule 5 — format date-time propagation", () => {
   });
 
   test("watchedOn inner PrimitiveRef has format: 'date-time'", () => {
-    if (watchedOn?.type.kind === "optional" && watchedOn.type.inner.kind === "primitive") {
+    if (watchedOn?.type.kind === "optional" && watchedOn?.type.inner.kind === "primitive") {
       expect(watchedOn.type.inner.format).toBe("date-time");
     }
   });
@@ -434,7 +434,7 @@ describe("Rule 7 — numeric constraint propagation", () => {
 
   test("rate property carries minimum=0.1", () => {
     if (rateProp?.type.kind === "primitive") {
-      expect(rateProp.type.constraints?.minimum).toBeCloseTo(0.1);
+      expect(rateProp?.type.constraints?.minimum).toBeCloseTo(0.1);
     }
   });
 
@@ -447,7 +447,7 @@ describe("Rule 7 — numeric constraint propagation", () => {
   test("enabled property (bool) has no constraints", () => {
     expect(enabledProp?.type.kind).toBe("primitive");
     if (enabledProp?.type.kind === "primitive") {
-      expect(enabledProp.type.constraints).toBeUndefined();
+      expect(enabledProp?.type.constraints).toBeUndefined();
     }
   });
 

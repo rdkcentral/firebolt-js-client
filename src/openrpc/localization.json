@@ -195,6 +195,63 @@
           }
         }
       ]
+    },
+    {
+      "name": "Localization.timeZone",
+      "summary": "Get the time zone setting.",
+      "description": "Returns the IANA time zone format.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "IANA time zone format (e.g., \"America/New_York\", \"Europe/London\")"
+        }
+      },
+      "examples": [
+        {
+          "name": "timeZoneNewYork",
+          "summary": "New York time zone",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "America/New_York"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Localization.onTimeZoneChanged",
+      "summary": "Subscribe to time zone changes.",
+      "description": "Event for when Localization.timeZone changed.",
+      "params": [
+        {
+          "name": "listen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          },
+          "description": "Pass true to subscribe; false to unsubscribe"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string",
+          "description": "IANA time zone format (e.g., \"America/New_York\", \"Europe/London\")"
+        }
+      },
+      "examples": [
+        {
+          "name": "timeZoneChanged",
+          "summary": "Time zone changed",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": "Europe/London"
+          }
+        }
+      ]
     }
   ],
   "components": {
