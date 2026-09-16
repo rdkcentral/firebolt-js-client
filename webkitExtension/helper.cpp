@@ -54,6 +54,7 @@ JSCValue* evaluate_bridge_script(JSCContext* jsContext)
         if (ptr && sz)        {
             jsc_context_push_exception_handler(jsContext, print_exception, NULL, NULL);
             JSCValue* script = jsc_context_evaluate(jsContext, (const char*)(ptr), sz);
+            g_bytes_unref(bytes);
             if (!jsc_value_is_function(script))
             {
                  g_critical("Cannot inject builder script");
@@ -84,6 +85,7 @@ JSCValue* evaluate_builder_script(JSCContext* jsContext)
         if (ptr && sz)        {
             jsc_context_push_exception_handler(jsContext, print_exception, NULL, NULL);
             JSCValue* script = jsc_context_evaluate(jsContext, (const char*)(ptr), sz);
+            g_bytes_unref(bytes);
             if (!jsc_value_is_function(script))
             {
                  g_critical("Cannot inject builder script");

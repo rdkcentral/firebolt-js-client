@@ -71,7 +71,9 @@ static JSCValue* builder_cb(gpointer user_data)
     }
     
     // Debug flag
-    jsc_value_object_set_property(builderOpts, "enableDebug", jsc_value_new_boolean(ctx, config->enableDebug));
+    JSCValue *enableDebug = jsc_value_new_boolean(ctx, config->enableDebug);
+    jsc_value_object_set_property(builderOpts, "enableDebug", enableDebug);
+    g_clear_object(&enableDebug);
     JSCValue *builderResult = jsc_value_function_call(builder, JSC_TYPE_VALUE, builderOpts, G_TYPE_NONE);
     if (!builderResult) {
         g_warning("failed to build using transport");
