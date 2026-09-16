@@ -401,13 +401,14 @@
 	}
 
 	function clearEventListeners() {
-		for (var eventName in _eventListeners) {
-			for (var i = 0; i < _eventListeners[eventName].length; i++) {
+		const eventListeners = Object.assign({}, _eventListeners);
+		_eventListeners = Object.create(null);
+		for (var eventName in eventListeners) {
+			for (var i = 0; i < eventListeners[eventName].length; i++) {
 				console.warn("send cancelled event to listener for " + eventName);
-				_eventListeners[eventName][i](null, true);
+				eventListeners[eventName][i](null, true);
 			}
 		}
-		_eventListeners = Object.create(null);
 	}
 
 	function reset() {
