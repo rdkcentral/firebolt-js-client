@@ -130,7 +130,7 @@ JSCValue* create_transport(JSCContext* jsContext, const char* url, const bool en
     JSCClass* transportClass = create_transport_class(jsContext);
     return jsc_value_new_object(
         jsContext,
-        TransportClass::create_instance(url),
+        TransportClass::create_instance(url,enableDebug),
         transportClass);
 }
 

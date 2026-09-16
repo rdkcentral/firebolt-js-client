@@ -55,7 +55,7 @@ JSCValue* evaluate_bridge_script(JSCContext* jsContext);
 JSCValue* evaluate_builder_script(JSCContext* jsContext);
 JSCValue* get_extension_script(const char* extensionPath, JSCContext* jsContext);
 void print_exception(JSCContext* context, JSCException* exception, gpointer data);
-JSCValue* create_transport(JSCContext* jsContext, const char* url);
+JSCValue* create_transport(JSCContext* jsContext, const char* url, const bool enableDebug);
 void clear_transport();
 } // namespace Helper
 } // namespace FireboltExtension

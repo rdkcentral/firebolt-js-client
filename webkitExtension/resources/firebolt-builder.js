@@ -57,7 +57,7 @@
 					? message.params.value
 					: message.params;
 				for (var i = 0; i < cbs.length; i++) {
-					cbs[i](payload)
+					cbs[i](payload,false)
 				}
 			}
 		}
@@ -403,7 +403,8 @@
 	function clearEventListeners() {
 		for (var eventName in _eventListeners) {
 			for (var i = 0; i < _eventListeners[eventName].length; i++) {
-				_eventListeners[eventName][i](null, false);
+				console.warn("send cancelled event to listener for " + eventName);
+				_eventListeners[eventName][i](null, true);
 			}
 		}
 		_eventListeners = Object.create(null);
@@ -423,11 +424,15 @@
 			throw new Error("Transport is required")
 		}
 		if (typeof extensionSchema === "string" && extensionSchema.length > 0) {
-			let parsedExtensionSchema = _commonParse(extensionSchema);
-			if (_commonArrayCheck(parsedExtensionSchema)) {
-				_extensionSchema = parsedExtensionSchema
-			} else {
-				console.warn("invalid extension after parsing")
+			try {
+				let parsedExtensionSchema = _commonParse(extensionSchema);
+				if (_commonArrayCheck(parsedExtensionSchema)) {
+					_extensionSchema = parsedExtensionSchema
+				} else {
+					console.warn("invalid extension after parsing")
+				}
+			} catch (error) {
+				console.warn("Error parsing extension schema: " + error);
 			}
 		}
 	
