@@ -171,10 +171,10 @@ describe("smoke test: generate firebolt-inject.js from real OpenRPC files", () =
     const src = output.content;
 
     expect(src.trimStart()).toMatch(/^\(function\(global\)/);
-    expect(src).toContain("FireboltServiceManager");
-    expect(src).toContain("configure");
+    expect(src).toContain("factory");
+    expect(src).toContain("build");
     expect(src).toContain("_VERSION");
-    expect(src).toContain("_methodRegistry");
+    expect(src).toContain("_fireboltRegistry");
     expect(src.trimEnd()).toMatch(/globalThis.*window.*\);$/);
   });
 
@@ -191,7 +191,7 @@ describe("smoke test: generate firebolt-inject.js from real OpenRPC files", () =
     const src = output.content;
 
     // Localization and Accessibility are web/both — their methods must be present
-    expect(src).toContain("Localization.");
-    expect(src).toContain("Accessibility.");
+    expect(src).toContain("_Localization");
+    expect(src).toContain("_Accessibility");
   });
 });

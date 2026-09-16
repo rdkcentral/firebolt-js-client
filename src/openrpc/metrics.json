@@ -26,6 +26,42 @@
       ]
     },
     {
+      "name": "Metrics.signIn",
+      "summary": "Log a sign in event.",
+      "description": "Log a sign in event. Platform will automatically detect the id.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "userSignedIn",
+          "summary": "User signed in",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
+      "name": "Metrics.signOut",
+      "summary": "Log a sign out event.",
+      "description": "Log a sign out event. Platform will automatically detect the id.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": { "type": "null" }
+      },
+      "examples": [
+        {
+          "name": "userSignedOut",
+          "summary": "User signed out",
+          "params": [],
+          "result": { "name": "result", "value": null }
+        }
+      ]
+    },
+    {
       "name": "Metrics.startContent",
       "summary": "Signal that content playback started.",
       "description": "Signals the app is starting to show video or audio content.",
@@ -125,8 +161,27 @@
     {
       "name": "Metrics.mediaLoadStart",
       "summary": "Signal media load started.",
-      "description": "Signals that the app has started loading media content.",
-      "params": [],
+      "description": "Called when setting the URL of a media asset to play, in order to infer load time.",
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -135,7 +190,9 @@
         {
           "name": "loadStarted",
           "summary": "Media loading started",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -143,8 +200,27 @@
     {
       "name": "Metrics.mediaPlay",
       "summary": "Signal media play began.",
-      "description": "Signals that media playback has begun.",
-      "params": [],
+      "description": "Called when media playback should start due to autoplay, user-initiated play, or unpausing.",
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -153,7 +229,9 @@
         {
           "name": "playStarted",
           "summary": "Playback started",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -161,8 +239,27 @@
     {
       "name": "Metrics.mediaPlaying",
       "summary": "Signal media is actively playing.",
-      "description": "Signals that media is actively playing (distinguishes from play intent, e.g., after buffering).",
-      "params": [],
+      "description": "Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.",
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -171,7 +268,9 @@
         {
           "name": "mediaActive",
           "summary": "Media actively playing",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -180,7 +279,26 @@
       "name": "Metrics.mediaPause",
       "summary": "Signal media was paused.",
       "description": "Signals that media playback has been paused.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -189,7 +307,9 @@
         {
           "name": "mediaPaused",
           "summary": "Playback paused",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -198,7 +318,26 @@
       "name": "Metrics.mediaWaiting",
       "summary": "Signal media is buffering.",
       "description": "Signals that media playback is waiting (buffering) for data.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -207,7 +346,9 @@
         {
           "name": "mediaBuffering",
           "summary": "Media is buffering",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -216,7 +357,26 @@
       "name": "Metrics.mediaSeeking",
       "summary": "Signal user is seeking.",
       "description": "Signals that the user is seeking to a new playback position.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -225,7 +385,9 @@
         {
           "name": "userSeeking",
           "summary": "User initiated seek",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -234,7 +396,26 @@
       "name": "Metrics.mediaSeeked",
       "summary": "Signal seek completed.",
       "description": "Signals that the user has completed seeking to a new position.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -243,7 +424,9 @@
         {
           "name": "seekComplete",
           "summary": "Seek operation completed",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -252,7 +435,26 @@
       "name": "Metrics.mediaRateChanged",
       "summary": "Signal playback rate changed.",
       "description": "Signals that media playback rate has changed (e.g., speed up, slow down).",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -261,7 +463,9 @@
         {
           "name": "rateChanged",
           "summary": "Playback rate changed",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -270,7 +474,26 @@
       "name": "Metrics.mediaRenditionChanged",
       "summary": "Signal rendition/quality changed.",
       "description": "Signals that media rendition (quality) has changed.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -279,7 +502,9 @@
         {
           "name": "qualityChanged",
           "summary": "Media quality changed to 1080p",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -288,7 +513,26 @@
       "name": "Metrics.mediaEnded",
       "summary": "Signal media playback ended.",
       "description": "Signals that media playback has ended.",
-      "params": [],
+      "params": [
+        {
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "entityId": {
+                "type": "string",
+                "description": "Entity identifier for the media asset"
+              },
+              "agePolicy": {
+                "type": "string",
+                "description": "Age policy for the content"
+              }
+            },
+            "required": ["entityId"]
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -297,7 +541,9 @@
         {
           "name": "playbackEnded",
           "summary": "Media playback completed",
-          "params": [],
+          "params": [
+            { "name": "params", "value": { "entityId": "video123" } }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]

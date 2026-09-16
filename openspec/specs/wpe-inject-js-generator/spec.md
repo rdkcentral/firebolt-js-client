@@ -1,83 +1,93 @@
 ## ADDED Requirements
 
-### Requirement: Bundle exposes a frozen FireboltServiceManager global
-The inject-js generator SHALL emit a self-contained IIFE that:
-1. Constructs the `FireboltServiceManager` object and calls `Object.freeze()` on it (prevents adding, modifying, or deleting properties of the object itself).
-2. Attaches it to `global` using `Object.defineProperty(global, "FireboltServiceManager", { value: <frozen_fsm>, writable: false, configurable: false, enumerable: true })` so the global property itself cannot be reassigned or deleted from page JavaScript.
+### Requirement: Bundle exposes a factory function
+The inject-js generator SHALL emit a self-contained IIFE that returns a factory function. The factory function accepts a configuration object with `transport`, `extensionSchema`, and `enableDebug` properties and returns a builder object with a `build()` method.
 
-The object MUST have exactly three members: `version` (string), `transport` (function), and `get` (function).
+#### Scenario: Factory function accepts configuration
+- **WHEN** the generated bundle is evaluated and called with `{ transport, extensionSchema, enableDebug }`
+- **THEN** it MUST return an object with a `build()` method
+- **THEN** the `build()` method MUST return a Promise that resolves to the FireboltClient
 
-> Note: `Object.freeze()` alone is sufficient for `FireboltClient` and its module namespace objects because they are returned values, not global properties. `Object.defineProperty` is required only for the `FireboltServiceManager` global attachment.
+#### Scenario: Factory function validates transport
+- **WHEN** the factory function is called without a transport
+- **THEN** it MUST throw an Error with message "Transport is required"
+- **WHEN** the factory function is called with an invalid transport
+- **THEN** it MUST throw an Error indicating missing required methods
 
-#### Scenario: FireboltServiceManager is frozen after injection
-- **WHEN** the generated bundle is evaluated
-- **THEN** `Object.isFrozen(FireboltServiceManager)` MUST return `true`
-- **THEN** `FireboltServiceManager.version` MUST equal the semver string from `CanonicalAST.version`
-- **THEN** `typeof FireboltServiceManager.transport` MUST equal `"function"`
-- **THEN** `typeof FireboltServiceManager.get` MUST equal `"function"`
+#### Scenario: Factory function parses extension schema
+- **WHEN** the factory function is called with a valid extensionSchema JSON string
+- **THEN** it MUST parse the JSON and store it for later use
+- **WHEN** the factory function is called with invalid extensionSchema JSON
+- **THEN** it MUST log a warning and continue without extension schema
 
-#### Scenario: FireboltServiceManager cannot be mutated
-- **WHEN** code attempts `FireboltServiceManager.newProp = 1` or `delete FireboltServiceManager.version`
-- **THEN** the property MUST not be changed (silently fails in non-strict; throws `TypeError` in strict)
-
-#### Scenario: FireboltServiceManager global property cannot be replaced
-- **WHEN** code attempts `window.FireboltServiceManager = null` or `delete window.FireboltServiceManager`
-- **THEN** the global property MUST remain pointing to the original frozen object (writable: false, configurable: false via `Object.defineProperty`)
-
----
-
-### Requirement: transport() injects the transport for message handling
-`FireboltServiceManager.transport(t)` SHALL:
-1. Accept a transport object `t` with methods: `send(msg)`, `onMessage(callback)`, `onConnectionStatus(callback)`, `connect()`, and `disconnect()`.
-2. Store the transport privately in IIFE closure (not accessible from page code).
-3. Throw an `Error` if called more than once (one-time injection guard).
-4. MUST NOT attempt to call any transport methods during injection; only store the reference.
-
-#### Scenario: transport() accepts and stores the transport object
-- **WHEN** `FireboltServiceManager.transport(t)` is called with a valid transport
-- **THEN** no error MUST be thrown
-- **THEN** subsequent `get()` calls MUST use the injected transport
-
-#### Scenario: transport() throws on double injection
-- **WHEN** `FireboltServiceManager.transport(t1)` is called, then `FireboltServiceManager.transport(t2)` is called
-- **THEN** the second call MUST throw an `Error` with a message indicating transport is already set
-
-#### Scenario: transport() does not validate transport methods during injection
-- **WHEN** `FireboltServiceManager.transport(t)` is called with an invalid or incomplete transport object
-- **THEN** no error MUST be thrown during injection
-- **THEN** errors MUST surface when methods are first called (e.g., during `get()`)
+#### Scenario: Factory function enables debug mode
+- **WHEN** the factory function is called with `enableDebug: true`
+- **THEN** it MUST enable debug logging
+- **THEN** it MUST expose the transport globally as `window.___fireboltTransport___`
 
 ---
 
-### Requirement: get() initialises transport connection and returns a Promise
-`FireboltServiceManager.get()` SHALL:
-1. Throw a synchronous `Error` if `transport()` has not been called.
-2. On first call: register `onMessage` and `onConnectionStatus` callbacks with the injected transport, then call `connect()`.
-3. Return a `Promise` that resolves to the singleton `FireboltClient` object once the transport emits `"connected"`.
-4. On subsequent calls while connection is in progress: return a new `Promise` that also resolves to the same singleton instance when `"connected"` fires.
-5. Once connected: return `Promise.resolve(<singleton>)` immediately.
+### Requirement: Transport interface uses send, open, close with callback properties
+The factory function SHALL accept a transport object with methods `send(msg)`, `open()`, and `close()`. The transport SHALL have callback properties `onMessage`, `onOpen`, `onClose`, and `onError` that are set by the factory.
 
-#### Scenario: get() before transport() throws
-- **WHEN** `FireboltServiceManager.get()` is called before `transport()`
-- **THEN** a synchronous `Error` MUST be thrown with a message indicating transport must be set first
+#### Scenario: Transport validation checks required methods
+- **WHEN** the factory function validates the transport
+- **THEN** it MUST check for `send`, `open`, and `close` methods
+- **THEN** it MUST throw an Error if any required method is missing or not a function
 
-#### Scenario: get() resolves after connection is established
-- **WHEN** `transport(t)` has been called and `get()` is invoked
-- **THEN** the returned Promise MUST resolve only after the transport emits `"connected"`
+#### Scenario: Factory sets transport callback properties
+- **WHEN** the `build()` method is called
+- **THEN** it MUST set `_transport.onMessage` to the internal message handler
+- **THEN** it MUST set `_transport.onOpen` to the internal open handler
+- **THEN** it MUST set `_transport.onClose` to the internal close handler
+- **THEN** it MUST set `_transport.onError` to the internal error handler
+
+#### Scenario: Connection management uses onOpen/onClose
+- **WHEN** the transport calls `onOpen()`
+- **THEN** the internal state MUST set `_connected = true`
+- **THEN** it MUST build the FireboltClient instance
+- **THEN** it MUST resolve all pending connection promises
+- **WHEN** the transport calls `onClose()`
+- **THEN** the internal state MUST set `_connected = false`
+
+#### Scenario: Auto-reconnect on error
+- **WHEN** the transport calls `onError(error)`
+- **THEN** it MUST clear pending calls
+- **THEN** it MUST clear event listeners with cancellation
+- **THEN** it MUST set `_connected = false`
+- **THEN** it MUST attempt to reconnect by calling `_connect()`
+
+---
+
+### Requirement: build() method initializes connection and returns Promise
+The builder object's `build()` method SHALL:
+1. Return a Promise that resolves to the singleton FireboltClient object once the transport emits `onOpen()`.
+2. On subsequent calls while connection is in progress: return a new Promise that also resolves to the same singleton instance when `onOpen()` fires.
+3. Once connected: return `Promise.resolve(<singleton>)` immediately.
+4. Set transport callback properties on first call only.
+
+#### Scenario: build() resolves after connection is established
+- **WHEN** the `build()` method is called
+- **THEN** the returned Promise MUST resolve only after the transport calls `onOpen()`
 - **THEN** the resolved value MUST be the frozen FireboltClient object
 
-#### Scenario: Multiple get() callers share the same instance
-- **WHEN** `get()` is called twice before the connection is established
+#### Scenario: Multiple build() callers share the same instance
+- **WHEN** `build()` is called twice before the connection is established
 - **THEN** both Promises MUST resolve with the same object reference
 
-#### Scenario: get() after connection resolves immediately
-- **WHEN** `get()` is called after the transport is already connected
+#### Scenario: build() after connection resolves immediately
+- **WHEN** `build()` is called after the transport is already connected
 - **THEN** the returned Promise MUST resolve in the same microtask turn with the existing singleton
+
+#### Scenario: build() sets callbacks only once
+- **WHEN** `build()` is called multiple times
+- **THEN** transport callback properties MUST be set only on the first call
+- **THEN** subsequent calls MUST not overwrite the callback properties
 
 ---
 
 ### Requirement: FireboltClient is a frozen module-namespaced object
-The `FireboltClient` returned by `get()` SHALL be a frozen object whose properties are the PascalCase module names of all `web` and `both` platform modules in the Canonical AST. Each module property SHALL itself be a frozen object containing the module's methods. The top-level `FireboltClient` and all module namespace objects MUST be immutable.
+The `FireboltClient` returned by `build()` SHALL be a frozen object whose properties are the PascalCase module names of all `web` and `both` platform modules in the Canonical AST. Each module property SHALL itself be a frozen object containing the module's methods. The top-level `FireboltClient` and all module namespace objects MUST be immutable.
 
 #### Scenario: FireboltClient has expected module namespaces
 - **WHEN** the AST contains modules `Accessibility` (platform: "both") and `Localization` (platform: "both")
@@ -92,11 +102,34 @@ The `FireboltClient` returned by `get()` SHALL be a frozen object whose properti
 
 ---
 
+### Requirement: Methods are generated statically using Object.defineProperty
+The inject-js generator SHALL generate static module definitions using `Object.defineProperty` for each method and event at generation time, rather than building modules dynamically from a registry at runtime.
+
+#### Scenario: Static method generation uses Object.defineProperty
+- **WHEN** the generator processes a method
+- **THEN** it MUST emit an `Object.defineProperty` call for that method
+- **THEN** the property MUST have `writable: false`, `enumerable: true`, `configurable: false`
+
+#### Scenario: Static event generation uses Object.defineProperty
+- **WHEN** the generator processes an event
+- **THEN** it MUST emit an `Object.defineProperty` call for that event
+- **THEN** the property MUST have `writable: false`, `enumerable: true`, `configurable: false`
+
+#### Scenario: Module registration uses Object.defineProperty
+- **WHEN** the generator completes a module
+- **THEN** it MUST emit an `Object.defineProperty` call to register the module
+- **THEN** the property MUST have `writable: false`, `enumerable: true`, `configurable: false`
+
+---
+
 ### Requirement: Call method stubs send JSON-RPC without clientId
 Each `kind: "call"` method stub SHALL:
 1. Allocate a unique integer `id` and send `{ jsonrpc:"2.0", id, method:"Module.methodName", params }` via `transport.send(msg)` (no clientId argument).
 2. On receiving `{ id, result }`: resolve the Promise with the result value (no validation).
 3. On receiving `{ id, error }`: reject the Promise with an `Error` constructed from `error.message` and `error.code`.
+4. The inject-js generator SHALL produce two distinct parameter patterns based on the method's parameter count:
+   - **No-param methods** (paramCount === 0): Generate stubs that accept no arguments and send empty params object
+   - **Single-param methods** (paramCount >= 1): Generate stubs that accept a single parameter (primitive or object) and send it as params
 
 #### Scenario: Call method sends params without clientId
 - **WHEN** a call stub is invoked with params
@@ -111,15 +144,31 @@ Each `kind: "call"` method stub SHALL:
 - **WHEN** the backend responds with `{ id, error: { code: -32602, message: "Invalid params" } }`
 - **THEN** the returned Promise MUST reject with an Error whose message includes the backend error message and code
 
+#### Scenario: No-param method stub accepts no arguments
+- **WHEN** a method with paramCount === 0 is invoked without arguments
+- **THEN** the method MUST be callable as `Module.method()`
+- **THEN** the generated stub MUST send `{ jsonrpc:"2.0", id, method, params: {} }` to the transport
+
+#### Scenario: Single-param method stub accepts primitive value
+- **WHEN** a method with paramCount >= 1 is invoked with a primitive value (string, number, boolean)
+- **THEN** the method MUST be callable as `Module.method(value)`
+- **THEN** the generated stub MUST send the primitive value as the params field to the transport
+
+#### Scenario: Single-param method stub accepts object value
+- **WHEN** a method with paramCount >= 1 is invoked with an object
+- **THEN** the method MUST be callable as `Module.method({ param1: value1, param2: value2 })`
+- **THEN** the generated stub MUST send the object as the params field to the transport
+
 ---
 
-### Requirement: Subscribe stubs register callbacks and await backend confirmation without clientId
+### Requirement: Event listeners use two-parameter signature with cancellation
 Each `kind: "subscribe"` method stub SHALL:
 1. Register the user callback in the internal `_eventListeners` map eagerly (before sending).
 2. Send `{ jsonrpc:"2.0", id, method:"Module.onEventName", params:{ listen:true } }` via `transport.send(msg)` (no clientId argument).
 3. Return a `Promise` that resolves with a synchronous unsubscribe function only when the backend confirms with `{ id, result: null }`.
 4. On backend error response: remove the eagerly-registered callback, reject the Promise.
 5. On transport send failure: remove the callback, reject the Promise.
+6. Event callbacks SHALL accept two parameters: `(object, cancelled: bool)` where cancelled is true on connection failures.
 
 #### Scenario: Subscribe sends params without clientId
 - **WHEN** a subscribe stub is invoked
@@ -141,64 +190,128 @@ Each `kind: "subscribe"` method stub SHALL:
 - **THEN** the callback MUST be removed from `_eventListeners`
 - **THEN** if no other callbacks remain for that event, `{ listen: false }` MUST be sent to the backend
 
----
+#### Scenario: Event callback receives two parameters
+- **WHEN** an event notification arrives
+- **THEN** the callback MUST be called with `(payload, false)`
+- **THEN** the first parameter MUST be the event payload
+- **THEN** the second parameter MUST be false for normal events
 
-### Requirement: FireboltClient has a disconnect() method
-The `FireboltClient` returned by `get()` SHALL include a `disconnect()` method that:
-1. Calls `transport.disconnect()` on the injected transport.
-2. Clears all event listeners in `_eventListeners`.
-3. Rejects all pending call Promises with a DisconnectError.
-4. Resets the internal connection state flags (`_connecting=false`, `_connected=false`).
-5. Clears the singleton reference so that subsequent `get()` calls can reconnect.
-
-#### Scenario: disconnect() clears state and calls transport
-- **WHEN** `firebolt.disconnect()` is called while connected
-- **THEN** `transport.disconnect()` MUST be called
-- **THEN** all event listeners MUST be cleared
-- **THEN** the internal state MUST be reset
-
-#### Scenario: Pending calls are rejected on disconnect
-- **WHEN** a call Promise is pending and `firebolt.disconnect()` is called
-- **THEN** the pending call Promise MUST reject with a DisconnectError
-
-#### Scenario: get() after disconnect() initiates fresh connection
-- **WHEN** `firebolt.disconnect()` has been called and `get()` is invoked again
-- **THEN** the transport MUST be reconnected
-- **THEN** a new singleton FireboltClient MUST be created and returned
+#### Scenario: Event callback receives cancellation signal
+- **WHEN** event listeners are cleared due to connection failure
+- **THEN** each callback MUST be called with `(null, true)`
+- **THEN** the first parameter MUST be null
+- **THEN** the second parameter MUST be true to indicate cancellation
 
 ---
 
 ### Requirement: Event notifications are routed by method field
 Incoming messages with a `method` field and no `id` field SHALL be treated as Firebolt 9 event notifications. The runtime SHALL:
-1. Look up the event in `_methodRegistry`.
-2. Extract the payload: if `eventIsPrimitive` is `true`, extract `params.value`; otherwise use `params` directly.
-3. Dispatch the payload to all registered callbacks in `_eventListeners[method]` (no validation).
+1. Look up the event in the internal event listener map.
+2. Extract the payload: if `params` has a `value` property, extract `params.value`; otherwise use `params` directly.
+3. Dispatch the payload to all registered callbacks in `_eventListeners[method]` with `(payload, false)` (no validation).
 
 #### Scenario: Primitive event payload extracted from params.value
 - **WHEN** a notification `{ method:"Localization.onCountryChanged", params:{ value:"US" } }` arrives
-- **THEN** the callback MUST receive `"US"` (not `{ value: "US" }`)
+- **THEN** the callback MUST receive `("US", false)` (not `{ value: "US" }`)
 
 #### Scenario: Object event payload passed as params directly
-- **WHEN** a notification `{ method:"SomeModule.onSomeChanged", params:{ key:"val" } }` arrives and `eventIsPrimitive` is `false`
-- **THEN** the callback MUST receive `{ key:"val" }`
+- **WHEN** a notification `{ method:"SomeModule.onSomeChanged", params:{ key:"val" } }` arrives
+- **THEN** the callback MUST receive `({ key:"val" }, false)`
 
 #### Scenario: Array event payload passed as params directly
-- **WHEN** a notification `{ method:"SomeModule.onListChanged", params:["a","b"] }` arrives and `eventIsPrimitive` is `false`
-- **THEN** the callback MUST receive `["a","b"]` (not `{ value: ["a","b"] }`)
+- **WHEN** a notification `{ method:"SomeModule.onListChanged", params:["a","b"] }` arrives
+- **THEN** the callback MUST receive `(["a","b"], false)`
+
+---
+
+### Requirement: FireboltClient has a cleanup() method
+The `FireboltClient` returned by `build()` SHALL include a `cleanup()` method that:
+1. Calls `clearEventListeners()` to notify all listeners with `(null, true)`.
+2. Calls `clearPendingCalls()` to reject all pending call Promises.
+3. Resets the internal connection state flags (`_connecting=false`, `_connected=false`).
+4. Calls `transport.close()` if available.
+5. Clears the singleton reference.
+
+#### Scenario: cleanup() clears state and calls transport
+- **WHEN** `firebolt.cleanup()` is called while connected
+- **THEN** `transport.close()` MUST be called if available
+- **THEN** all event listeners MUST be called with `(null, true)`
+- **THEN** all pending calls MUST be rejected
+- **THEN** the internal state MUST be reset
+
+#### Scenario: Pending calls are rejected on cleanup
+- **WHEN** a call Promise is pending and `firebolt.cleanup()` is called
+- **THEN** the pending call Promise MUST reject with an Error
+
+#### Scenario: build() after cleanup() initiates fresh connection
+- **WHEN** `firebolt.cleanup()` has been called and `build()` is invoked again
+- **THEN** the transport MUST be reconnected
+- **THEN** a new singleton FireboltClient MUST be created and returned
+
+---
+
+### Requirement: Extension schema loading supports dynamic API extension
+The factory function SHALL support dynamic extension schema loading via the `extensionSchema` parameter. The extension schema is a JSON string array that allows app developers to extend the Firebolt API with custom modules and methods.
+
+#### Scenario: Extension schema format is validated
+- **WHEN** extensionSchema is provided as a JSON string
+- **THEN** it MUST be parsed and validated as an array
+- **THEN** each element MUST have a `name` property (string)
+- **THEN** each element MAY have `methods`, `events`, and `methodsWithObject` properties (arrays of strings)
+
+#### Scenario: Extension methods are added to registry
+- **WHEN** extension schema includes methods for a module
+- **THEN** those methods MUST be added to the module using `_addMethodNoParams`
+- **THEN** methods MUST not overwrite existing methods
+
+#### Scenario: Extension events are added to registry
+- **WHEN** extension schema includes events for a module
+- **THEN** those events MUST be added to the module using `_addEvent`
+- **THEN** events MUST not overwrite existing events
+
+#### Scenario: Extension methods with object params are added to registry
+- **WHEN** extension schema includes methodsWithObject for a module
+- **THEN** those methods MUST be added to the module using `_addMethodWithObjectParam`
+- **THEN** methods MUST not overwrite existing methods
+
+#### Scenario: Extension modules are registered
+- **WHEN** extension schema includes a new module name
+- **THEN** that module MUST be registered in the FireboltClient
+- **WHEN** extension schema extends an existing module
+- **THEN** the existing module MUST be extended with new methods/events
+
+---
+
+### Requirement: Debug mode provides logging and transport exposure
+The factory function SHALL support an optional `enableDebug` flag that enables console logging and exposes the transport globally for debugging purposes.
+
+#### Scenario: Debug mode enables message logging
+- **WHEN** `enableDebug: true` is provided
+- **THEN** incoming messages MUST be logged to console with "-->" prefix
+- **THEN** outgoing messages MUST be logged to console with "<--" prefix
+
+#### Scenario: Debug mode exposes transport globally
+- **WHEN** `enableDebug: true` is provided
+- **THEN** the transport MUST be exposed as `window.___fireboltTransport___`
+
+#### Scenario: Debug mode is disabled by default
+- **WHEN** `enableDebug` is not provided or is false
+- **THEN** no message logging MUST occur
+- **THEN** the transport MUST NOT be exposed globally
 
 ---
 
 ### Requirement: Generated bundle targets web-platform modules only
-The inject-js generator SHALL include only modules whose `platform` is `"web"` or `"both"` in the `_methodRegistry` and the `FireboltClient` namespace. Modules with `platform: "native"` SHALL be silently excluded.
+The inject-js generator SHALL include only modules whose `platform` is `"web"` or `"both"` in the static module generation. Modules with `platform: "native"` SHALL be silently excluded.
 
 #### Scenario: web module is included
 - **WHEN** the AST contains a module with `platform: "web"`
-- **THEN** that module's methods MUST appear in `_methodRegistry`
+- **THEN** that module's methods MUST be generated with static Object.defineProperty calls
 - **THEN** that module MUST appear as a namespace on the FireboltClient
 
 #### Scenario: native module is excluded
 - **WHEN** the AST contains a module with `platform: "native"`
-- **THEN** that module's methods MUST NOT appear in `_methodRegistry`
+- **THEN** that module's methods MUST NOT be generated
 - **THEN** that module MUST NOT appear on the FireboltClient
 
 ---
@@ -208,4 +321,4 @@ The `_VERSION` constant in the generated bundle SHALL equal the `version` string
 
 #### Scenario: version matches OpenRPC version
 - **WHEN** the OpenRPC documents carry `info.version: "9.0"`
-- **THEN** `FireboltServiceManager.version` MUST equal `"9.0"`
+- **THEN** the `_VERSION` constant MUST equal `"9.0"`
