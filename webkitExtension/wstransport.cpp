@@ -157,7 +157,7 @@ ExceptionHandler::ExceptionHandler(JSCContext* context)
         _on_message_cb = g_object_ref(callback);
     }
 
- WebSocketTransport::WebSocketTransport(const char* url)
+ WebSocketTransport::WebSocketTransport(const char* url, const bool enableDebug): _enableDebug(enableDebug)
 {
     g_debug("WebSocketTransport created %p", this);
     s_transport = this;
@@ -226,7 +226,9 @@ void WebSocketTransport::send(const char* message)
         jsc_context_throw(jsc_context_get_current(), "Message is null.");
         return;
     }
-    g_message("<--%s", message);
+    if (_enableDebug) {
+        g_message("<--%s", message);
+    }
     _ws->SendMessage(message);
 }
 
@@ -272,7 +274,9 @@ void WebSocketTransport::on_message(GBytes* message)
         return;
     }
 
-    g_message("-->%s", data);
+    if (_enableDebug) {
+        g_message("-->%s", data);
+    }
 
 
     if (_on_message_cb )
@@ -393,9 +397,9 @@ void TransportClass::call_close(BaseTransport* transport)
     transport->close();
 }
 
-BaseTransport* TransportClass::create_instance(const char* url)
+BaseTransport* TransportClass::create_instance(const char* url, const bool enableDebug)
 {
-    return new WebSocketTransport(url);
+    return new WebSocketTransport(url, enableDebug);
 }
 
 void TransportClass::destroy_instance(BaseTransport* transport)

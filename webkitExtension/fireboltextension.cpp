@@ -49,7 +49,7 @@ static JSCValue* builder_cb(gpointer user_data)
     g_message("Builder script evaluated successfully");
 
     // Create transport object
-    JSCValue *transport = create_transport(ctx, config->fireboltEndpoint);
+    JSCValue *transport = create_transport(ctx, config->fireboltEndpoint, config->enableDebug);
 
     if (!transport) {
         g_warning("failed to create transport object");

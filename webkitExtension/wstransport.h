@@ -100,8 +100,10 @@ public:
 {
 private:
     std::unique_ptr<WebSocketClient> _ws;
+    bool _enableDebug;
+    
 public:
-    explicit WebSocketTransport(const char* url);
+    explicit WebSocketTransport(const char* url, const bool enableDebug);
 
     ~WebSocketTransport() override;
 
@@ -150,7 +152,7 @@ struct TransportClass
 
     static void call_close(BaseTransport* transport);
 
-    static BaseTransport *create_instance(const char* url);
+    static BaseTransport *create_instance(const char* url, const bool enableDebug);
 
     static void destroy_instance(BaseTransport* transport);
 

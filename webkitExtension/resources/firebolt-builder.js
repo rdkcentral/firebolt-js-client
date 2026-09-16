@@ -105,8 +105,14 @@
 		if (_connected){
 			return false;
 		}
-		_transport.open();
-		_connecting = true;
+		try {
+			_transport.open();
+			_connecting = true;
+		} catch (e) {
+			console.error("Firebolt transport error:", e);
+			throw e;
+		}
+		
 	}
 
 	function _notConnectedError() {
@@ -479,7 +485,11 @@
 						_transport.onError = _onError;
 						_transportSet = true;
 					}
-					_connect();
+					try {
+						_connect();
+					} catch (e) {
+						p.reject(e);
+					}
 				}
 				return p
 			}

@@ -120,7 +120,7 @@ JSCValue* get_extension_script(const char* extensionPath, JSCContext* jsContext)
     return result;
 }
 
-JSCValue* create_transport(JSCContext* jsContext, const char* url)
+JSCValue* create_transport(JSCContext* jsContext, const char* url, const bool enableDebug)
 {
     // Keep single connection active, the last one wins
     clear_transport();
