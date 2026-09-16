@@ -63,19 +63,6 @@
 		}
 	}
 
-	function _onStatus(status) {
-		_connected = status === "connected";
-		if (_connected) {
-			if (!_fireboltInstance) {
-				_fireboltInstance = _buildFireboltInstance()
-			}
-			var resolvers = _connectionResolvers.splice(0);
-			for (var i = 0; i < resolvers.length; i++) {
-				resolvers[i](_fireboltInstance)
-			}
-		}
-	}
-
 	function _onOpen() {
 		console.log("Firebolt transport opened");
 		_connected = true;
@@ -349,11 +336,8 @@
 	_registerModule("VideoOutput", _videoOutputModule);
 	Object.defineProperty(_fireboltRegistry, "cleanup", {
 		value: function() {
+			// only cleans up local state, not the global firebolt object
 			reset();
-			if (_transport && _transport.close) {
-				_transport.close()
-			}
-			_fireboltInstance = null;
 		},
 		writable: false,
 		enumerable: true,
@@ -428,9 +412,6 @@
 	function reset() {
 		clearEventListeners();
 		clearPendingCalls();
-		_connectionResolvers = [];
-		_connected = false;
-		_connecting = false;
 	}
 
 	return function({

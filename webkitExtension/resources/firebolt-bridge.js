@@ -4,6 +4,8 @@
 	var _builderFactory = null;
 	var _builder = null;
 	var _VERSION = "9.0";
+	var _buildResolvers = [];
+	var _building = false;
 
 	function _get() {
 		if (!_builderFactory) {
@@ -19,11 +21,27 @@
 				reject(new Error("Builder object must have a 'build' method"));
 				return
 			}
-			_builder.build().then(function(instance) {
-                console.log("Builder build successful");
-				_fireboltInstance = instance;
-				resolve(instance)
-			}).catch(reject)
+			if (!_building) {
+				_building = true;
+				_builder.build().then(function(instance) {
+					_building = false;
+					_fireboltInstance = instance;
+					resolve(instance);
+					_buildResolvers.forEach(function(resolver) {
+						resolver[0](instance);
+					});
+					_buildResolvers = [];
+				}).catch(function(error) {
+					_building = false;
+					reject(error);
+					_buildResolvers.forEach(function(resolver) {
+						resolver[1](error);
+					});
+					_buildResolvers = [];
+				});
+			} else {
+				_buildResolvers.push([resolve, reject]);
+			}
 		})
 	}
 	var _fsm = Object.create(null);
