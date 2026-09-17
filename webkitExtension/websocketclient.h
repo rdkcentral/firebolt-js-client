@@ -16,47 +16,45 @@
  * limitations under the License.
  */
 
- #ifndef WEBSOCKETCLIENT_H
- #define WEBSOCKETCLIENT_H
+#ifndef WEBSOCKETCLIENT_H
+#define WEBSOCKETCLIENT_H
 
- #include <wpe/webkit-web-extension.h>
- #include "soupfunctions.h"
- #include <functional>
+#include "soupfunctions.h"
+#include <functional>
+#include <wpe/webkit-web-extension.h>
 
 struct WebSocketCallback {
-    std::function<void(GBytes*)> onMessage;
-    std::function<void()> onOpen;
-    std::function<void(const char*)> onError;
-    std::function<void()> onClosed;
+  std::function<void(GBytes *)> onMessage;
+  std::function<void()> onOpen;
+  std::function<void(const char *)> onError;
+  std::function<void()> onClosed;
 };
 
-class WebSocketClient
-{
+class WebSocketClient {
 public:
-    WebSocketClient(const char *url, WebSocketCallback callbacks);
-    ~WebSocketClient();
+  WebSocketClient(const char *url, WebSocketCallback callbacks);
+  ~WebSocketClient();
 
-    bool Connect();
-    
-    void SendMessage(const char* jsMessage);
+  bool Connect();
 
-    void Disconnect();
+  void SendMessage(const char *jsMessage);
 
-    void Cleanup();
+  void Disconnect();
 
+  void Cleanup();
 
 private:
-    char *m_url;
-    WebSocketCallback m_callbacks;
+  char *m_url;
+  WebSocketCallback m_callbacks;
 
-    SoupSession *m_session { nullptr };
-    SoupWebsocketConnection *m_conn { nullptr };
-    GCancellable *m_cancellable { nullptr };
+  SoupSession *m_session{nullptr};
+  SoupWebsocketConnection *m_conn{nullptr};
+  GCancellable *m_cancellable{nullptr};
 
-    void onConnection(SoupWebsocketConnection *ws);
-    void onMessage(gint type, GBytes *message);
-    void onError(GError *error);
-    void onClosed();
+  void onConnection(SoupWebsocketConnection *ws);
+  void onMessage(gint type, GBytes *message);
+  void onError(GError *error);
+  void onClosed();
 };
 
 #endif // WEBSOCKETCLIENT_H

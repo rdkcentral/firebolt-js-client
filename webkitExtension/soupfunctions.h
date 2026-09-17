@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #pragma once
+#pragma once
 
-#include <glib.h>
 #include <gio/gio.h>
+#include <glib.h>
 #include <variant>
 
 typedef struct _SoupMessage SoupMessage;
@@ -30,61 +30,51 @@ typedef SoupSession *(*soup_session_new_t)();
 typedef SoupMessage *(*soup_message_new_t)(const char *method,
                                            const char *uri_string);
 
-typedef gboolean (*soup_check_version_t)(guint major,
-                                            guint minor,
-                                            guint micro);
+typedef gboolean (*soup_check_version_t)(guint major, guint minor, guint micro);
 
-typedef SoupWebsocketConnection *(*soup_session_websocket_connect_finish_t)(SoupSession *session,
-                                                                            GAsyncResult *result,
-                                                                            GError **error);
+typedef SoupWebsocketConnection *(*soup_session_websocket_connect_finish_t)(
+    SoupSession *session, GAsyncResult *result, GError **error);
 
-typedef void (*soup_websocket_connection_send_text_t)(SoupWebsocketConnection *self, const char *text);
+typedef void (*soup_websocket_connection_send_text_t)(
+    SoupWebsocketConnection *self, const char *text);
 
-typedef void (*soup_session_websocket_connect_async_v3_t)(SoupSession *session,
-                                                          SoupMessage *msg,
-                                                          const char *origin,
-                                                          char **protocols,
-                                                          int io_priority,
-                                                          GCancellable *cancellable,
-                                                          GAsyncReadyCallback callback,
-                                                          gpointer user_data);
+typedef void (*soup_session_websocket_connect_async_v3_t)(
+    SoupSession *session, SoupMessage *msg, const char *origin,
+    char **protocols, int io_priority, GCancellable *cancellable,
+    GAsyncReadyCallback callback, gpointer user_data);
 
-typedef void (*soup_session_websocket_connect_async_v2_t)(SoupSession *session,
-                                                          SoupMessage *msg,
-                                                          const char *origin,
-                                                          char **protocols,
-                                                          GCancellable *cancellable,
-                                                          GAsyncReadyCallback callback,
-                                                          gpointer user_data);
+typedef void (*soup_session_websocket_connect_async_v2_t)(
+    SoupSession *session, SoupMessage *msg, const char *origin,
+    char **protocols, GCancellable *cancellable, GAsyncReadyCallback callback,
+    gpointer user_data);
 
-struct SoupFunctions
-{
+struct SoupFunctions {
 
-    static SoupFunctions &get();
+  static SoupFunctions &get();
 
-    soup_session_new_t session_new{nullptr};
-    soup_message_new_t message_new{nullptr};
-    soup_check_version_t check_version{nullptr};
-    soup_session_websocket_connect_finish_t session_websocket_connect_finish{nullptr};
-    soup_websocket_connection_send_text_t websocket_connection_send_text{nullptr};
+  soup_session_new_t session_new{nullptr};
+  soup_message_new_t message_new{nullptr};
+  soup_check_version_t check_version{nullptr};
+  soup_session_websocket_connect_finish_t session_websocket_connect_finish{
+      nullptr};
+  soup_websocket_connection_send_text_t websocket_connection_send_text{nullptr};
 
-    // Use the v3 signature as the main one
-    void session_websocket_connect_async(SoupSession *session,
-                                              SoupMessage *msg,
-                                              const char *origin,
-                                              char **protocols,
-                                              int io_priority,
-                                              GCancellable *cancellable,
-                                              GAsyncReadyCallback callback,
-                                              gpointer user_data);
+  // Use the v3 signature as the main one
+  void session_websocket_connect_async(SoupSession *session, SoupMessage *msg,
+                                       const char *origin, char **protocols,
+                                       int io_priority,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data);
 
 private:
-    std::variant<soup_session_websocket_connect_async_v2_t,
-                 soup_session_websocket_connect_async_v3_t> session_websocket_connect_async_variant{};
+  std::variant<soup_session_websocket_connect_async_v2_t,
+               soup_session_websocket_connect_async_v3_t>
+      session_websocket_connect_async_variant{};
 
-    SoupFunctions();
+  SoupFunctions();
 
-    ~SoupFunctions() = default;
-    SoupFunctions(const SoupFunctions &) = delete;
-    SoupFunctions &operator=(const SoupFunctions &) = delete;
+  ~SoupFunctions() = default;
+  SoupFunctions(const SoupFunctions &) = delete;
+  SoupFunctions &operator=(const SoupFunctions &) = delete;
 };
