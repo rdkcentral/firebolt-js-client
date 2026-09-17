@@ -312,6 +312,7 @@ void WebSocketTransport::on_error(const char* error)
             g_object_unref(result);
         }
         g_clear_object(&value);
+    }
 }
 
 // C-style callback functions (outside the struct)
