@@ -306,11 +306,12 @@ void WebSocketTransport::on_error(const char* error)
     if (_on_error_cb)
     {
         ExceptionHandler handler{jsc_value_get_context(_on_error_cb)};
-        auto result = jsc_value_function_call(_on_error_cb, G_TYPE_STRING, error, G_TYPE_NONE);
+        JSCValue* value = jsc_value_new_string(jsc_value_get_context(_on_error_cb), error ? error : "");
+        auto result = jsc_value_function_call(_on_error_cb, G_TYPE_NONE, value, G_TYPE_NONE);
         if (result) {
             g_object_unref(result);
         }
-    }
+        g_clear_object(&value);
 }
 
 // C-style callback functions (outside the struct)
