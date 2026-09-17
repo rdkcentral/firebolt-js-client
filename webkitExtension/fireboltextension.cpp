@@ -225,8 +225,10 @@ webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
     config->extensionPath = g_strdup(extensionPath);
   }
 
-  // Clear settings as all pointers are now copied
-  g_variant_unref(injectedSettings);
+  if (injectedSettings) {
+    // Clear settings as all pointers are now copied
+    g_variant_unref(injectedSettings);
+  }
 
   g_message("WPE Firebolt Extension endpoint: %s", fireboltEndpoint);
   g_signal_connect(webkit_script_world_get_default(), "window-object-cleared",
