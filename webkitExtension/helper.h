@@ -29,15 +29,16 @@ inline const char *INVALID_STATE_ERROR = "Invalid PageState pointer";
 inline const char *BUILDER_BUILD_FAILED_ERROR =
     "Failed to build using transport";
 
+inline const char *EXTENSION_PATH = "/usr/share/firebolt/extension/schema.json";
+
 struct FireboltExtensionConfig {
   std::string fireboltEndpoint;
-  std::string extensionPath;
   bool enableDebug;
 };
 JSCValue *evaluate_bridge_script(JSCContext *jsContext);
 JSCValue *evaluate_builder_script(JSCContext *jsContext);
-JSCValue *get_extension_script(const char *extensionPath,
-                               JSCContext *jsContext);
+bool check_extension_file_exists();
+JSCValue *get_extension_script(JSCContext *jsContext);
 void print_exception(JSCContext *context, JSCException *exception,
                      gpointer data);
 JSCValue *create_transport(JSCContext *jsContext, const char *url,

@@ -93,12 +93,11 @@ JSCValue *evaluate_builder_script(JSCContext *jsContext) {
   return nullptr;
 }
 
-JSCValue *get_extension_script(const char *extensionPath,
-                               JSCContext *jsContext) {
+JSCValue *get_extension_script(JSCContext *jsContext) {
   char *extensionScriptStr = nullptr;
-  if (extensionPath) {
+  if (check_extension_file_exists()) {
     gsize length;
-    if (!g_file_get_contents(extensionPath, &extensionScriptStr, &length,
+    if (!g_file_get_contents(EXTENSION_PATH, &extensionScriptStr, &length,
                              nullptr)) {
       g_warning("Failed to load firebolt extension script continue without "
                 "extension");
@@ -127,6 +126,10 @@ void clear_transport() {
   if (WebSocketTransport::s_transport) {
     WebSocketTransport::s_transport->clear();
   }
+}
+
+bool check_extension_file_exists() {
+  return g_file_test(EXTENSION_PATH, G_FILE_TEST_EXISTS);
 }
 
 } // namespace Helper
