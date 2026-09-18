@@ -230,7 +230,7 @@ webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
     g_variant_unref(injectedSettings);
   }
 
-  g_message("WPE Firebolt Extension endpoint: %s", fireboltEndpoint);
+  g_message("WPE Firebolt Extension endpoint: %s", config->fireboltEndpoint.c_str());
   g_signal_connect(webkit_script_world_get_default(), "window-object-cleared",
                    G_CALLBACK(onWindowObjectCleared), config);
   // ------------- End Window Object Cleared Setup --------------------------
