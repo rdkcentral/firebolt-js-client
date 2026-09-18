@@ -7,6 +7,7 @@
  *   12.4: platform filtering — Discovery (both) in all 5 targets
  *   12.5: string constraints — onCountryChanged constraint notes in all targets
  *   12.6: numeric constraints — rate property in VoiceGuidanceSettings
+ *   12.7: method-level platform filtering — web excludes native, native excludes web
  */
 
 import { buildAST } from "../ast/builder";
@@ -27,12 +28,16 @@ import discoveryDoc from "../../src/openrpc/discovery.json";
 import lifecycle2Doc from "../../src/openrpc/lifecycle2.json";
 import localizationDoc from "../../src/openrpc/localization.json";
 import accessibilityDoc from "../../src/openrpc/accessibility.json";
+import deviceDoc from "../../src/openrpc/device.json";
+import displayDoc from "../../src/openrpc/display.json";
 
 const ast = buildAST([
   discoveryDoc as never,
   lifecycle2Doc as never,
   localizationDoc as never,
   accessibilityDoc as never,
+  deviceDoc as never,
+  displayDoc as never,
 ]);
 const config: GenConfig = { outDir: "/tmp/firebolt-test-out" };
 const outputs = runAll(ast.modules, config);
@@ -230,6 +235,53 @@ describe("12.4 Platform filtering — Discovery (platform: both) in all 5 target
 
   test("Python: discovery.pyi exists", () => {
     expect(getOutput("discovery.pyi")).toBeTruthy();
+  });
+});
+
+describe("12.7 Method-level platform filtering", () => {
+  test("Web generator excludes native-only methods", () => {
+    const deviceTs = getOutput("ts/Device.d.ts");
+    // Device.uptime should NOT be in web output (platform: native)
+    expect(deviceTs).not.toContain("uptime");
+    // Device.uid should be in web output (inherits platform: both)
+    expect(deviceTs).toContain("uid");
+  });
+
+  test("Native generator excludes web-only methods", () => {
+    // Display module has only web-only methods, so C++ should not generate Display.hpp
+    const displayCpp = outputs.find((o) => o.filePath.includes("cpp/firebolt/Display.hpp"));
+    expect(displayCpp).toBeUndefined();
+    
+    // But Device should have C++ output with native-only methods
+    const deviceCpp = getOutput("cpp/firebolt/Device.hpp");
+    // Device.uptime should be in C++ output (platform: native)
+    expect(deviceCpp).toContain("uptime");
+  });
+
+  test("Generators include methods with platform: both", () => {
+    const deviceTs = getOutput("ts/Device.d.ts");
+    const deviceCpp = getOutput("cpp/firebolt/Device.hpp");
+    // Device.uid should be in both (inherits platform: both)
+    expect(deviceTs).toContain("uid");
+    expect(deviceCpp).toContain("uid");
+  });
+
+  test("Generators include methods without platform specification", () => {
+    const deviceTs = getOutput("ts/Device.d.ts");
+    const deviceCpp = getOutput("cpp/firebolt/Device.hpp");
+    // Device.deviceClass has no platform override, should inherit "both"
+    expect(deviceTs).toContain("deviceClass");
+    expect(deviceCpp).toContain("deviceClass");
+  });
+
+  test("Empty module handling: no output when no methods match platform", () => {
+    // Display module has only web-only methods, so C++ should not generate it
+    const displayCpp = outputs.find((o) => o.filePath.includes("cpp/firebolt/Display.hpp"));
+    expect(displayCpp).toBeUndefined();
+    
+    // But Display should be in web output
+    const displayTs = getOutput("ts/Display.d.ts");
+    expect(displayTs).toBeTruthy();
   });
 });
 

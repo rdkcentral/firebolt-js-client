@@ -24,9 +24,26 @@ import { GenConfig, GeneratorOutput, registerFullASTGenerator } from "./index";
 // Helper functions for parameter pattern detection
 // ---------------------------------------------------------------------------
 
-function getParamPattern(method: any): "no-params" | "single-param" {
+function getParamPattern(method: any, module: Module): "no-params" | "single-param" | "primitive-wrap" {
   if (method.params.length === 0) {
     return "no-params";
+  }
+  if (method.params.length === 1) {
+    const param = method.params[0];
+    // Check for single-primitive-wrap pattern:
+    // - param is a NamedRef to an object type
+    // - object has exactly 1 property
+    // - that property is required
+    // - that property is a primitive type
+    if (param.type && param.type.kind === "named") {
+      const typeDecl = module.types.find(t => t.name === param.type.name);
+      if (typeDecl && typeDecl.kind === "object" &&
+          typeDecl.properties.length === 1 &&
+          typeDecl.properties[0].required &&
+          typeDecl.properties[0].type.kind === "primitive") {
+        return "primitive-wrap";
+      }
+    }
   }
   return "single-param";
 }
@@ -43,11 +60,23 @@ function emitStaticModules(modules: Module[]): string {
     lines.push(`  var _${mod.name} = Object.create(null);`);
 
     for (const method of mod.methods) {
-      const pattern = getParamPattern(method);
+      // Skip native-only methods when generating for web
+      if (method.platform === "native") continue;
+
+      const pattern = getParamPattern(method, mod);
 
       if (method.kind === "call") {
         if (pattern === "no-params") {
           lines.push(`  _addMethodNoParams(_${mod.name}, "${method.name}", "${mod.name}");`);
+        } else if (pattern === "primitive-wrap") {
+          const paramType = method.params[0].type;
+          if (paramType.kind === "named") {
+            const typeDecl = mod.types.find(t => t.name === paramType.name);
+            if (typeDecl && typeDecl.kind === "object") {
+              const paramName = typeDecl.properties[0].name;
+              lines.push(`  _addMethodWithPrimitiveWrap(_${mod.name}, "${method.name}", "${mod.name}", "${paramName}");`);
+            }
+          }
         } else {
           lines.push(`  _addMethodWithObjectParam(_${mod.name}, "${method.name}", "${mod.name}");`);
         }
@@ -316,6 +345,17 @@ const STATIC_PREAMBLE = `
     })
   }
 
+  function _addMethodWithPrimitiveWrap(module, methodName, moduleName, paramName) {
+    Object.defineProperty(module, methodName, {
+      value: function(primitiveValue) {
+        return _rpcCall(moduleName + "." + methodName, { [paramName]: primitiveValue });
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false
+    })
+  }
+
   function _addEvent(module, eventName, moduleName) {
     Object.defineProperty(module, eventName, {
       value: function(callback) {
@@ -372,6 +412,20 @@ const STATIC_PREAMBLE = `
             loadMethods(schema.methods, method => method, (o, c) => _addMethodNoParams(module, c, moduleName), moduleName);
             loadMethods(schema.events, event => event, (o, c) => _addEvent(module, c, moduleName), moduleName);
             loadMethods(schema.methodsWithObject, method => method, (o, c) => _addMethodWithObjectParam(module, c, moduleName), moduleName);
+            // Extension schemas can specify methodsWithPrimitiveWrap as array of { method, param } objects
+            if (schema.methodsWithPrimitiveWrap && _commonArrayCheck(schema.methodsWithPrimitiveWrap)) {
+              schema.methodsWithPrimitiveWrap.forEach(item => {
+                if (item && item.method && item.param) {
+                  var c = item.method;
+                  if (fullcheck(moduleName, c)) {
+                    _addMethodWithPrimitiveWrap(module, c, moduleName, item.param);
+                    console.log("Extended Method " + c + " added to module " + moduleName + " with primitive-wrap pattern");
+                  } else {
+                    console.warn("Method " + c + " already exists in module " + moduleName);
+                  }
+                }
+              });
+            }
             if (!existingModule) {
               _registerModule(moduleName, module)
             }

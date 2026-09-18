@@ -23,6 +23,49 @@
 
 ---
 
+## Platform Filtering
+
+Generators filter individual methods based on their effective platform classification.
+The effective platform is the method's `platform` field if specified, otherwise the module's `platform` field.
+
+**Filtering Matrix:**
+
+| Method Platform | Web Generator | Native Generator | Both Generators |
+|-----------------|---------------|------------------|-----------------|
+| `web`           | INCLUDE ✓     | EXCLUDE ✗        | INCLUDE ✓       |
+| `native`        | EXCLUDE ✗     | INCLUDE ✓        | INCLUDE ✓       |
+| `both` (or unset)| INCLUDE ✓    | INCLUDE ✓        | INCLUDE ✓       |
+
+**Rules:**
+- A generator includes a method if the effective platform is `both` or matches the generator's target platform
+- A generator excludes a method if the effective platform is the opposite platform
+- When a method does not specify `platform`, it inherits from the module's `platform`
+- If a module has no methods matching a generator's target platform, no output file is generated for that module
+- Types are included in all generated headers regardless of method platform classification
+
+**Example:**
+```typescript
+// Module with platform: "both"
+Module {
+  name: "Device",
+  platform: "both",
+  methods: [
+    Method { name: "uid", platform: undefined },        // inherits "both"
+    Method { name: "uptime", platform: "native" }         // explicit override
+  ]
+}
+
+// Web generator output:
+// ✓ Device.uid (effective platform: both)
+// ✗ Device.uptime (effective platform: native, excluded)
+
+// Native generator output:
+// ✓ Device.uid (effective platform: both)
+// ✓ Device.uptime (effective platform: native, included)
+```
+
+---
+
 ## Primitive Type Mapping
 
 The AST `PrimitiveRef.primitive` field maps to each language as follows.

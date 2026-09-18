@@ -8,7 +8,7 @@ description: |
   Apps can query the device's IFA and related metadata.
 
 actions:
-  advertisingId:
+  - name: advertisingId
     description: Returns the IFA (Identifier For Advertising) and related metadata.
     since: "8.0.0"
     result:
@@ -21,18 +21,20 @@ actions:
           lmt: "1"
 
 types:
-  AdvertisingId:
+  - name: AdvertisingId
     description: Advertising identifiers and metadata.
     properties:
-      ifa:
+      - name: ifa
         type: string
         description: The Identifier For Advertising as a UUID
-      ifa_type:
-        $ref: "#/types/IfaType"
-      lmt:
-        $ref: "#/types/Lmt"
+      - name: ifa_type
+        type:
+          $ref: "#/types/IfaType"
+      - name: lmt
+        type:
+          $ref: "#/types/Lmt"
 
-  IfaType:
+  - name: IfaType
     kind: enum
     description: The source of the IFA.
     values:
@@ -43,7 +45,7 @@ types:
       - id: "sessionid"
         description: Session/synthetic ID
 
-  Lmt:
+  - name: Lmt
     kind: enum
     description: Limit Ad Tracking setting.
     values:

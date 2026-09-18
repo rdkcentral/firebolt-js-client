@@ -8,7 +8,7 @@ description: |
   Apps subscribe to events to receive real-time updates when settings change.
 
 properties:
-  country:
+  - name: country
     description: |
       Returns the country setting.
       The payload is an ISO 3166-1 alpha-2 country code (e.g. "US", "GB", "DE").
@@ -24,15 +24,15 @@ properties:
       - description: Country is United States
         result: "US"
 
-  preferredAudioLanguages:
+  - name: preferredAudioLanguages
     description: |
       Returns the list of preferred audio languages.
       A list of zero or more languages in order of decreasing preference.
       Each code is an ISO 639-2/B language code.
     since: "8.0.0"
     result:
-      type:
-        - string
+      type: array
+      items: string
       description: ISO 639-2/B language codes
     examples:
       - description: English and Spanish preferences
@@ -40,7 +40,7 @@ properties:
           - "eng"
           - "spa"
 
-  presentationLanguage:
+  - name: presentationLanguage
     description: |
       Returns the presentation language setting.
       The presentation language is a BCP 47 locale tag.
@@ -52,9 +52,10 @@ properties:
       - description: US English
         result: "en-US"
 
-  timeZone:
+  - name: timeZone
     description: Returns the IANA time zone format.
     since: "9.0.0"
+    platform: native
     result:
       type: string
       description: IANA time zone format (e.g., "America/New_York", "Europe/London")
@@ -63,9 +64,10 @@ properties:
         result: "America/New_York"
 
 events:
-  onTimeZoneChanged:
+  - name: onTimeZoneChanged
     description: Event for when Localization.timeZone changed.
     since: "9.0.0"
+    platform: native
     params: []
     result:
       type: string

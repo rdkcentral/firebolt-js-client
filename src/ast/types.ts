@@ -47,6 +47,13 @@ export interface Method {
   name: string;
   kind: MethodKind;
   /**
+   * Platform classification for this specific method.
+   * If undefined, inherits from Module.platform.
+   * This enables mixed-platform modules where some APIs are
+   * web-only, native-only, or both within the same module.
+   */
+  platform?: Platform;
+  /**
    * Already stripped of the `listen` param (Rule 2).
    * Optional params use OptionalRef as their type.
    */
@@ -63,6 +70,14 @@ export interface Param {
   name: string;
   type: TypeRef;
   description: string;
+}
+
+/**
+ * Resolve the effective platform for a method.
+ * Returns the method's platform if specified, otherwise the module's platform.
+ */
+export function resolveMethodPlatform(method: Method, module: Module): Platform {
+  return method.platform ?? module.platform;
 }
 
 // ---------------------------------------------------------------------------

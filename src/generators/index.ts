@@ -5,7 +5,7 @@
  * returns a list of GeneratorOutput entries — one file per output path.
  */
 
-import { CanonicalAST, Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef } from "../ast/types";
+import { CanonicalAST, Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef, resolveMethodPlatform } from "../ast/types";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -140,9 +140,11 @@ export function listFullASTGenerators(): string[] {
  * every module in the AST.
  *
  * Platform filtering:
- *   - A "web" generator skips modules with platform "native"
- *   - A "native" generator skips modules with platform "web"
- *   - Modules with platform "both" are processed by all generators
+ *   - Methods are filtered by their effective platform (method.platform ?? module.platform)
+ *   - A "web" generator excludes methods with effective platform "native"
+ *   - A "native" generator excludes methods with effective platform "web"
+ *   - Methods with effective platform "both" are included by all generators
+ *   - Modules with no matching methods are skipped entirely
  *
  * Targets registered as full-AST generators are silently skipped here;
  * call runAllFullAST() to dispatch them.
@@ -163,15 +165,35 @@ export function runAll(
     if (!entry) {
       throw new Error(`No generator registered for target "${id}"`);
     }
+    
     for (const module of modules) {
-      // Skip if the module's platform doesn't include this generator's target
-      if (
-        module.platform !== "both" &&
-        module.platform !== entry.targetPlatform
-      ) {
+      // Filter methods by platform: EXCLUDE methods that don't match this generator's target
+      const filteredMethods = module.methods.filter(method => {
+        const effectivePlatform = resolveMethodPlatform(method, module);
+        
+        // EXCLUDE if method is explicitly for the other platform
+        if (entry.targetPlatform === "web" && effectivePlatform === "native") {
+          return false;  // Web generator excludes native-only methods
+        }
+        if (entry.targetPlatform === "native" && effectivePlatform === "web") {
+          return false;  // Native generator excludes web-only methods
+        }
+        
+        // INCLUDE for "both" or matching platform
+        return true;
+      });
+      
+      // Skip if no methods match this generator's target
+      if (filteredMethods.length === 0) {
         continue;
       }
-      outputs.push(...entry.gen(module, config));
+      
+      // Generate with filtered methods
+      const filteredModule: Module = {
+        ...module,
+        methods: filteredMethods
+      };
+      outputs.push(...entry.gen(filteredModule, config));
     }
   }
 

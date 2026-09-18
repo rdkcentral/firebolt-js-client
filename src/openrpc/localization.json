@@ -208,6 +208,7 @@
           "description": "IANA time zone format (e.g., \"America/New_York\", \"Europe/London\")"
         }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "timeZoneNewYork",
@@ -241,6 +242,7 @@
           "description": "IANA time zone format (e.g., \"America/New_York\", \"Europe/London\")"
         }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "timeZoneChanged",

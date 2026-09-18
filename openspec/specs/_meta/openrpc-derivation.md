@@ -49,8 +49,27 @@ In OpenRPC JSON, reference them as:
 ### 1. `types:` → `components/schemas`
 
 Each type declared in `types:` maps directly to a JSON Schema entry in `components/schemas`.
+When using array syntax, extract the type name from the explicit `name:` field in each array item.
 
 **`kind: enum`**
+
+**Spec (array syntax):**
+```yaml
+types:
+  - name: AudioProfile
+    kind: enum
+    description: |
+      An audio encoding profile supported by the device hardware.
+    values:
+      - id: "stereo"
+        description: Standard 2-channel PCM stereo
+      - id: "dolbyDigital5.1"
+        description: Dolby Digital 5.1 surround
+      - id: "dolbyAtmos"
+        description: Object-based Dolby Atmos
+```
+
+**Derived OpenRPC:**
 ```json
 "AudioProfile": {
   "title": "AudioProfile",
@@ -61,6 +80,28 @@ Each type declared in `types:` maps directly to a JSON Schema entry in `componen
 ```
 
 **`kind: object`**
+
+**Spec (array syntax):**
+```yaml
+types:
+  - name: StateChangedEvent
+    kind: object
+    description: |
+      Payload for a lifecycle state transition notification.
+    properties:
+      - name: oldState
+        type:
+          $ref: LifecycleState
+        required: true
+        description: The state the app transitioned from
+      - name: newState
+        type:
+          $ref: LifecycleState
+        required: true
+        description: The state the app transitioned to
+```
+
+**Derived OpenRPC:**
 ```json
 "StateChangedEvent": {
   "title": "StateChangedEvent",
@@ -215,11 +256,25 @@ maximum: 10
 ### 4. `properties:` → Method(s)
 
 Each property generates 1, 2, or 3 OpenRPC methods depending on `writable`.
+When using array syntax, extract the property name from the explicit `name:` field in each array item.
 
 #### Getter (always generated)
 
 Method name: `<Module>.<propertyName>`
 
+**Spec (array syntax):**
+```yaml
+properties:
+  - name: audioDescription
+    description: |
+      Whether audio description is enabled on this device.
+      This is a platform-level accessibility setting.
+    type: bool
+    writable: false
+    since: "8.0.0"
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Device.audioDescription",
@@ -290,10 +345,47 @@ The event payload type is identical to the getter result type.
 ### 5. `actions:` → Method
 
 Method name: `<Module>.<actionName>`
+When using array syntax, extract the action name from the explicit `name:` field in each array item.
 
 Params are mapped from the spec `params:` array in order. Each param becomes
 a content descriptor with `required` set appropriately.
 
+**Spec (array syntax):**
+```yaml
+actions:
+  - name: watched
+    description: |
+      Notify the platform that content has been partially or completely watched.
+      watchedOn must be ISO 8601 UTC: "YYYY-MM-DDThh:mm:ss.sssZ"
+      agePolicy is set by the app to classify the content being reported.
+    since: "8.0.0"
+    params:
+      - name: entityId
+        type: string
+        required: true
+        description: Platform entity ID of the content
+      - name: progress
+        type: double
+        required: false
+        description: Playback progress from 0.0 (start) to 1.0 (end)
+      - name: completed
+        type: bool
+        required: false
+        description: True if the content was watched to completion
+      - name: watchedOn
+        type: string
+        format: date-time
+        required: false
+        description: ISO 8601 UTC timestamp of when the content was watched
+      - name: agePolicy
+        type:
+          $ref: AgePolicy
+        required: false
+        description: Age policy the app applies to this content
+    result: none
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Discovery.watched",
@@ -337,10 +429,34 @@ a content descriptor with `required` set appropriately.
 ### 6. `events:` → Subscribe Method
 
 Method name: `<Module>.<eventName>` (the name as declared, including `on` prefix)
+When using array syntax, extract the event name from the explicit `name:` field in each array item.
 
 **Critical rule:** Inject the `listen` parameter automatically. It must NOT appear
 in the spec — it is a transport-layer detail, not an API semantic.
 
+**Spec (array syntax):**
+```yaml
+events:
+  - name: onStateChanged
+    description: |
+      Notifies the app of a lifecycle state transition.
+      The app/runtime remains in initializing until this subscribe call is made.
+      Each notification carries exactly one transition.
+
+      Valid transitions:
+        initializing → paused | suspended
+        paused → active | suspended
+        active → paused
+        suspended → paused | hibernated
+        hibernated → suspended
+        any → terminating
+    since: "8.0.0"
+    payload:
+      type:
+        $ref: StateChangedEvent
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Lifecycle2.onStateChanged",
@@ -379,6 +495,138 @@ in the spec — it is a transport-layer detail, not an API semantic.
 **The `result.schema.oneOf` rule for all subscribe methods:**
 - First variant: `shared.json#/components/schemas/ListenResponse` — the subscribe confirmation
 - Second variant: the payload type — what subscribers actually receive in push notifications
+
+---
+
+### 7. Method-Level Platform Classification
+
+When a spec declares a `platform` field on an action, property, or event, this is
+derived as an OpenRPC extension field on the method. The extension field is
+`x-firebolt-platform` and carries the platform value (`web`, `native`, or `both`).
+
+**Spec (action with platform override):**
+```yaml
+actions:
+  - name: uptime
+    description: Returns the number of seconds since most recent device boot
+    since: "9.0.0"
+    platform: native
+    params: []
+    result:
+      type: number
+```
+
+**Derived OpenRPC:**
+```json
+{
+  "name": "Device.uptime",
+  "summary": "Returns the number of seconds since most recent device boot",
+  "params": [],
+  "result": {
+    "name": "result",
+    "schema": { "type": "number" }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Spec (property with platform override):**
+```yaml
+properties:
+  - name: timeZone
+    description: Returns the IANA time zone format
+    since: "9.0.0"
+    platform: native
+    result:
+      type: string
+```
+
+**Derived OpenRPC (getter method):**
+```json
+{
+  "name": "Localization.timeZone",
+  "summary": "Returns the IANA time zone format",
+  "params": [],
+  "result": {
+    "name": "result",
+    "schema": { "type": "string" }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Derived OpenRPC (onChange subscription method):**
+```json
+{
+  "name": "Localization.onTimeZoneChanged",
+  "summary": "Subscribe to time zone setting change notifications",
+  "tags": [{ "name": "subscribe" }],
+  "params": [
+    {
+      "name": "listen",
+      "required": true,
+      "schema": { "type": "boolean" },
+      "description": "Pass true to subscribe, false to unsubscribe"
+    }
+  ],
+  "result": {
+    "name": "result",
+    "schema": {
+      "oneOf": [
+        { "$ref": "shared.json#/components/schemas/ListenResponse" },
+        { "type": "string" }
+      ]
+    }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Spec (event with platform override):**
+```yaml
+events:
+  - name: onTimeZoneChanged
+    description: Event for when Localization.timeZone changed
+    since: "9.0.0"
+    platform: native
+    params: []
+    result:
+      type: string
+```
+
+**Derived OpenRPC:**
+```json
+{
+  "name": "Localization.onTimeZoneChanged",
+  "summary": "Subscribe to time zone setting change notifications",
+  "tags": [{ "name": "subscribe" }],
+  "params": [
+    {
+      "name": "listen",
+      "required": true,
+      "schema": { "type": "boolean" },
+      "description": "Pass true to subscribe, false to unsubscribe"
+    }
+  ],
+  "result": {
+    "name": "result",
+    "schema": {
+      "oneOf": [
+        { "$ref": "shared.json#/components/schemas/ListenResponse" },
+        { "type": "string" }
+      ]
+    }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Rules:**
+- If a spec declares `platform` on an API element, emit `x-firebolt-platform` on the derived method
+- If a spec does not declare `platform`, do not emit the extension (the method inherits from module-level `x-firebolt-platform` in the `info` object)
+- The extension value must be one of: `web`, `native`, `both`
+- For properties, both the getter and onChange subscription methods inherit the same platform classification
+- The extension is placed at the method level, not within `params` or `result`
 
 ---
 

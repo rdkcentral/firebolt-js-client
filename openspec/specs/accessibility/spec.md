@@ -8,7 +8,7 @@ description: |
   Apps can query current settings and subscribe to changes.
 
 properties:
-  audioDescription:
+  - name: audioDescription
     description: Returns the audio description setting of the device.
     since: "8.0.0"
     result:
@@ -17,7 +17,7 @@ properties:
       - description: Audio description enabled
         result: true
 
-  closedCaptionsSettings:
+  - name: closedCaptionsSettings
     description: |
       Returns captions settings: enabled, and a list of zero or more languages
       in order of decreasing preference.
@@ -32,7 +32,7 @@ properties:
             - "eng"
             - "spa"
 
-  highContrastUI:
+  - name: highContrastUI
     description: Returns the high contrast UI device setting.
     since: "8.0.0"
     result:
@@ -41,7 +41,7 @@ properties:
       - description: High contrast UI enabled
         result: true
 
-  voiceGuidanceSettings:
+  - name: voiceGuidanceSettings
     description: |
       Returns the current voice guidance configuration.
       Voice guidance is a screen-reader feature that reads UI elements aloud.
@@ -56,33 +56,33 @@ properties:
           navigationHints: true
 
 types:
-  ClosedCaptionsSettings:
+  - name: ClosedCaptionsSettings
     description: Closed captions settings.
     properties:
-      enabled:
+      - name: enabled
         type: bool
         description: Whether captions are enabled
-      preferredLanguages:
-        type:
-          - string
+      - name: preferredLanguages
+        type: array
+        items: string
         description: |
           List of ISO 639-2/B language codes in order of user preference.
           Empty list if not initialized.
 
-  VoiceGuidanceSettings:
+  - name: VoiceGuidanceSettings
     description: Current voice guidance configuration.
     properties:
-      enabled:
+      - name: enabled
         type: bool
         description: Whether voice guidance is active
-      rate:
+      - name: rate
         type: double
         minimum: 0.1
         maximum: 10
         description: |
           Speech rate relative to the platform default.
           1.0 = normal speed, < 1.0 = slower, > 1.0 = faster.
-      navigationHints:
+      - name: navigationHints
         type: bool
         description: Whether navigation hints (element role announcements) are read aloud
 ---
