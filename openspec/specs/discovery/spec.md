@@ -9,7 +9,7 @@ description: |
   and watch history.
 
 types:
-  AgePolicy:
+  - name: AgePolicy
     kind: enum
     description: |
       Age-rating classification applied by the app to the content being reported.
@@ -24,7 +24,7 @@ types:
         description: Teen-rated content
 
 actions:
-  watched:
+  - name: watched
     description: |
       Notify the platform that content has been partially or completely watched.
       watchedOn must be ISO 8601 UTC: "YYYY-MM-DDThh:mm:ss.sssZ"

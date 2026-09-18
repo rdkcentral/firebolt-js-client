@@ -49,8 +49,27 @@ In OpenRPC JSON, reference them as:
 ### 1. `types:` → `components/schemas`
 
 Each type declared in `types:` maps directly to a JSON Schema entry in `components/schemas`.
+When using array syntax, extract the type name from the explicit `name:` field in each array item.
 
 **`kind: enum`**
+
+**Spec (array syntax):**
+```yaml
+types:
+  - name: AudioProfile
+    kind: enum
+    description: |
+      An audio encoding profile supported by the device hardware.
+    values:
+      - id: "stereo"
+        description: Standard 2-channel PCM stereo
+      - id: "dolbyDigital5.1"
+        description: Dolby Digital 5.1 surround
+      - id: "dolbyAtmos"
+        description: Object-based Dolby Atmos
+```
+
+**Derived OpenRPC:**
 ```json
 "AudioProfile": {
   "title": "AudioProfile",
@@ -61,6 +80,28 @@ Each type declared in `types:` maps directly to a JSON Schema entry in `componen
 ```
 
 **`kind: object`**
+
+**Spec (array syntax):**
+```yaml
+types:
+  - name: StateChangedEvent
+    kind: object
+    description: |
+      Payload for a lifecycle state transition notification.
+    properties:
+      - name: oldState
+        type:
+          $ref: LifecycleState
+        required: true
+        description: The state the app transitioned from
+      - name: newState
+        type:
+          $ref: LifecycleState
+        required: true
+        description: The state the app transitioned to
+```
+
+**Derived OpenRPC:**
 ```json
 "StateChangedEvent": {
   "title": "StateChangedEvent",
@@ -215,11 +256,25 @@ maximum: 10
 ### 4. `properties:` → Method(s)
 
 Each property generates 1, 2, or 3 OpenRPC methods depending on `writable`.
+When using array syntax, extract the property name from the explicit `name:` field in each array item.
 
 #### Getter (always generated)
 
 Method name: `<Module>.<propertyName>`
 
+**Spec (array syntax):**
+```yaml
+properties:
+  - name: audioDescription
+    description: |
+      Whether audio description is enabled on this device.
+      This is a platform-level accessibility setting.
+    type: bool
+    writable: false
+    since: "8.0.0"
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Device.audioDescription",
@@ -290,10 +345,47 @@ The event payload type is identical to the getter result type.
 ### 5. `actions:` → Method
 
 Method name: `<Module>.<actionName>`
+When using array syntax, extract the action name from the explicit `name:` field in each array item.
 
 Params are mapped from the spec `params:` array in order. Each param becomes
 a content descriptor with `required` set appropriately.
 
+**Spec (array syntax):**
+```yaml
+actions:
+  - name: watched
+    description: |
+      Notify the platform that content has been partially or completely watched.
+      watchedOn must be ISO 8601 UTC: "YYYY-MM-DDThh:mm:ss.sssZ"
+      agePolicy is set by the app to classify the content being reported.
+    since: "8.0.0"
+    params:
+      - name: entityId
+        type: string
+        required: true
+        description: Platform entity ID of the content
+      - name: progress
+        type: double
+        required: false
+        description: Playback progress from 0.0 (start) to 1.0 (end)
+      - name: completed
+        type: bool
+        required: false
+        description: True if the content was watched to completion
+      - name: watchedOn
+        type: string
+        format: date-time
+        required: false
+        description: ISO 8601 UTC timestamp of when the content was watched
+      - name: agePolicy
+        type:
+          $ref: AgePolicy
+        required: false
+        description: Age policy the app applies to this content
+    result: none
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Discovery.watched",
@@ -337,10 +429,34 @@ a content descriptor with `required` set appropriately.
 ### 6. `events:` → Subscribe Method
 
 Method name: `<Module>.<eventName>` (the name as declared, including `on` prefix)
+When using array syntax, extract the event name from the explicit `name:` field in each array item.
 
 **Critical rule:** Inject the `listen` parameter automatically. It must NOT appear
 in the spec — it is a transport-layer detail, not an API semantic.
 
+**Spec (array syntax):**
+```yaml
+events:
+  - name: onStateChanged
+    description: |
+      Notifies the app of a lifecycle state transition.
+      The app/runtime remains in initializing until this subscribe call is made.
+      Each notification carries exactly one transition.
+
+      Valid transitions:
+        initializing → paused | suspended
+        paused → active | suspended
+        active → paused
+        suspended → paused | hibernated
+        hibernated → suspended
+        any → terminating
+    since: "8.0.0"
+    payload:
+      type:
+        $ref: StateChangedEvent
+```
+
+**Derived OpenRPC:**
 ```json
 {
   "name": "Lifecycle2.onStateChanged",

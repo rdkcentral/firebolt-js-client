@@ -8,7 +8,7 @@ description: |
   Apps can query network state and subscribe to connectivity changes.
 
 properties:
-  connected:
+  - name: connected
     description: |
       Returns the network connectivity status: true if internet-accessible,
       false otherwise.

@@ -8,7 +8,7 @@ description: |
   Apps can query device identifiers, class, and display capabilities.
 
 actions:
-  uid:
+  - name: uid
     description: Returns a persistent unique UUID for the current app and device.
     since: "8.0.0"
     result:
@@ -18,16 +18,17 @@ actions:
       - description: Persistent app+device UUID
         result: "550e8400-e29b-41d4-a716-446655440000"
 
-  deviceClass:
+  - name: deviceClass
     description: Returns the class of the device.
     since: "9.0.0"
     result:
-      $ref: "#/types/DeviceClass"
+      type:
+        $ref: DeviceClass
     examples:
       - description: Set-top box
         result: "stb"
 
-  uptime:
+  - name: uptime
     description: Returns the number of seconds since most recent device boot, including any time spent during deep sleep.
     since: "9.0.0"
     params: []
@@ -37,7 +38,7 @@ actions:
       - description: Device uptime
         result: 86400
 
-  brandName:
+  - name: brandName
     description: Returns the brand name under which the device was marketed to consumers. Typically also shown on the TV bezel, device label or remote either "" (if not initialized) 1 or more characters.
     since: "9.0.0"
     params: []
@@ -47,7 +48,7 @@ actions:
       - description: Device brand
         result: "Acme"
 
-  modelId:
+  - name: modelId
     description: Returns the model identifier assigned to the device hardware. Typically also shown on the device label or UI.
     since: "9.0.0"
     params: []
@@ -57,7 +58,7 @@ actions:
       - description: Device model
         result: "ABC123"
 
-  osName:
+  - name: osName
     description: Returns the operating system name as defined by the operator.
     since: "9.0.0"
     params: []
@@ -67,7 +68,7 @@ actions:
       - description: Operating system name
         result: "FireboltOS"
 
-  osVersion:
+  - name: osVersion
     description: Returns the operating system version as defined by the operator.
     since: "9.0.0"
     params: []
@@ -77,7 +78,7 @@ actions:
       - description: Operating system version
         result: "9.0.0"
 
-  firmware:
+  - name: firmware
     description: Returns a string that identifies the firmware image of the device.
     since: "9.0.0"
     params: []
@@ -88,12 +89,13 @@ actions:
         result: "1.2.3"
 
 properties:
-  hdr:
+  - name: hdr
     description: |
       Returns the HDR standards supported by the attached TV or integrated display.
     since: "8.0.0"
     result:
-      $ref: "#/types/HdrCapabilities"
+      type:
+        $ref: HdrCapabilities
     examples:
       - description: HDR10 and Dolby Vision supported
         result:
@@ -102,7 +104,7 @@ properties:
           dolbyVision: true
           hlg: false
 
-  dolbyAtmosExperienceAvailable:
+  - name: dolbyAtmosExperienceAvailable
     description: |
       Returns whether the user would get a Dolby Atmos experience
       if a Dolby Atmos track were to be played at this time.
@@ -113,7 +115,7 @@ properties:
       - description: Dolby Atmos available
         result: true
 
-  name:
+  - name: name
     description: Returns the device friendly name. Used by network services (DIAL, Miracast, AirPlay) so that other devices can more easily identify this device during device discovery.
     since: "9.0.0"
     result:
@@ -123,7 +125,7 @@ properties:
         result: "Living Room TV"
 
 events:
-  onNameChanged:
+  - name: onNameChanged
     description: Event for when Device.name changed.
     since: "9.0.0"
     params: []
@@ -134,7 +136,7 @@ events:
         result: "Bedroom TV"
 
 types:
-  DeviceClass:
+  - name: DeviceClass
     kind: enum
     description: Classification of the device.
     values:
@@ -145,19 +147,19 @@ types:
       - id: "tv"
         description: Possibly tuner/demod, with integrated display
 
-  HdrCapabilities:
+  - name: HdrCapabilities
     description: HDR format support flags.
     properties:
-      hdr10:
+      - name: hdr10
         type: bool
         description: HDR10 support
-      hdr10Plus:
+      - name: hdr10Plus
         type: bool
         description: HDR10+ support
-      dolbyVision:
+      - name: dolbyVision
         type: bool
         description: Dolby Vision support
-      hlg:
+      - name: hlg
         type: bool
         description: HLG (Hybrid Log-Gamma) support
 ---

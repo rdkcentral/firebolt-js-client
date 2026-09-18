@@ -8,21 +8,23 @@ description: |
   This module is only available in web/JS environments.
 
 actions:
-  colorimetry:
+  - name: colorimetry
     description: Returns the colorimetry settings of the attached display.
     since: "9.0.0"
     result:
-      $ref: "#/types/ColorimetryValue"
+      type:
+        $ref: ColorimetryValue
     examples:
       - description: Display supports standard color gamut
         result: "SDR"
 
-  videoResolutions:
+  - name: videoResolutions
     description: Returns a list of video resolutions supported by the display.
     since: "9.0.0"
     result:
-      type:
-        - $ref: "#/types/VideoResolution"
+      type: array
+      items:
+        $ref: VideoResolution
     examples:
       - description: Display supports 4K and 1080p
         result:
@@ -30,7 +32,7 @@ actions:
           - "1920x1080"
 
 types:
-  ColorimetryValue:
+  - name: ColorimetryValue
     kind: enum
     description: Colorimetry standard.
     values:
@@ -39,7 +41,7 @@ types:
       - id: "HDR"
         description: High dynamic range
 
-  VideoResolution:
+  - name: VideoResolution
     kind: enum
     description: Video resolution.
     values:

@@ -16,7 +16,7 @@ description: |
 
 types:
 
-  ListenResponse:
+  - name: ListenResponse
     kind: object
     description: |
       Returned synchronously when a client subscribes to or unsubscribes from
@@ -32,13 +32,13 @@ types:
       Wire example (unsubscribe confirmation):
         { "listening": false, "event": "Lifecycle2.onStateChanged" }
     properties:
-      listening:
+      - name: listening
         type: bool
         required: true
         description: |
           True if the client is now subscribed to the event.
           False if the client has just unsubscribed.
-      event:
+      - name: event
         type: string
         required: false
         description: |
@@ -46,7 +46,7 @@ types:
           unsubscribed from. Format: "<Module>.<eventName>".
           Example: "Lifecycle2.onStateChanged"
 
-  FireboltError:
+  - name: FireboltError
     kind: object
     description: |
       Error carrier for failed Firebolt API calls. Matches the JSON-RPC 2.0
@@ -82,13 +82,13 @@ types:
       specification but has not been approved. Do not use code 6 in specs
       or implementations until it is marked stable.
     properties:
-      code:
+      - name: code
         type: unsigned
         required: true
         description: |
           Numeric Firebolt error code. Valid values: 1, 2, 3, 4, 5.
           See type description for the meaning of each code.
-      message:
+      - name: message
         type: string
         required: true
         description: |

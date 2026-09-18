@@ -8,37 +8,37 @@ description: |
   Apps send telemetry events describing media playback, errors, and lifecycle.
 
 actions:
-  ready:
+  - name: ready
     description: Signals that the app is ready to display content and accept user input.
     since: "9.0.0"
     params: []
     result: null
 
-  signIn:
+  - name: signIn
     description: Log a sign in event. Platform will automatically detect the id.
     since: "9.0.0"
     params: []
     result: null
 
-  signOut:
+  - name: signOut
     description: Log a sign out event. Platform will automatically detect the id.
     since: "9.0.0"
     params: []
     result: null
 
-  startContent:
+  - name: startContent
     description: Signals the app is starting to show video or audio content.
     since: "9.0.0"
     params: []
     result: null
 
-  stopContent:
+  - name: stopContent
     description: Signals the app has stopped showing video or audio content.
     since: "9.0.0"
     params: []
     result: null
 
-  page:
+  - name: page
     description: |
       Signals that the app has transitioned to a new page.
       The pageName parameter identifies the page.
@@ -49,12 +49,13 @@ actions:
         required: true
         description: Identifier for the page the app is now on
 
-  error:
+  - name: error
     description: Logs an error that occurred within the app.
     since: "9.0.0"
     params:
       - name: errorType
-        type: $ref: "#/types/ErrorType"
+        type:
+          $ref: "#/types/ErrorType"
         required: true
         description: Type of error
       - name: errorMessage
@@ -62,7 +63,7 @@ actions:
         required: false
         description: Human-readable error description
 
-  mediaLoadStart:
+  - name: mediaLoadStart
     description: Called when setting the URL of a media asset to play, in order to infer load time.
     since: "9.0.0"
     params:
@@ -70,16 +71,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPlay:
+  - name: mediaPlay
     description: Called when media playback should start due to autoplay, user-initiated play, or unpausing.
     since: "9.0.0"
     params:
@@ -87,16 +88,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPlaying:
+  - name: mediaPlaying
     description: |
       Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.
     since: "9.0.0"
@@ -105,16 +106,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPause:
+  - name: mediaPause
     description: Signals that media playback has been paused.
     since: "9.0.0"
     params:
@@ -122,16 +123,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaWaiting:
+  - name: mediaWaiting
     description: Signals that media playback is waiting (buffering) for data.
     since: "9.0.0"
     params:
@@ -139,16 +140,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaSeeking:
+  - name: mediaSeeking
     description: Signals that the user is seeking to a new playback position.
     since: "9.0.0"
     params:
@@ -156,16 +157,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaSeeked:
+  - name: mediaSeeked
     description: Signals that the user has completed seeking to a new position.
     since: "9.0.0"
     params:
@@ -173,16 +174,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaRateChanged:
+  - name: mediaRateChanged
     description: Signals that media playback rate has changed (e.g., speed up, slow down).
     since: "9.0.0"
     params:
@@ -190,16 +191,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaRenditionChanged:
+  - name: mediaRenditionChanged
     description: Signals that media rendition (quality) has changed.
     since: "9.0.0"
     params:
@@ -207,16 +208,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaEnded:
+  - name: mediaEnded
     description: Signals that media playback has ended.
     since: "9.0.0"
     params:
@@ -224,16 +225,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  event:
+  - name: event
     description: |
       Generic event telemetry allowing apps to log custom metrics and analytics events.
     since: "9.0.0"
@@ -247,19 +248,20 @@ actions:
         required: false
         description: Arbitrary event data as a JSON string
 
-  appInfo:
+  - name: appInfo
     description: |
       Sends app-specific metrics to the platform.
       Params include agePolicy indicating content maturity if applicable.
     since: "9.0.0"
     params:
       - name: agePolicy
-        $ref: "Shared.AgePolicy"
+        type:
+          $ref: "shared:AgePolicy"
         required: false
         description: Content age policy/rating
 
 types:
-  ErrorType:
+  - name: ErrorType
     kind: enum
     description: Classification of error type.
     values:
