@@ -51,7 +51,7 @@ function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
 
   // Emit module namespaces
   for (const mod of webModules) {
-    lines.push(...emitModuleNamespace(mod));
+    lines.push(...emitModuleNamespace(mod, ast));
     lines.push(``);
   }
 
@@ -115,6 +115,8 @@ function emitExtensionSchemaInterface(): string[] {
     `  events?: string[];`,
     `  /** Methods with object parameters */`,
     `  methodsWithObject?: string[];`,
+    `  /** Methods with primitive-wrap pattern (single primitive param wrapped in object) */`,
+    `  methodsWithPrimitiveWrap?: { method: string; param: string }[];`,
     `}`,
   ];
 }
@@ -177,7 +179,7 @@ function emitExportStatements(): string[] {
 // Module namespace generation
 // ---------------------------------------------------------------------------
 
-function emitModuleNamespace(module: Module): string[] {
+function emitModuleNamespace(module: Module, ast: CanonicalAST): string[] {
   const lines: string[] = [
     `declare namespace Firebolt {`,
     `  namespace ${module.name} {`,
@@ -194,6 +196,9 @@ function emitModuleNamespace(module: Module): string[] {
 
   // Emit parameter interfaces for methods with parameters
   for (const method of module.methods) {
+    // Skip native-only methods when generating for web
+    if (method.platform === "native") continue;
+
     if (method.kind === "call" && method.params.length > 0) {
       const paramInterface = emitParamInterface(method);
       if (paramInterface.length > 0) {
@@ -207,7 +212,10 @@ function emitModuleNamespace(module: Module): string[] {
 
   // Emit method signatures
   for (const method of module.methods) {
-    const methodLines = emitMethod(method, module.name);
+    // Skip native-only methods when generating for web
+    if (method.platform === "native") continue;
+
+    const methodLines = emitMethod(method, module.name, ast);
     for (const line of methodLines) {
       lines.push(`    ${line}`);
     }
@@ -223,6 +231,57 @@ function emitModuleNamespace(module: Module): string[] {
 // ---------------------------------------------------------------------------
 // Helper functions (adapted from typescript.ts)
 // ---------------------------------------------------------------------------
+
+function isPrimitiveWrapPattern(method: Method, moduleName: string, ast: CanonicalAST): boolean {
+  if (method.params.length !== 1) {
+    return false;
+  }
+  const param = method.params[0];
+  if (param.type.kind !== "named") {
+    return false;
+  }
+
+  const namedRef = param.type as NamedRef;
+
+  // Find the module in the AST
+  const module = ast.modules.find(m => m.name === moduleName);
+  if (!module) {
+    return false;
+  }
+
+  // Find the type declaration
+  const typeDecl = module.types.find(t => t.name === namedRef.name);
+  if (!typeDecl || typeDecl.kind !== "object") {
+    return false;
+  }
+
+  // Check for single primitive property
+  if (typeDecl.properties.length !== 1) {
+    return false;
+  }
+
+  const prop = typeDecl.properties[0];
+  if (!prop.required || prop.type.kind !== "primitive") {
+    return false;
+  }
+
+  return true;
+}
+
+function findTypeDeclInModule(method: Method, moduleName: string, ast: CanonicalAST): TypeDecl | null {
+  const module = ast.modules.find(m => m.name === moduleName);
+  if (!module) {
+    return null;
+  }
+
+  const param = method.params[0];
+  if (param.type.kind !== "named") {
+    return null;
+  }
+
+  const namedRef = param.type as NamedRef;
+  return module.types.find(t => t.name === namedRef.name) || null;
+}
 
 function getParamInterfaceName(method: Method): string {
   // Capitalize first letter of method name
@@ -299,30 +358,49 @@ function emitObject(decl: ObjectTypeDecl): string[] {
   return lines;
 }
 
-function emitMethod(method: Method, moduleName: string): string[] {
+function emitMethod(method: Method, moduleName: string, ast: CanonicalAST): string[] {
   if (method.kind === "call") {
-    return emitCallMethod(method, moduleName);
+    return emitCallMethod(method, moduleName, ast);
   }
   return emitSubscribeMethod(method);
 }
 
-function emitCallMethod(method: Method, moduleName: string): string[] {
+function emitCallMethod(method: Method, moduleName: string, ast: CanonicalAST): string[] {
   let paramStr: string;
-  
+
   if (method.params.length === 0) {
     // No parameters
     paramStr = "";
+  } else if (isPrimitiveWrapPattern(method, moduleName, ast)) {
+    // Primitive-wrap pattern: accept primitive directly
+    const param = method.params[0];
+    if (param.type.kind === "named") {
+      const typeDecl = findTypeDeclInModule(method, moduleName, ast);
+      if (typeDecl && typeDecl.kind === "object" && typeDecl.properties.length === 1) {
+        const prop = typeDecl.properties[0];
+        const primitiveType = typeRefToTS(prop.type);
+        paramStr = `value: ${primitiveType}`;
+      } else {
+        // Fallback to interface
+        const interfaceName = getParamInterfaceName(method);
+        paramStr = `params: ${interfaceName}`;
+      }
+    } else {
+      // Fallback to interface
+      const interfaceName = getParamInterfaceName(method);
+      paramStr = `params: ${interfaceName}`;
+    }
   } else {
     // All methods with parameters use parameter interface
     const interfaceName = getParamInterfaceName(method);
     paramStr = `params: ${interfaceName}`;
   }
-  
+
   const resultType =
     method.result === null ? "void" : typeRefToTS(method.result);
   const constraintLines = collectConstraintLines(method);
-  const exampleLines = emitExample(method, moduleName);
-  
+  const exampleLines = emitExample(method, moduleName, ast);
+
   let doc = `/** ${method.description}`;
   if (constraintLines.length) {
     doc += `\n   * Constraints: ${constraintLines.join(" | ")}`;
@@ -334,7 +412,7 @@ function emitCallMethod(method: Method, moduleName: string): string[] {
     }
   }
   doc += ` */`;
-  
+
   return [
     doc,
     `function ${method.name}(${paramStr}): Promise<${resultType}>;`,
@@ -376,30 +454,42 @@ function paramToTS(p: Param): string {
   return `${p.name}: ${typeRefToTS(p.type)}`;
 }
 
-function emitExample(method: Method, moduleName: string): string[] {
+function emitExample(method: Method, moduleName: string, ast: CanonicalAST): string[] {
   if (method.params.length === 0) {
     return [];
   }
 
   const lines: string[] = [];
+
+  // Check if this is a primitive-wrap pattern
+  if (isPrimitiveWrapPattern(method, moduleName, ast)) {
+    const typeDecl = findTypeDeclInModule(method, moduleName, ast);
+    if (typeDecl && typeDecl.kind === "object" && typeDecl.properties.length === 1) {
+      const prop = typeDecl.properties[0];
+      const exampleValue = generateExampleValueForType(prop.type);
+      lines.push(`Firebolt.${moduleName}.${method.name}(${exampleValue});`);
+      return lines;
+    }
+  }
+
   const interfaceName = getParamInterfaceName(method);
-  
+
   // Generate example values for each parameter
   const exampleParams: string[] = [];
   for (const param of method.params) {
     const isOptional = param.type.kind === "optional";
     // Skip optional parameters in examples to keep them clean
     if (isOptional) continue;
-    
+
     const exampleValue = generateExampleValue(param);
     exampleParams.push(`  ${param.name}: ${exampleValue}`);
   }
-  
+
   lines.push(`const params: Firebolt.${moduleName}.${interfaceName} = {`);
   lines.push(...exampleParams);
   lines.push(`};`);
   lines.push(`Firebolt.${moduleName}.${method.name}(params);`);
-  
+
   return lines;
 }
 
@@ -474,6 +564,22 @@ function generateExampleValue(param: Param): string {
   }
   
   return "null";
+}
+
+function generateExampleValueForType(type: TypeRef): string {
+  if (type.kind === "primitive") {
+    const primitive = type as PrimitiveRef;
+    switch (primitive.primitive) {
+      case "string":
+        return `"1.2.3"`;
+      case "bool":
+        return "true";
+      case "unsigned":
+      case "double":
+        return "0";
+    }
+  }
+  return `"value"`;
 }
 
 function typeRefToTS(ref: TypeRef): string {

@@ -94,4 +94,17 @@ types:
         description: |
           Human-readable description of the error, suitable for logging.
           Not intended for display to end users.
+
+  - name: AgePolicy
+    kind: enum
+    description: |
+      Age-rating classification applied by the app to content being reported.
+      Used across multiple modules for consistent content maturity classification.
+    values:
+      - id: "app:adult"
+        description: Adult content classification
+      - id: "app:child"
+        description: Child content classification
+      - id: "app:teen"
+        description: Teen content classification
 ---

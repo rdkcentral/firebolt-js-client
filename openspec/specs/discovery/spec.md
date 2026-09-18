@@ -8,21 +8,6 @@ description: |
   The platform uses these signals for recommendations, parental controls,
   and watch history.
 
-types:
-  - name: AgePolicy
-    kind: enum
-    description: |
-      Age-rating classification applied by the app to the content being reported.
-      Values follow the "namespace:tier" convention. The app — not the platform —
-      sets the age policy.
-    values:
-      - id: "app:adult"
-        description: Adult-rated content
-      - id: "app:child"
-        description: Children's content
-      - id: "app:teen"
-        description: Teen-rated content
-
 actions:
   - name: watched
     description: |
@@ -51,7 +36,7 @@ actions:
         description: ISO 8601 UTC timestamp of when the content was watched
       - name: agePolicy
         type:
-          $ref: AgePolicy
+          $ref: "shared:AgePolicy"
         required: false
         description: Age policy applied by the app to this content
     result: none

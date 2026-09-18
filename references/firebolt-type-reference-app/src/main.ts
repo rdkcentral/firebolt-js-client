@@ -1,4 +1,4 @@
-import { factory, FireboltTransport, FactoryConfig,Firebolt } from "@firebolt-js/types";
+import { factory, FireboltTransport, FactoryConfig } from "@firebolt-js/types";
 
 // Mock transport implementation for testing
 const mockTransport: FireboltTransport = {
@@ -38,15 +38,11 @@ async function initializeFirebolt() {
   try {
     const firebolt = await builder.build();
     console.log("Firebolt client initialized:", firebolt);
-    
-    var params:Firebolt.Actions.StartParams = {
-      intent: "some_intent",
-      handlerAppId: "some_value", // Replace with actual fields as needed
-    };
-    await firebolt.Actions.start(params);
 
-  
-    
+    // Example: Metrics.appInfo with primitive-wrap pattern
+    // This should accept a string and wrap it into { build: "value" }
+    await firebolt.Metrics.appInfo("1.2.3");
+
     // Example 3: Accessing modules (these should show intellisense)
     // const deviceInfo = await firebolt.Device.deviceClass();
     // const country = await firebolt.Localization.country();
@@ -72,6 +68,9 @@ const configWithExtension: FactoryConfig = {
       methods: ["customMethod"],
       events: [],
       methodsWithObject: [],
+      methodsWithPrimitiveWrap: [
+        { method: "customPrimitiveMethod", param: "value" }
+      ],
     },
   ]),
 };

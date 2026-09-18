@@ -41,6 +41,12 @@
           }
         },
         "required": ["code", "message"]
+      },
+      "AgePolicy": {
+        "title": "AgePolicy",
+        "type": "string",
+        "enum": ["app:adult", "app:child", "app:teen"],
+        "description": "Age-rating classification applied by the app to the content being reported."
       }
     }
   }
