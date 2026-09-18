@@ -127,9 +127,10 @@ Each `kind: "call"` method stub SHALL:
 1. Allocate a unique integer `id` and send `{ jsonrpc:"2.0", id, method:"Module.methodName", params }` via `transport.send(msg)` (no clientId argument).
 2. On receiving `{ id, result }`: resolve the Promise with the result value (no validation).
 3. On receiving `{ id, error }`: reject the Promise with an `Error` constructed from `error.message` and `error.code`.
-4. The inject-js generator SHALL produce two distinct parameter patterns based on the method's parameter count:
+4. The inject-js generator SHALL produce three distinct parameter patterns based on the method's parameter structure:
    - **No-param methods** (paramCount === 0): Generate stubs that accept no arguments and send empty params object
    - **Single-param methods** (paramCount >= 1): Generate stubs that accept a single parameter (primitive or object) and send it as params
+   - **Single-primitive-wrap methods** (exactly 1 param, object type, exactly 1 required primitive property): Generate stubs that accept a single primitive value and wrap it in an object with the property name
 
 #### Scenario: Call method sends params without clientId
 - **WHEN** a call stub is invoked with params
@@ -148,11 +149,6 @@ Each `kind: "call"` method stub SHALL:
 - **WHEN** a method with paramCount === 0 is invoked without arguments
 - **THEN** the method MUST be callable as `Module.method()`
 - **THEN** the generated stub MUST send `{ jsonrpc:"2.0", id, method, params: {} }` to the transport
-
-#### Scenario: Single-param method stub accepts primitive value
-- **WHEN** a method with paramCount >= 1 is invoked with a primitive value (string, number, boolean)
-- **THEN** the method MUST be callable as `Module.method(value)`
-- **THEN** the generated stub MUST send the primitive value as the params field to the transport
 
 #### Scenario: Single-param method stub accepts object value
 - **WHEN** a method with paramCount >= 1 is invoked with an object
@@ -274,6 +270,11 @@ The factory function SHALL support dynamic extension schema loading via the `ext
 - **THEN** those methods MUST be added to the module using `_addMethodWithObjectParam`
 - **THEN** methods MUST not overwrite existing methods
 
+#### Scenario: Extension methods with primitive-wrap pattern are added to registry
+- **WHEN** extension schema includes methods that match the single-primitive-wrap pattern
+- **THEN** those methods MUST be added to the module using `_addMethodWithPrimitiveWrap`
+- **THEN** methods MUST not overwrite existing methods
+
 #### Scenario: Extension modules are registered
 - **WHEN** extension schema includes a new module name
 - **THEN** that module MUST be registered in the FireboltClient
@@ -322,3 +323,58 @@ The `_VERSION` constant in the generated bundle SHALL equal the `version` string
 #### Scenario: version matches OpenRPC version
 - **WHEN** the OpenRPC documents carry `info.version: "9.0"`
 - **THEN** the `_VERSION` constant MUST equal `"9.0"`
+
+---
+
+### Requirement: Single-primitive-wrap parameter pattern detection
+The inject-js generator SHALL detect when a method signature matches the single-primitive-wrap pattern and generate an ergonomic stub that accepts a single primitive value and wraps it in an object.
+
+#### Scenario: Method with single required primitive property
+- **WHEN** a method has exactly 1 parameter
+- **AND** that parameter is an object type
+- **AND** that object has exactly 1 property
+- **AND** that property is required
+- **AND** that property is a primitive type (string, number, boolean, etc.)
+- **THEN** the generator MUST use the single-primitive-wrap pattern
+- **AND** the generated stub MUST accept a single primitive value
+- **AND** the stub MUST wrap the value in an object with the property name
+
+#### Scenario: Method with multiple parameters
+- **WHEN** a method has more than 1 parameter
+- **THEN** the generator MUST NOT use the single-primitive-wrap pattern
+- **AND** the generator MUST use the standard object parameter pattern
+
+#### Scenario: Method with optional single property
+- **WHEN** a method has exactly 1 parameter
+- **AND** that parameter is an object type
+- **AND** that object has exactly 1 property
+- **AND** that property is optional (not required)
+- **THEN** the generator MUST NOT use the single-primitive-wrap pattern
+- **AND** the generator MUST use the standard object parameter pattern
+
+#### Scenario: Method with non-primitive property
+- **WHEN** a method has exactly 1 parameter
+- **AND** that parameter is an object type
+- **AND** that object has exactly 1 property
+- **AND** that property is required
+- **AND** that property is a complex type (object, array, etc.)
+- **THEN** the generator MUST NOT use the single-primitive-wrap pattern
+- **AND** the generator MUST use the standard object parameter pattern
+
+---
+
+### Requirement: Single-primitive-wrap stub factory
+The inject-js generator SHALL provide a stub factory function that generates methods using the single-primitive-wrap pattern.
+
+#### Scenario: Generate primitive-wrap stub
+- **WHEN** the generator processes a method matching the single-primitive-wrap pattern
+- **THEN** the generator MUST call `_addMethodWithPrimitiveWrap(module, methodName, moduleName, paramName)`
+- **AND** the generated stub MUST accept a single primitive value
+- **AND** the stub MUST create an object with the property name and value
+- **AND** the stub MUST pass the object to the JSON-RPC call
+
+#### Scenario: Primitive-wrap method invocation
+- **WHEN** a user calls a method using the single-primitive-wrap pattern
+- **THEN** the user MUST pass a single primitive value
+- **AND** the generated stub MUST wrap the value in an object
+- **AND** the JSON-RPC request MUST contain the object with the property name

@@ -34,6 +34,7 @@
         "name": "result",
         "schema": { "type": "null" }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "userSignedIn",
@@ -52,6 +53,7 @@
         "name": "result",
         "schema": { "type": "null" }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "userSignedOut",
@@ -64,8 +66,21 @@
     {
       "name": "Metrics.startContent",
       "summary": "Signal that content playback started.",
-      "description": "Signals the app is starting to show video or audio content.",
-      "params": [],
+      "description": "Signals the app is starting to show video or audio content with entity identification and age policy context.",
+      "params": [
+        {
+          "name": "entityId",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "agePolicy",
+          "required": true,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for the content"
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -74,7 +89,10 @@
         {
           "name": "contentStarted",
           "summary": "Content playback started",
-          "params": [],
+          "params": [
+            { "name": "entityId", "value": "video123" },
+            { "name": "agePolicy", "value": "app:adult" }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -82,8 +100,21 @@
     {
       "name": "Metrics.stopContent",
       "summary": "Signal that content playback stopped.",
-      "description": "Signals the app has stopped showing video or audio content.",
-      "params": [],
+      "description": "Signals the app has stopped showing video or audio content with entity identification and age policy context.",
+      "params": [
+        {
+          "name": "entityId",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "agePolicy",
+          "required": true,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for the content"
+        }
+      ],
       "result": {
         "name": "result",
         "schema": { "type": "null" }
@@ -92,7 +123,10 @@
         {
           "name": "contentStopped",
           "summary": "Content playback stopped",
-          "params": [],
+          "params": [
+            { "name": "entityId", "value": "video123" },
+            { "name": "agePolicy", "value": "app:adult" }
+          ],
           "result": { "name": "result", "value": null }
         }
       ]
@@ -100,13 +134,19 @@
     {
       "name": "Metrics.page",
       "summary": "Signal page transition.",
-      "description": "Signals that the app has transitioned to a new page. The pageName parameter identifies the page.",
+      "description": "Signals that the app has transitioned to a new page with page identification and optional age policy context.",
       "params": [
         {
-          "name": "pageName",
+          "name": "pageId",
           "required": true,
           "schema": { "type": "string" },
           "description": "Identifier for the page the app is now on"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -118,7 +158,7 @@
           "name": "pageTransition",
           "summary": "App navigated to details page",
           "params": [
-            { "name": "pageName", "value": "details" }
+            { "name": "pageId", "value": "details" }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -127,19 +167,43 @@
     {
       "name": "Metrics.error",
       "summary": "Log an error.",
-      "description": "Logs an error that occurred within the app.",
+      "description": "Logs an error that occurred within the app with structured error information including type, code, description, visibility, optional parameters, and optional age policy.",
       "params": [
         {
-          "name": "errorType",
+          "name": "type",
           "required": true,
           "schema": { "$ref": "#/components/schemas/ErrorType" },
           "description": "Type of error"
         },
         {
-          "name": "errorMessage",
-          "required": false,
+          "name": "code",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Error code"
+        },
+        {
+          "name": "description",
+          "required": true,
           "schema": { "type": "string" },
           "description": "Human-readable error description"
+        },
+        {
+          "name": "visible",
+          "required": true,
+          "schema": { "type": "boolean" },
+          "description": "Whether error should be visible to user"
+        },
+        {
+          "name": "parameters",
+          "required": false,
+          "schema": { "type": "object" },
+          "description": "Additional error parameters as key-value pairs"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content context"
         }
       ],
       "result": {
@@ -151,8 +215,10 @@
           "name": "networkError",
           "summary": "Network error occurred",
           "params": [
-            { "name": "errorType", "value": "network" },
-            { "name": "errorMessage", "value": "DNS resolution failed" }
+            { "name": "type", "value": "network" },
+            { "name": "code", "value": "DNS_FAILED" },
+            { "name": "description", "value": "DNS resolution failed" },
+            { "name": "visible", "value": true }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -356,25 +422,25 @@
     {
       "name": "Metrics.mediaSeeking",
       "summary": "Signal user is seeking.",
-      "description": "Signals that the user is seeking to a new playback position.",
+      "description": "Signals that the user is seeking to a new playback position with entity identification, target position, and optional age policy.",
       "params": [
         {
-          "name": "params",
+          "name": "entityId",
           "required": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "entityId": {
-                "type": "string",
-                "description": "Entity identifier for the media asset"
-              },
-              "agePolicy": {
-                "type": "string",
-                "description": "Age policy for the content"
-              }
-            },
-            "required": ["entityId"]
-          }
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "target",
+          "required": true,
+          "schema": { "type": "number", "format": "double" },
+          "description": "Target playback position in seconds"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -386,7 +452,8 @@
           "name": "userSeeking",
           "summary": "User initiated seek",
           "params": [
-            { "name": "params", "value": { "entityId": "video123" } }
+            { "name": "entityId", "value": "video123" },
+            { "name": "target", "value": 120.5 }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -395,25 +462,25 @@
     {
       "name": "Metrics.mediaSeeked",
       "summary": "Signal seek completed.",
-      "description": "Signals that the user has completed seeking to a new position.",
+      "description": "Signals that the user has completed seeking to a new position with entity identification, final position, and optional age policy.",
       "params": [
         {
-          "name": "params",
+          "name": "entityId",
           "required": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "entityId": {
-                "type": "string",
-                "description": "Entity identifier for the media asset"
-              },
-              "agePolicy": {
-                "type": "string",
-                "description": "Age policy for the content"
-              }
-            },
-            "required": ["entityId"]
-          }
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "position",
+          "required": true,
+          "schema": { "type": "number", "format": "double" },
+          "description": "Final playback position in seconds"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -425,7 +492,8 @@
           "name": "seekComplete",
           "summary": "Seek operation completed",
           "params": [
-            { "name": "params", "value": { "entityId": "video123" } }
+            { "name": "entityId", "value": "video123" },
+            { "name": "position", "value": 120.5 }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -434,25 +502,25 @@
     {
       "name": "Metrics.mediaRateChanged",
       "summary": "Signal playback rate changed.",
-      "description": "Signals that media playback rate has changed (e.g., speed up, slow down).",
+      "description": "Signals that media playback rate has changed with entity identification, rate value, and optional age policy.",
       "params": [
         {
-          "name": "params",
+          "name": "entityId",
           "required": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "entityId": {
-                "type": "string",
-                "description": "Entity identifier for the media asset"
-              },
-              "agePolicy": {
-                "type": "string",
-                "description": "Age policy for the content"
-              }
-            },
-            "required": ["entityId"]
-          }
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "rate",
+          "required": true,
+          "schema": { "type": "number", "format": "double" },
+          "description": "Playback rate multiplier (e.g., 2.0 for 2x speed)"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -464,7 +532,8 @@
           "name": "rateChanged",
           "summary": "Playback rate changed",
           "params": [
-            { "name": "params", "value": { "entityId": "video123" } }
+            { "name": "entityId", "value": "video123" },
+            { "name": "rate", "value": 2.0 }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -473,25 +542,43 @@
     {
       "name": "Metrics.mediaRenditionChanged",
       "summary": "Signal rendition/quality changed.",
-      "description": "Signals that media rendition (quality) has changed.",
+      "description": "Signals that media rendition (quality) has changed with entity identification, bitrate, dimensions, optional profile, and optional age policy.",
       "params": [
         {
-          "name": "params",
+          "name": "entityId",
           "required": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "entityId": {
-                "type": "string",
-                "description": "Entity identifier for the media asset"
-              },
-              "agePolicy": {
-                "type": "string",
-                "description": "Age policy for the content"
-              }
-            },
-            "required": ["entityId"]
-          }
+          "schema": { "type": "string" },
+          "description": "Entity identifier for the media asset"
+        },
+        {
+          "name": "bitrate",
+          "required": true,
+          "schema": { "type": "number" },
+          "description": "Bitrate in bits per second"
+        },
+        {
+          "name": "width",
+          "required": true,
+          "schema": { "type": "number" },
+          "description": "Video width in pixels"
+        },
+        {
+          "name": "height",
+          "required": true,
+          "schema": { "type": "number" },
+          "description": "Video height in pixels"
+        },
+        {
+          "name": "profile",
+          "required": false,
+          "schema": { "type": "string" },
+          "description": "Quality profile identifier"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -503,7 +590,10 @@
           "name": "qualityChanged",
           "summary": "Media quality changed to 1080p",
           "params": [
-            { "name": "params", "value": { "entityId": "video123" } }
+            { "name": "entityId", "value": "video123" },
+            { "name": "bitrate", "value": 5000000 },
+            { "name": "width", "value": 1920 },
+            { "name": "height", "value": 1080 }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -551,19 +641,25 @@
     {
       "name": "Metrics.event",
       "summary": "Log a custom event.",
-      "description": "Generic event telemetry allowing apps to log custom metrics and analytics events.",
+      "description": "Generic event telemetry allowing apps to log custom metrics and analytics events with schema URI, data string, and optional age policy.",
       "params": [
         {
-          "name": "eventName",
+          "name": "schema",
           "required": true,
           "schema": { "type": "string" },
-          "description": "Event name identifier"
+          "description": "Schema URI for the event data format"
         },
         {
-          "name": "eventData",
-          "required": false,
+          "name": "data",
+          "required": true,
           "schema": { "type": "string" },
-          "description": "Arbitrary event data as a JSON string"
+          "description": "Event data as a string"
+        },
+        {
+          "name": "agePolicy",
+          "required": false,
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
+          "description": "Age policy for content classification"
         }
       ],
       "result": {
@@ -575,8 +671,8 @@
           "name": "customEvent",
           "summary": "Custom analytics event",
           "params": [
-            { "name": "eventName", "value": "user_action" },
-            { "name": "eventData", "value": "{\"action\":\"favorite\",\"contentId\":\"123\"}" }
+            { "name": "schema", "value": "http://example.com/schema/custom-event" },
+            { "name": "data", "value": "{\"action\":\"favorite\",\"contentId\":\"123\"}" }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -585,13 +681,13 @@
     {
       "name": "Metrics.appInfo",
       "summary": "Send app-specific metrics.",
-      "description": "Sends app-specific metrics to the platform. Params include agePolicy indicating content maturity if applicable.",
+      "description": "Sends app-specific metrics to the platform with a build identifier.",
       "params": [
         {
-          "name": "agePolicy",
-          "required": false,
-          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
-          "description": "Content age policy/rating"
+          "name": "build",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/BuildInfo" },
+          "description": "Build identifier for the app"
         }
       ],
       "result": {
@@ -600,10 +696,10 @@
       },
       "examples": [
         {
-          "name": "appInfoWithRating",
-          "summary": "App info with content rating",
+          "name": "appInfoWithBuild",
+          "summary": "App info with build identifier",
           "params": [
-            { "name": "agePolicy", "value": { "ratings": { "us": "TV-14" } } }
+            { "name": "build", "value": { "build": "1.2.3" } }
           ],
           "result": { "name": "result", "value": null }
         }
@@ -615,9 +711,21 @@
       "ErrorType": {
         "title": "ErrorType",
         "type": "string",
-        "enum": ["network", "playback", "entitlement", "parse", "aborted", "unknown"],
+        "enum": ["network", "media", "restriction", "entitlement", "other"],
         "description": "Classification of error type.",
         "examples": ["network"]
+      },
+      "BuildInfo": {
+        "title": "BuildInfo",
+        "type": "object",
+        "properties": {
+          "build": {
+            "type": "string",
+            "description": "Build identifier for the app"
+          }
+        },
+        "required": ["build"],
+        "description": "Build information for the app"
       }
     }
   }

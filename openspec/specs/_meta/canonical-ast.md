@@ -39,6 +39,22 @@ interface CanonicalAST {
   /** All modules parsed from OpenRPC, in source order */
   modules: Module[];
 }
+
+/**
+ * Platform classification for a module or method.
+ *   web    — available to web-based runtimes only  → generators: ts, res, kt
+ *   native — available to native SDK integrations only → generators: cpp, py
+ *   both   — available to all runtimes → all generators
+ */
+type Platform = "web" | "native" | "both";
+
+/**
+ * Resolve the effective platform for a method.
+ * Returns the method's platform if specified, otherwise the module's platform.
+ */
+function resolveMethodPlatform(method: Method, module: Module): Platform {
+  return method.platform ?? module.platform;
+}
 ```
 
 ---
@@ -50,6 +66,12 @@ interface Module {
   /** PascalCase module name, e.g. "Device", "Lifecycle2" */
   name: string;
   description: string;
+  /**
+   * Platform classification. Derived from `x-firebolt-platform` in the
+   * OpenRPC document's `info` object. Generators use this to skip modules
+   * that don't target their runtime.
+   */
+  platform: "web" | "native" | "both";
   /** Named type declarations (enums, objects, aliases) */
   types: TypeDecl[];
   /** All methods — both call and subscribe kinds */
@@ -74,6 +96,13 @@ interface Method {
    *             Generators emit a callback + unsubscribe pattern instead.
    */
   kind: "call" | "subscribe";
+  /**
+   * Platform classification for this specific method.
+   * If undefined, inherits from Module.platform.
+   * This enables mixed-platform modules where some APIs are
+   * web-only, native-only, or both within the same module.
+   */
+  platform?: "web" | "native" | "both";
   params: Param[];
   /**
    * For kind=call:      the return value type. PrimitiveRef(null) means void.

@@ -12,7 +12,7 @@ description: |
   is reserved by Firebolt versions prior to 9.
 
 types:
-  LifecycleState:
+  - name: LifecycleState
     kind: enum
     description: |
       Lifecycle state of an app managed by the platform.
@@ -38,25 +38,25 @@ types:
       - id: terminating
         description: Being shut down; terminal state
 
-  StateChangedEvent:
+  - name: StateChangedEvent
     kind: object
     description: |
       Payload for a lifecycle state transition notification.
       Always carries exactly one state transition.
     properties:
-      oldState:
+      - name: oldState
         type:
           $ref: LifecycleState
         required: true
         description: The state the app transitioned from
-      newState:
+      - name: newState
         type:
           $ref: LifecycleState
         required: true
         description: The state the app transitioned to
 
 events:
-  onStateChanged:
+  - name: onStateChanged
     description: |
       Subscribe to lifecycle state change notifications.
       The app/runtime remains in initializing until this subscribe call is made.

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate": "ts-node src/cli.ts generate",
+    "generate": "ts-node src/cli.ts generate && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "dependencies": {

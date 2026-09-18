@@ -39,7 +39,7 @@
         {
           "name": "agePolicy",
           "required": false,
-          "schema": { "$ref": "#/components/schemas/AgePolicy" },
+          "schema": { "$ref": "shared.json#/components/schemas/AgePolicy" },
           "description": "Age policy applied by the app to this content"
         }
       ],
@@ -62,15 +62,5 @@
         }
       ]
     }
-  ],
-  "components": {
-    "schemas": {
-      "AgePolicy": {
-        "title": "AgePolicy",
-        "type": "string",
-        "enum": ["app:adult", "app:child", "app:teen"],
-        "description": "Age-rating classification applied by the app to the content being reported."
-      }
-    }
-  }
+  ]
 }

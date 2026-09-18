@@ -8,7 +8,7 @@ description: |
   Apps can send intents to the platform and receive the most recently received intent.
 
 actions:
-  start:
+  - name: start
     description: Send an intent to the platform.
     since: "9.0.0"
     params:
@@ -27,7 +27,7 @@ actions:
           intent: '{"action":"play","entityId":"entity-123"}'
 
 properties:
-  intent:
+  - name: intent
     description: |
       Returns the intent that was most recently received from the platform.
       Getter is typically called by an app after transitioning to the active lifecycle state.
@@ -41,13 +41,13 @@ properties:
           intent: '{"action":"play"}'
 
 types:
-  IntentPayload:
+  - name: IntentPayload
     description: Platform intent with unique ID and payload.
     properties:
-      intentId:
+      - name: intentId
         type: unsigned
         description: Monotonically increasing intent ID
-      intent:
+      - name: intent
         type: string
         description: The intent as a JSON document
 ---

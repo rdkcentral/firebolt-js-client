@@ -248,3 +248,122 @@ test("bundle contains new transport interface", () => {
   expect(code).toContain("transport.open");
   expect(code).toContain("transport.close");
 });
+
+// ---------------------------------------------------------------------------
+// Single-primitive-wrap pattern tests
+// ---------------------------------------------------------------------------
+
+test("bundle contains _addMethodWithPrimitiveWrap function", () => {
+  const code = generateBundle(makeAST());
+  expect(code).toContain("_addMethodWithPrimitiveWrap");
+});
+
+test("single-primitive-wrap pattern is detected for methods with object containing single primitive property", () => {
+  const testModule: Module = {
+    name: "TestModule",
+    platform: "web",
+    types: [
+      {
+        kind: "object",
+        name: "BuildInfo",
+        properties: [
+          {
+            name: "build",
+            type: { kind: "primitive", primitive: "string" },
+            required: true,
+            description: "Build identifier"
+          }
+        ],
+        description: "Build object"
+      }
+    ],
+    methods: [
+      {
+        kind: "call",
+        name: "appInfo",
+        params: [
+          {
+            name: "build",
+            type: { kind: "named", name: "BuildInfo" },
+            description: "Build parameter"
+          } as never,
+        ],
+        result: null,
+      } as never,
+    ],
+  };
+
+  const ast = makeAST({ modules: [testModule] });
+  const code = generateBundle(ast);
+  expect(code).toContain("_addMethodWithPrimitiveWrap");
+});
+
+test("single-primitive-wrap pattern is NOT used for methods with multiple parameters", () => {
+  const testModule: Module = {
+    name: "TestModule",
+    platform: "web",
+    types: [],
+    methods: [
+      {
+        kind: "call",
+        name: "multiParam",
+        params: [
+          {
+            name: "param1",
+            type: { kind: "primitive", primitive: "string" } as never,
+            description: "First param"
+          } as never,
+          {
+            name: "param2",
+            type: { kind: "primitive", primitive: "string" } as never,
+            description: "Second param"
+          } as never,
+        ],
+        result: null,
+      } as never,
+    ],
+  };
+
+  const ast = makeAST({ modules: [testModule] });
+  const code = generateBundle(ast);
+  expect(code).toContain("_addMethodWithObjectParam");
+  expect(code).not.toContain("_addMethodWithPrimitiveWrap");
+});
+
+test("single-primitive-wrap pattern is NOT used for methods with optional single property", () => {
+  const testModule: Module = {
+    name: "TestModule",
+    platform: "web",
+    types: [],
+    methods: [
+      {
+        kind: "call",
+        name: "optionalParam",
+        params: [
+          {
+            name: "param",
+            type: {
+              kind: "object",
+              properties: [
+                {
+                  name: "value",
+                  type: { kind: "primitive", primitive: "string" },
+                  required: false,
+                  description: "Optional value"
+                }
+              ],
+              description: "Optional object"
+            },
+            description: "Optional parameter"
+          } as never,
+        ],
+        result: null,
+      } as never,
+    ],
+  };
+
+  const ast = makeAST({ modules: [testModule] });
+  const code = generateBundle(ast);
+  expect(code).toContain("_addMethodWithObjectParam");
+  expect(code).not.toContain("_addMethodWithPrimitiveWrap");
+});

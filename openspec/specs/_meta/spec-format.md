@@ -11,6 +11,8 @@ Each module spec is a single Markdown file with a YAML frontmatter block.
 All structured API definitions live inside the frontmatter.
 Extended prose goes in YAML multiline string fields (use `|`).
 
+**GitHub Rendering:** API definitions use YAML array syntax for better vertical rendering in GitHub Preview. Each property, action, event, and type is a distinct list item, making specs easier to scan and review. The array syntax renders as vertical list items in GitHub, providing better readability compared to nested object blocks.
+
 ```
 openspec/specs/<module>/spec.md
 ```
@@ -28,10 +30,10 @@ stability:   <stability>     # required — see Stability Levels below
 description: |               # required — multiline prose describing the module purpose
   ...
 
-types:       {}              # optional — type declarations local to this module
-properties:  {}              # optional — readable (and optionally writable) platform values
-actions:     {}              # optional — imperative calls with no event counterpart
-events:      {}              # optional — spontaneous events with no getter counterpart
+types:       []              # optional — type declarations local to this module
+properties:  []              # optional — readable (and optionally writable) platform values
+actions:     []              # optional — imperative calls with no event counterpart
+events:      []              # optional — spontaneous events with no getter counterpart
 ---
 ```
 
@@ -55,6 +57,38 @@ generated. Omitting it is a build error.
 
 The `x-firebolt-platform` extension field on the OpenRPC `info` object is derived
 directly from this spec field. Never set them to different values.
+
+### API-Level Platform Classification
+
+Individual actions, properties, and events MAY declare an optional `platform` field
+to override the module-level platform classification. If not specified, the API
+inherits the module's `platform` setting.
+
+**Syntax:**
+```yaml
+actions:
+  - name: uptime
+    description: Returns the number of seconds since most recent device boot
+    platform: native  # optional override
+    params: []
+    result:
+      type: number
+```
+
+**Inheritance Rules:**
+- If an API specifies `platform`, use that value
+- If an API does not specify `platform`, inherit from `module.platform`
+- Valid values: `web`, `native`, `both` (same as module-level)
+
+**Validation Rules:**
+- A module with `platform: web` cannot contain APIs with `platform: native`
+- A module with `platform: native` cannot contain APIs with `platform: web`
+- A module with `platform: both` can contain any mix of API-level platforms
+
+**Use Cases:**
+- Device module (`platform: both`) has C++-only APIs like `uptime`, `chipsetId`
+- Display module (`platform: both`) can have web-only APIs like `colorimetry` and native-only APIs like `size`
+- Enables mixed-platform modules without artificial module splitting
 
 ---
 
@@ -143,11 +177,11 @@ maximum: <number>       # inclusive upper bound
 
 ```yaml
 actions:
-  voiceGuidanceSettings:
+  - name: voiceGuidanceSettings
     result:
       type: object
       properties:
-        rate:
+        - name: rate
           type: double
           minimum: 0.1
           maximum: 10
@@ -214,7 +248,7 @@ by `$ref` from any property, action, event, or object field within the same spec
 
 ```yaml
 types:
-  AudioProfile:
+  - name: AudioProfile
     kind: enum
     description: |
       An audio encoding profile supported by the device hardware.
@@ -239,17 +273,17 @@ types:
 
 ```yaml
 types:
-  StateChangedEvent:
+  - name: StateChangedEvent
     kind: object
     description: |
       Payload for a lifecycle state transition notification.
     properties:
-      oldState:
+      - name: oldState
         type:
           $ref: LifecycleState
         required: true
         description: The state the app transitioned from
-      newState:
+      - name: newState
         type:
           $ref: LifecycleState
         required: true
@@ -273,29 +307,37 @@ Every property automatically generates:
 
 ```yaml
 properties:
-  audioDescription:
+  - name: audioDescription
     description: |
       Whether audio description is enabled on this device.
       This is a platform-level accessibility setting.
-    type: bool
-    writable: false
     since: "8.0.0"
+    result:
+      type: bool
     examples:
       - description: Audio description is enabled
-        value: true
+        result: true
       - description: Audio description is disabled
-        value: false
+        result: false
+
+  - name: timeZone
+    description: Returns the IANA time zone format
+    since: "9.0.0"
+    platform: native  # optional platform override
+    result:
+      type: string
 ```
 
 **Rules:**
-- `type` is a TypeRef.
+- `result` is a TypeRef (the type returned by the getter).
 - `writable: false` (default) — generates getter + onChange event only.
 - `writable: true` — generates getter + setter + onChange event.
-- The event payload type is **always identical** to the property type. There is no
+- The event payload type is **always identical** to the property result type. There is no
   separate event payload type for properties.
 - `since` records the Firebolt API version when this property was introduced.
 - `examples` are optional but strongly encouraged — they flow into OpenRPC and
   are used for contract validation and consumer documentation.
+- `platform` is optional — if specified, overrides the module-level platform for this property.
 
 ---
 
@@ -306,7 +348,7 @@ Actions do **not** generate an event counterpart.
 
 ```yaml
 actions:
-  watched:
+  - name: watched
     description: |
       Notify the platform that content has been partially or completely watched.
       watchedOn must be ISO 8601 UTC: "YYYY-MM-DDThh:mm:ss.sssZ"
@@ -332,7 +374,7 @@ actions:
         description: ISO 8601 UTC timestamp of when the content was watched
       - name: agePolicy
         type:
-          $ref: AgePolicy
+          $ref: "#/types/AgePolicy"
         required: false
         description: Age policy the app applies to this content
     result: none
@@ -343,6 +385,14 @@ actions:
           progress: 0.75
           agePolicy: "app:adult"
         result: null
+
+  - name: uptime
+    description: Returns the number of seconds since most recent device boot
+    since: "9.0.0"
+    platform: native  # optional platform override
+    params: []
+    result:
+      type: number
 ```
 
 **Rules:**
@@ -351,6 +401,7 @@ actions:
 - `result: none` — the call returns nothing (void/Unit/null across languages).
 - `result:` with a TypeRef — the call returns that type.
 - Every param must have `name`, `type`, `required`, and `description`.
+- `platform` is optional — if specified, overrides the module-level platform for this action.
 
 ---
 
@@ -362,7 +413,7 @@ This section is only for events that are **not** tied to a property.
 
 ```yaml
 events:
-  onStateChanged:
+  - name: onStateChanged
     description: |
       Notifies the app of a lifecycle state transition.
       The app/runtime remains in initializing until this subscribe call is made.
@@ -378,12 +429,20 @@ events:
     since: "8.0.0"
     payload:
       type:
-        $ref: StateChangedEvent
+        $ref: "#/types/StateChangedEvent"
     examples:
       - description: App becomes active from paused
         payload:
           oldState: paused
           newState: active
+
+  - name: onTimeZoneChanged
+    description: Event for when Localization.timeZone changed
+    since: "9.0.0"
+    platform: native  # optional platform override
+    params: []
+    result:
+      type: string
 ```
 
 **Rules:**
@@ -392,6 +451,7 @@ events:
 - Do **not** declare a `listen: boolean` param. It is injected automatically at the
   OpenRPC derivation layer (see `openrpc-derivation.md`).
 - Use a named `$ref` type for the payload rather than an inline object definition.
+- `platform` is optional — if specified, overrides the module-level platform for this event.
 
 ---
 

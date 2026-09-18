@@ -8,61 +8,103 @@ description: |
   Apps send telemetry events describing media playback, errors, and lifecycle.
 
 actions:
-  ready:
+  - name: ready
     description: Signals that the app is ready to display content and accept user input.
     since: "9.0.0"
     params: []
     result: null
 
-  signIn:
+  - name: signIn
     description: Log a sign in event. Platform will automatically detect the id.
     since: "9.0.0"
+    platform: native
     params: []
     result: null
 
-  signOut:
+  - name: signOut
     description: Log a sign out event. Platform will automatically detect the id.
     since: "9.0.0"
+    platform: native
     params: []
     result: null
 
-  startContent:
-    description: Signals the app is starting to show video or audio content.
-    since: "9.0.0"
-    params: []
-    result: null
-
-  stopContent:
-    description: Signals the app has stopped showing video or audio content.
-    since: "9.0.0"
-    params: []
-    result: null
-
-  page:
-    description: |
-      Signals that the app has transitioned to a new page.
-      The pageName parameter identifies the page.
+  - name: startContent
+    description: Signals the app is starting to show video or audio content with entity identification and age policy context.
     since: "9.0.0"
     params:
-      - name: pageName
+      - name: entityId
+        type: string
+        required: true
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: true
+        description: Age policy for the content
+    result: null
+
+  - name: stopContent
+    description: Signals the app has stopped showing video or audio content with entity identification and age policy context.
+    since: "9.0.0"
+    params:
+      - name: entityId
+        type: string
+        required: true
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: true
+        description: Age policy for the content
+    result: null
+
+  - name: page
+    description: |
+      Signals that the app has transitioned to a new page with page identification and optional age policy context.
+    since: "9.0.0"
+    params:
+      - name: pageId
         type: string
         required: true
         description: Identifier for the page the app is now on
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content classification
 
-  error:
-    description: Logs an error that occurred within the app.
+  - name: error
+    description: Logs an error that occurred within the app with structured error information including type, code, description, visibility, optional parameters, and optional age policy.
     since: "9.0.0"
     params:
-      - name: errorType
-        type: $ref: "#/types/ErrorType"
+      - name: type
+        type:
+          $ref: "#/types/ErrorType"
         required: true
         description: Type of error
-      - name: errorMessage
+      - name: code
         type: string
-        required: false
+        required: true
+        description: Error code
+      - name: description
+        type: string
+        required: true
         description: Human-readable error description
+      - name: visible
+        type: bool
+        required: true
+        description: Whether error should be visible to user
+      - name: parameters
+        type: object
+        required: false
+        description: Additional error parameters as key-value pairs
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content context
 
-  mediaLoadStart:
+  - name: mediaLoadStart
     description: Called when setting the URL of a media asset to play, in order to infer load time.
     since: "9.0.0"
     params:
@@ -70,16 +112,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPlay:
+  - name: mediaPlay
     description: Called when media playback should start due to autoplay, user-initiated play, or unpausing.
     since: "9.0.0"
     params:
@@ -87,16 +129,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPlaying:
+  - name: mediaPlaying
     description: |
       Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.
     since: "9.0.0"
@@ -105,16 +147,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaPause:
+  - name: mediaPause
     description: Signals that media playback has been paused.
     since: "9.0.0"
     params:
@@ -122,16 +164,16 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaWaiting:
+  - name: mediaWaiting
     description: Signals that media playback is waiting (buffering) for data.
     since: "9.0.0"
     params:
@@ -139,84 +181,104 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  mediaSeeking:
-    description: Signals that the user is seeking to a new playback position.
+  - name: mediaSeeking
+    description: Signals that the user is seeking to a new playback position with entity identification, target position, and optional age policy.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          entityId:
-            type: string
-            description: Entity identifier for the media asset
-          agePolicy:
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: target
+        type: number
+        required: true
+        description: Target playback position in seconds
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content classification
     result: null
 
-  mediaSeeked:
-    description: Signals that the user has completed seeking to a new position.
+  - name: mediaSeeked
+    description: Signals that the user has completed seeking to a new position with entity identification, final position, and optional age policy.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          entityId:
-            type: string
-            description: Entity identifier for the media asset
-          agePolicy:
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: position
+        type: number
+        required: true
+        description: Final playback position in seconds
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content classification
     result: null
 
-  mediaRateChanged:
-    description: Signals that media playback rate has changed (e.g., speed up, slow down).
+  - name: mediaRateChanged
+    description: Signals that media playback rate has changed with entity identification, rate value, and optional age policy.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          entityId:
-            type: string
-            description: Entity identifier for the media asset
-          agePolicy:
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: rate
+        type: number
+        required: true
+        description: Playback rate multiplier (e.g., 2.0 for 2x speed)
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content classification
     result: null
 
-  mediaRenditionChanged:
-    description: Signals that media rendition (quality) has changed.
+  - name: mediaRenditionChanged
+    description: Signals that media rendition (quality) has changed with entity identification, bitrate, dimensions, optional profile, and optional age policy.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          entityId:
-            type: string
-            description: Entity identifier for the media asset
-          agePolicy:
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: bitrate
+        type: number
+        required: true
+        description: Bitrate in bits per second
+      - name: width
+        type: number
+        required: true
+        description: Video width in pixels
+      - name: height
+        type: number
+        required: true
+        description: Video height in pixels
+      - name: profile
+        type: string
+        required: false
+        description: Quality profile identifier
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for content classification
     result: null
 
-  mediaEnded:
+  - name: mediaEnded
     description: Signals that media playback has ended.
     since: "9.0.0"
     params:
@@ -224,55 +286,62 @@ actions:
         type: object
         required: true
         properties:
-          entityId:
+          - name: entityId
             type: string
             description: Entity identifier for the media asset
-          agePolicy:
+          - name: agePolicy
             type: string
             required: false
             description: Age policy for the content
     result: null
 
-  event:
+  - name: event
     description: |
-      Generic event telemetry allowing apps to log custom metrics and analytics events.
+      Generic event telemetry allowing apps to log custom metrics and analytics events with schema URI, data string, and optional age policy.
     since: "9.0.0"
     params:
-      - name: eventName
+      - name: schema
         type: string
         required: true
-        description: Event name identifier
-      - name: eventData
+        description: Schema URI for the event data format
+      - name: data
         type: string
+        required: true
+        description: Event data as a string
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
         required: false
-        description: Arbitrary event data as a JSON string
+        description: Age policy for content classification
 
-  appInfo:
+  - name: appInfo
     description: |
-      Sends app-specific metrics to the platform.
-      Params include agePolicy indicating content maturity if applicable.
+      Sends app-specific metrics to the platform with a build identifier.
     since: "9.0.0"
     params:
-      - name: agePolicy
-        $ref: "Shared.AgePolicy"
-        required: false
-        description: Content age policy/rating
+      - name: build
+        type: object
+        required: true
+        properties:
+          - name: build
+            type: string
+            required: true
+            description: Build identifier for the app
+        description: Build identifier for the app
 
 types:
-  ErrorType:
+  - name: ErrorType
     kind: enum
     description: Classification of error type.
     values:
       - id: "network"
         description: Network-related error
-      - id: "playback"
+      - id: "media"
         description: Media playback error
+      - id: "restriction"
+        description: Content restriction error
       - id: "entitlement"
         description: Content entitlement/auth error
-      - id: "parse"
-        description: Parsing or format error
-      - id: "aborted"
-        description: Request was aborted by user or app
-      - id: "unknown"
-        description: Unknown or uncategorized error
+      - id: "other"
+        description: Other or uncategorized error
 ---
