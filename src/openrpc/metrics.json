@@ -34,6 +34,7 @@
         "name": "result",
         "schema": { "type": "null" }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "userSignedIn",
@@ -52,6 +53,7 @@
         "name": "result",
         "schema": { "type": "null" }
       },
+      "x-firebolt-platform": "native",
       "examples": [
         {
           "name": "userSignedOut",

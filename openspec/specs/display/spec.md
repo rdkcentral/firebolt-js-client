@@ -1,16 +1,17 @@
 ---
 module: Display
 version: "9.0"
-platform: web
+platform: both
 stability: stable
 description: |
   Provides access to display capabilities.
-  This module is only available in web/JS environments.
+  Some APIs are web-only, some are native-only, some are both.
 
 actions:
   - name: colorimetry
     description: Returns the colorimetry settings of the attached display.
     since: "9.0.0"
+    platform: web
     result:
       type:
         $ref: ColorimetryValue
@@ -21,6 +22,7 @@ actions:
   - name: videoResolutions
     description: Returns a list of video resolutions supported by the display.
     since: "9.0.0"
+    platform: web
     result:
       type: array
       items:

@@ -90,6 +90,8 @@ interface OpenRPCMethod {
   params: OpenRPCParam[];
   result: OpenRPCResult;
   tags?: Array<{ name: string }>;
+  /** Optional method-level platform override */
+  "x-firebolt-platform"?: string;
 }
 
 interface OpenRPCComponents {
@@ -120,6 +122,40 @@ function parsePlatform(doc: OpenRPCDocument): Platform {
     );
   }
   return raw as Platform;
+}
+
+function parsePlatformValue(raw: string | undefined): Platform | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  if (!VALID_PLATFORMS.includes(raw)) {
+    throw new Error(
+      `Invalid platform value "${raw}". Valid values: ${VALID_PLATFORMS.join(", ")}.`
+    );
+  }
+  return raw as Platform;
+}
+
+function validatePlatformConsistency(module: Module): void {
+  for (const method of module.methods) {
+    if (method.platform) {
+      // Only validate against module.platform if module is not "both"
+      if (module.platform !== "both") {
+        if (module.platform === "web" && method.platform === "native") {
+          throw new Error(
+            `Method ${module.name}.${method.name} has platform "native" but module is "web". ` +
+            `A web-only module cannot contain native-only methods. Change module to "both" first.`
+          );
+        }
+        if (module.platform === "native" && method.platform === "web") {
+          throw new Error(
+            `Method ${module.name}.${method.name} has platform "web" but module is "native". ` +
+            `A native-only module cannot contain web-only methods. Change module to "both" first.`
+          );
+        }
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -165,7 +201,12 @@ function buildModule(doc: OpenRPCDocument): Module {
     buildMethod(m, moduleName, schemas, syntheticTypes)
   );
 
-  return { name: moduleName, platform, types: [...types, ...syntheticTypes], methods };
+  const module: Module = { name: moduleName, platform, types: [...types, ...syntheticTypes], methods };
+  
+  // Validate platform consistency
+  validatePlatformConsistency(module);
+
+  return module;
 }
 
 // ---------------------------------------------------------------------------
@@ -206,8 +247,11 @@ function buildMethod(
     syntheticTypes
   );
 
+  // Parse method-level platform if present
+  const platform = parsePlatformValue(raw["x-firebolt-platform"]);
+
   const description = raw.description ?? raw.summary ?? "";
-  return { name: methodBaseName, kind, params, result, description };
+  return { name: methodBaseName, kind, platform, params, result, description };
 }
 
 // ---------------------------------------------------------------------------

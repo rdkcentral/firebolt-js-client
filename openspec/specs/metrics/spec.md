@@ -17,12 +17,14 @@ actions:
   - name: signIn
     description: Log a sign in event. Platform will automatically detect the id.
     since: "9.0.0"
+    platform: native
     params: []
     result: null
 
   - name: signOut
     description: Log a sign out event. Platform will automatically detect the id.
     since: "9.0.0"
+    platform: native
     params: []
     result: null
 

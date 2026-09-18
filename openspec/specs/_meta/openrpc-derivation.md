@@ -498,6 +498,138 @@ events:
 
 ---
 
+### 7. Method-Level Platform Classification
+
+When a spec declares a `platform` field on an action, property, or event, this is
+derived as an OpenRPC extension field on the method. The extension field is
+`x-firebolt-platform` and carries the platform value (`web`, `native`, or `both`).
+
+**Spec (action with platform override):**
+```yaml
+actions:
+  - name: uptime
+    description: Returns the number of seconds since most recent device boot
+    since: "9.0.0"
+    platform: native
+    params: []
+    result:
+      type: number
+```
+
+**Derived OpenRPC:**
+```json
+{
+  "name": "Device.uptime",
+  "summary": "Returns the number of seconds since most recent device boot",
+  "params": [],
+  "result": {
+    "name": "result",
+    "schema": { "type": "number" }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Spec (property with platform override):**
+```yaml
+properties:
+  - name: timeZone
+    description: Returns the IANA time zone format
+    since: "9.0.0"
+    platform: native
+    result:
+      type: string
+```
+
+**Derived OpenRPC (getter method):**
+```json
+{
+  "name": "Localization.timeZone",
+  "summary": "Returns the IANA time zone format",
+  "params": [],
+  "result": {
+    "name": "result",
+    "schema": { "type": "string" }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Derived OpenRPC (onChange subscription method):**
+```json
+{
+  "name": "Localization.onTimeZoneChanged",
+  "summary": "Subscribe to time zone setting change notifications",
+  "tags": [{ "name": "subscribe" }],
+  "params": [
+    {
+      "name": "listen",
+      "required": true,
+      "schema": { "type": "boolean" },
+      "description": "Pass true to subscribe, false to unsubscribe"
+    }
+  ],
+  "result": {
+    "name": "result",
+    "schema": {
+      "oneOf": [
+        { "$ref": "shared.json#/components/schemas/ListenResponse" },
+        { "type": "string" }
+      ]
+    }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Spec (event with platform override):**
+```yaml
+events:
+  - name: onTimeZoneChanged
+    description: Event for when Localization.timeZone changed
+    since: "9.0.0"
+    platform: native
+    params: []
+    result:
+      type: string
+```
+
+**Derived OpenRPC:**
+```json
+{
+  "name": "Localization.onTimeZoneChanged",
+  "summary": "Subscribe to time zone setting change notifications",
+  "tags": [{ "name": "subscribe" }],
+  "params": [
+    {
+      "name": "listen",
+      "required": true,
+      "schema": { "type": "boolean" },
+      "description": "Pass true to subscribe, false to unsubscribe"
+    }
+  ],
+  "result": {
+    "name": "result",
+    "schema": {
+      "oneOf": [
+        { "$ref": "shared.json#/components/schemas/ListenResponse" },
+        { "type": "string" }
+      ]
+    }
+  },
+  "x-firebolt-platform": "native"
+}
+```
+
+**Rules:**
+- If a spec declares `platform` on an API element, emit `x-firebolt-platform` on the derived method
+- If a spec does not declare `platform`, do not emit the extension (the method inherits from module-level `x-firebolt-platform` in the `info` object)
+- The extension value must be one of: `web`, `native`, `both`
+- For properties, both the getter and onChange subscription methods inherit the same platform classification
+- The extension is placed at the method level, not within `params` or `result`
+
+---
+
 ## Error Handling in OpenRPC
 
 Firebolt 9 defines the following error taxonomy. Every method implicitly can return

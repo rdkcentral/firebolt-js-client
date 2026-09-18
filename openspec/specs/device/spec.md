@@ -31,6 +31,7 @@ actions:
   - name: uptime
     description: Returns the number of seconds since most recent device boot, including any time spent during deep sleep.
     since: "9.0.0"
+    platform: native
     params: []
     result:
       type: number

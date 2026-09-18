@@ -3,8 +3,8 @@
   "info": {
     "title": "Display",
     "version": "9.0",
-    "x-firebolt-platform": "web",
-    "description": "Provides access to display capabilities. This module is only available in web/JS environments."
+    "x-firebolt-platform": "both",
+    "description": "Provides access to display capabilities. Some APIs are web-only, some are native-only, some are both."
   },
   "methods": [
     {
@@ -16,6 +16,7 @@
         "name": "result",
         "schema": { "$ref": "#/components/schemas/ColorimetryValue" }
       },
+      "x-firebolt-platform": "web",
       "examples": [
         {
           "name": "displayColorimetry",
@@ -40,6 +41,7 @@
           "items": { "$ref": "#/components/schemas/VideoResolution" }
         }
       },
+      "x-firebolt-platform": "web",
       "examples": [
         {
           "name": "displayResolutions",

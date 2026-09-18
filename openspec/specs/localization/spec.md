@@ -55,6 +55,7 @@ properties:
   - name: timeZone
     description: Returns the IANA time zone format.
     since: "9.0.0"
+    platform: native
     result:
       type: string
       description: IANA time zone format (e.g., "America/New_York", "Europe/London")
@@ -66,6 +67,7 @@ events:
   - name: onTimeZoneChanged
     description: Event for when Localization.timeZone changed.
     since: "9.0.0"
+    platform: native
     params: []
     result:
       type: string
