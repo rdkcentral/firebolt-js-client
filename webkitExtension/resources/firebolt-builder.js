@@ -461,7 +461,9 @@
 				if (_connected && _fireboltInstance) {
 					return Promise.resolve(_fireboltInstance)
 				}
-				var p = new Promise(function(resolve) {
+				let rejectFn;
+				var p = new Promise(function(resolve, reject) {
+					rejectFn = reject;
 					_connectionResolvers.push(resolve)
 				});
 				if (!_connecting) {
@@ -475,7 +477,7 @@
 					try {
 						_connect();
 					} catch (e) {
-						p.reject(e);
+						rejectFn(e);
 					}
 				}
 				return p
