@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebolt Type Reference App</title>
+    <title>Firebolt JavaScript Reference App</title>
     <script>
-        const firebolt = await globalThis.FireboltServiceManager.get();
+        const firebolt = await FireboltServiceManager.get();
         firebolt.Accessibility.
     </script>
 </head>
 <body>
-    <h1>Firebolt Type Reference App</h1>
-    <p>This is a reference application for testing Firebolt TypeScript definitions.</p>
+    <h1>Firebolt JavaScript Reference App</h1>
+    <p>This is a reference application for testing Firebolt type definitions with plain JavaScript.</p>
     <p>Open this project in VS Code to test IDE features:</p>
     <ul>
         <li>Intellisense for module names (Accessibility, Device, etc.)</li>
@@ -21,6 +21,6 @@
         <li>"Go to Definition" navigation</li>
     </ul>
     <p>Check the browser console for any runtime output.</p>
-    <script src="dist/main.js"></script>
+    <script src="src/main.js"></script>
 </body>
 </html>

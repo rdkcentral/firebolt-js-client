@@ -1,0 +1,96 @@
+name: Release Type Definitions Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 9.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release-types:
+    name: Release @firebolt-js/types
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version must be in format X.Y.Z (e.g., 9.0.0)"
+            exit 1
+          fi
+          echo "Version format is valid: $VERSION"
+
+      - name: Check if version already exists
+        run: |
+          VERSION="${{ inputs.version }}"
+          TAG_NAME="v${VERSION}"
+          
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Error: Version $VERSION already exists as tag $TAG_NAME"
+            echo "Please use a different version number"
+            exit 1
+          fi
+          
+          echo "Version $VERSION is available for release"
+
+      - name: Install npm dependencies
+        run: |
+          npm ci
+
+      - name: Build type definitions
+        run: |
+          cd package
+          npm run build
+
+      - name: Update package version
+        run: |
+          VERSION="${{ inputs.version }}"
+          cd package
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Create git tag
+        run: |
+          VERSION="${{ inputs.version }}"
+          TAG_NAME="v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release @firebolt-js/types@$VERSION"
+          git push origin "$TAG_NAME"
+
+      - name: Publish to GitHub npm registry
+        run: |
+          cd package
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: @firebolt-js/types@${{ inputs.version }}
+          body: |
+            Release of @firebolt-js/types version ${{ inputs.version }}
+            
+            This release includes updated TypeScript definitions for Firebolt ${{ inputs.version }}.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

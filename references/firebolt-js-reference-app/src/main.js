@@ -1,15 +1,11 @@
-import { FireboltClient } from "@firebolt-js/types";
-
-
 // Example 1: Access FireboltServiceManager version
-// @ts-ignore - accessing global for testing
-console.log("FireboltServiceManager version:", globalThis.FireboltServiceManager.version);
+console.log("FireboltServiceManager version:", FireboltServiceManager.version);
 
 // Example 2: Using FireboltServiceManager.get() to get the Firebolt client
 async function initializeFirebolt() {
   try {
-    // @ts-ignore - accessing global for testing
-    const firebolt: FireboltClient = await globalThis.FireboltServiceManager.get();
+    /** @type {import("@firebolt-js/types").FireboltClient} */
+    const firebolt = await FireboltServiceManager.get();
     
     console.log("Firebolt client initialized:", firebolt);
 
