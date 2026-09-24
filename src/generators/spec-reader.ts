@@ -62,7 +62,7 @@ export interface SpecModuleData {
  * @returns Parsed spec module data, or null if file doesn't exist
  */
 export function readSpecFile(moduleName: string): SpecModuleData | null {
-  const specPath = path.join(process.cwd(), "openspec", "specs", moduleName.toLowerCase(), "spec.md");
+  const specPath = path.join(process.cwd(), "openspec", "specs", moduleName.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase(), "spec.md");
 
   if (!fs.existsSync(specPath)) {
     console.warn(`Spec file not found for module: ${moduleName} at ${specPath}`);
@@ -186,13 +186,13 @@ export function loadAllSpecs(): Map<string, SpecModuleData> {
     if (!fs.existsSync(specPath)) continue;
 
     try {
-      const moduleName = dir.name.charAt(0).toUpperCase() + dir.name.slice(1); // Convert to PascalCase
+      const moduleName = dir.name.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("");
       const specData = readSpecFile(moduleName);
       if (specData) {
         specMap.set(moduleName, specData);
       }
     } catch (error) {
-      console.warn(`Failed to load spec for module ${dir.name}: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
     }
   }
 

@@ -119,7 +119,7 @@ function emitFireboltClientInterface(modules: Module[]): string[] {
 function emitFireboltServiceManagerGlobal(): string[] {
   return [
     `/** Global FireboltServiceManager injected by WPE WebKit extension */`,
-    `declare const FireboltServiceManager: FireboltServiceManager;`,
+    declare global { const FireboltServiceManager: FireboltServiceManager; }
   ];
 }
 
@@ -372,7 +372,7 @@ function emitCallMethodSignature(method: Method, moduleName: string, moduleSpec?
     paramStr = "";
   } else {
     const interfaceName = getParamInterfaceName(method);
-    paramStr = `params: ${interfaceName}`;
+    paramStr = `params: ${moduleName}.${interfaceName}`;
   }
 
   const resultType = method.result === null ? "void" : typeRefToTS(method.result);
