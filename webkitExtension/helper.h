@@ -29,7 +29,7 @@ inline const char *INVALID_STATE_ERROR = "Invalid PageState pointer";
 inline const char *BUILDER_BUILD_FAILED_ERROR =
     "Failed to build using transport";
 
-inline const char *EXTENSION_PATH = "/usr/share/firebolt/extension/schema.json";
+inline const char *EXTENSION_PATH = "/package/extensionSchema.json";
 
 struct FireboltExtensionConfig {
   std::string fireboltEndpoint;
