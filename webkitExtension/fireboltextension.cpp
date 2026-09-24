@@ -63,14 +63,9 @@ static JSCValue *builder_cb(gpointer user_data) {
   jsc_value_object_set_property(builderOpts, "transport", transport);
 
   // Extn string
-  if (config->extensionPath.empty()) {
-    g_warning("extensionPath is empty, skipping extensionSchema");
-  } else {
-    JSCValue *extnScript =
-        get_extension_script(config->extensionPath.c_str(), ctx);
-    jsc_value_object_set_property(builderOpts, "extensionSchema", extnScript);
-    g_clear_object(&extnScript);
-  }
+  JSCValue *extnScript = get_extension_script(ctx);
+  jsc_value_object_set_property(builderOpts, "extensionSchema", extnScript);
+  g_clear_object(&extnScript);
 
   // Debug flag
   JSCValue *enableDebug = jsc_value_new_boolean(ctx, config->enableDebug);
@@ -172,9 +167,6 @@ webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
   // if firebolt _endpoint is valid set it, otherwise use the default
   gchar *fireboltEndpoint = nullptr;
 
-  // extension path
-  gchar *extensionPath = nullptr;
-
   // check if the firebolt extension should be enabled and if so get the
   // firebolt endpoint url
   GVariant *injectedSettings =
@@ -188,9 +180,6 @@ webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
     // override the firebolt endpoint if it is set in the injected settings
     g_variant_lookup(injectedSettings, "fireboltEndpoint", "&s",
                      &fireboltEndpoint);
-    // check for extensions
-    g_variant_lookup(injectedSettings, "fireboltExtensionPath", "&s",
-                     &extensionPath);
     // check for debug
     g_variant_lookup(injectedSettings, "enableDebug", "b", &enableDebug);
   }
@@ -218,12 +207,6 @@ webkit_web_extension_initialize_with_user_data(WebKitWebExtension *extension,
   }
 
   config->enableDebug = enableDebug;
-
-  // Log the extension path if it's set
-  if (extensionPath && extensionPath[0] != '\0') {
-    g_message("Firebolt extension path: %s", extensionPath);
-    config->extensionPath = g_strdup(extensionPath);
-  }
 
   if (injectedSettings) {
     // Clear settings as all pointers are now copied
