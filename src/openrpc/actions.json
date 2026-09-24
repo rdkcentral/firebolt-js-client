@@ -16,9 +16,9 @@
           "name": "intent",
           "required": true,
           "schema": {
-            "type": "string"
+            "type": "object"
           },
-          "description": "The intent as a JSON document"
+          "description": "The intent as a JSON object"
         },
         {
           "name": "handlerAppId",
@@ -42,7 +42,10 @@
           "params": [
             {
               "name": "intent",
-              "value": "{\"action\":\"play\",\"entityId\":\"entity-123\"}"
+              "value": {
+                "action": "play",
+                "entityId": "entity-123"
+              }
             }
           ],
           "result": {
@@ -72,7 +75,9 @@
             "name": "result",
             "value": {
               "intentId": 1,
-              "intent": "{\"action\":\"play\"}"
+              "intent": {
+                "action": "play"
+              }
             }
           }
         }
@@ -107,7 +112,10 @@
             "name": "result",
             "value": {
               "intentId": 2,
-              "intent": "{\"action\":\"play\",\"entityId\":\"entity-456\"}"
+              "intent": {
+                "action": "play",
+                "entityId": "entity-456"
+              }
             }
           }
         }
@@ -126,8 +134,8 @@
             "description": "Monotonically increasing intent ID"
           },
           "intent": {
-            "type": "string",
-            "description": "The intent as a JSON document"
+            "type": "object",
+            "description": "The intent as a JSON object"
           }
         },
         "required": [

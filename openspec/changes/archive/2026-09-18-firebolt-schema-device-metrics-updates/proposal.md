@@ -34,7 +34,7 @@ Firebolt Web API schemas need to be updated to reflect the latest API contract r
 ## Impact
 
 - **OpenRPC schemas**: `src/openrpc/metrics.json`, `src/openrpc/shared.json`, `src/openrpc/discovery.json`
-- **OpenSpec specs**: `openspec/specs/metrics/spec.md`, `openspec/specs/shared/spec.md`, `openspec/specs/discovery/spec.md`, `openspec/specs/wpe-inject-js-generator/spec.md`
+- **OpenSpec specs**: `openspec/specs/api/metrics/spec.md`, `openspec/specs/api/shared/spec.md`, `openspec/specs/api/discovery/spec.md`, `openspec/specs/api/wpe-inject-js-generator/spec.md`
 - **Generator code**: `src/generators/inject-js.ts` - add pattern detection and new stub factory
 - **Generated headers**: All language targets (TypeScript, ReScript, Kotlin, C++, Python) will be regenerated via `npm run generate`
 - **Breaking changes**: Metrics API surface changes are breaking, but acceptable since no current users

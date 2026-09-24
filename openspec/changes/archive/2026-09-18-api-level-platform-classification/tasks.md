@@ -46,16 +46,16 @@
 
 ## 7. Spec Migration
 
-- [x] 7.1 [spec] Add `platform: native` to Device.uptime in openspec/specs/device/spec.md
-- [x] 7.2 [spec] Add `platform: native` to Device.timeInActiveState in openspec/specs/device/spec.md (SKIPPED: method does not exist in current spec)
-- [x] 7.3 [spec] Add `platform: native` to Device.chipsetId in openspec/specs/device/spec.md (SKIPPED: method does not exist in current spec)
-- [x] 7.4 [spec] Add `platform: native` to Localization.timeZone in openspec/specs/localization/spec.md
-- [x] 7.5 [spec] Add `platform: native` to Localization.onTimeZoneChanged in openspec/specs/localization/spec.md
-- [x] 7.6 [spec] Add `platform: native` to Metrics.signIn in openspec/specs/metrics/spec.md
-- [x] 7.7 [spec] Add `platform: native` to Metrics.signOut in openspec/specs/metrics/spec.md
-- [x] 7.8 [spec] Change Display module platform from "web" to "both" in openspec/specs/display/spec.md
-- [x] 7.9 [spec] Add `platform: web` to Display.colorimetry in openspec/specs/display/spec.md
-- [x] 7.10 [spec] Add `platform: web` to Display.videoResolutions in openspec/specs/display/spec.md
+- [x] 7.1 [spec] Add `platform: native` to Device.uptime in openspec/specs/api/device/spec.md
+- [x] 7.2 [spec] Add `platform: native` to Device.timeInActiveState in openspec/specs/api/device/spec.md (SKIPPED: method does not exist in current spec)
+- [x] 7.3 [spec] Add `platform: native` to Device.chipsetId in openspec/specs/api/device/spec.md (SKIPPED: method does not exist in current spec)
+- [x] 7.4 [spec] Add `platform: native` to Localization.timeZone in openspec/specs/api/localization/spec.md
+- [x] 7.5 [spec] Add `platform: native` to Localization.onTimeZoneChanged in openspec/specs/api/localization/spec.md
+- [x] 7.6 [spec] Add `platform: native` to Metrics.signIn in openspec/specs/api/metrics/spec.md
+- [x] 7.7 [spec] Add `platform: native` to Metrics.signOut in openspec/specs/api/metrics/spec.md
+- [x] 7.8 [spec] Change Display module platform from "web" to "both" in openspec/specs/api/display/spec.md
+- [x] 7.9 [spec] Add `platform: web` to Display.colorimetry in openspec/specs/api/display/spec.md
+- [x] 7.10 [spec] Add `platform: web` to Display.videoResolutions in openspec/specs/api/display/spec.md
 
 ## 8. OpenRPC Document Updates
 

@@ -34,7 +34,7 @@ Firebolt's original OpenRPC specs had JSON-RPC compliance gaps and no shared rep
 - **New source tree**: `src/` — TypeScript project containing AST types, builder, generators, CLI
 - **New output directory**: `out/` — generated headers, gitignored in normal use, committed for PoC review (21 files across 5 targets and 4 modules)
 - **New OpenRPC contracts**: `src/openrpc/discovery.json`, `src/openrpc/lifecycle2.json`, `src/openrpc/localization.json`, `src/openrpc/accessibility.json`, `src/openrpc/shared.json`
-- **New OpenSpec module specs**: `openspec/specs/discovery/spec.md`, `openspec/specs/lifecycle2/spec.md`, `openspec/specs/localization/spec.md`, `openspec/specs/accessibility/spec.md`
+- **New OpenSpec module specs**: `openspec/specs/api/discovery/spec.md`, `openspec/specs/api/lifecycle2/spec.md`, `openspec/specs/api/localization/spec.md`, `openspec/specs/api/accessibility/spec.md`
 - **New meta-guides updated**: `openspec/specs/_meta/spec-format.md` (String Constraints + Numeric Constraints sections), `openspec/specs/_meta/openrpc-derivation.md` (Rule 3a + Rule 3b)
 - **Dependencies**: `typescript`, `commander`, `@open-rpc/schema-utils-js` (build/dev only — no runtime deps)
 - **Consumer trust**: Generated TypeScript headers must pass `tsc --noEmit`; C++ headers must compile with `-std=c++17`; Python stubs must pass `mypy --strict`

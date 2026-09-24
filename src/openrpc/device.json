@@ -378,7 +378,7 @@
           "stb",
           "tv"
         ],
-        "description": "Classification of the device.",
+        "description": "Classification of the device. ott: No tuner/demod, no integrated display. stb: With tuner/demod, no integrated display. tv: Possibly tuner/demod, with integrated display.",
         "examples": [
           "stb"
         ]

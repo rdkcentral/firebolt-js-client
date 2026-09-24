@@ -1,7 +1,13 @@
 # OpenSpec Format — Authoring Guide
 
-> **Meta-guideline.** All module spec files under `openspec/specs/<module>/spec.md`
+> **Meta-guideline.** All Firebolt API module spec files under `openspec/specs/api/<module>/spec.md`
 > must conform to this format. This document is the source of truth for spec authoring.
+>
+> **Directory Structure:**
+> - `openspec/specs/api/` — Firebolt API module specifications
+> - `openspec/specs/generator/` — Generator tool requirements specifications
+> - `openspec/specs/_meta/` — Meta guidelines and conventions
+> - `openspec/specs/_meta/shared/` — Generic shared types/conventions across both domains
 
 ---
 
@@ -14,7 +20,7 @@ Extended prose goes in YAML multiline string fields (use `|`).
 **GitHub Rendering:** API definitions use YAML array syntax for better vertical rendering in GitHub Preview. Each property, action, event, and type is a distinct list item, making specs easier to scan and review. The array syntax renders as vertical list items in GitHub, providing better readability compared to nested object blocks.
 
 ```
-openspec/specs/<module>/spec.md
+openspec/specs/api/<module>/spec.md
 ```
 
 ---
@@ -43,6 +49,10 @@ events:      []              # optional — spontaneous events with no getter co
 
 Every spec MUST declare `platform`. This field drives which language headers are
 generated. Omitting it is a build error.
+
+**Exception:** The `shared` module does not require the `platform` field, as it contains
+cross-module types used across all Firebolt API modules. The spec reader treats this
+module as a special case.
 
 | Value    | Generators that run           | Use when…                                      |
 |----------|-------------------------------|------------------------------------------------|
@@ -470,7 +480,7 @@ events:
 
 Cross-module type references are not currently needed in Firebolt 9.
 All referenced types must be defined in the same module's `types:` section,
-or in the shared module at `openspec/specs/shared/spec.md`.
+or in the shared module at `openspec/specs/api/shared/spec.md`.
 
 To reference a shared type, prefix with `"shared:"`:
 

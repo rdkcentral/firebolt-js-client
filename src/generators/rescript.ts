@@ -162,6 +162,8 @@ function typeRefToRes(ref: TypeRef): string {
       const typeName = lcFirst(nr.name);
       return nr.module ? `${lcFirst(nr.module)}_${typeName}` : typeName;
     }
+    case "generic-object":
+      return "Js.t<{}, Js.Json.t>";
     case "array":
       return `array<${typeRefToRes((ref as ArrayRef).items)}>`;
     case "optional":

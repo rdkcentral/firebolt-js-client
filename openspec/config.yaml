@@ -39,8 +39,8 @@ context: |
     - Enum value:   wire string as-is       e.g. "app:adult", "dolbyDigital5.1"
 
   Meta-guidelines live in: openspec/specs/_meta/
-  Shared cross-module types:  openspec/specs/shared/spec.md
-  Module specs:               openspec/specs/<module>/spec.md
+  Shared cross-module types:  openspec/specs/api/shared/spec.md
+  Module specs:               openspec/specs/api/<module>/spec.md
 
 rules:
   proposal:

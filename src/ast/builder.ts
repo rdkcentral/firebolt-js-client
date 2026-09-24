@@ -28,7 +28,10 @@ import {
   PrimitiveRef,
   Constraints,
   TypeDecl,
+  GenericObjectRef,
   TypeRef,
+  ArrayAliasDecl,
+  ScalarAliasDecl,
 } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -60,6 +63,8 @@ interface OpenRPCSchema {
   // Numeric constraint keywords (Rule 7)
   minimum?: number;
   maximum?: number;
+  // Platform classification for types
+  "x-firebolt-platform"?: string;
 }
 
 interface RefSchema {
@@ -234,7 +239,7 @@ function buildMethod(
 
   // Build params
   const params: Param[] = filteredParams.map((p) =>
-    buildParam(p, schemas)
+    buildParam(p, schemas, syntheticTypes, methodBaseName, moduleName)
   );
 
   // Build result (Rule 1 + Rule 6)
@@ -260,8 +265,61 @@ function buildMethod(
 
 function buildParam(
   raw: OpenRPCParam,
-  schemas: Record<string, OpenRPCSchema>
+  schemas: Record<string, OpenRPCSchema>,
+  syntheticTypes: TypeDecl[],
+  methodName: string,
+  moduleName: string
 ): Param {
+  // Rule 6 for parameters: detect inline anonymous object schema → create synthetic TypeDecl
+  if (
+    !isRefSchema(raw.schema) &&
+    raw.schema.type === "object" &&
+    !raw.schema.title
+  ) {
+    // Handle objects with properties
+    if (raw.schema.properties) {
+      const syntheticName = `${moduleName}${capitalize(methodName)}${capitalize(raw.name)}`;
+      console.warn(
+        `[Rule 6] Inline anonymous parameter schema for ${moduleName}.${methodName}.${raw.name} — ` +
+          `creating synthetic TypeDecl "${syntheticName}"`
+      );
+      const syntheticDecl = buildTypeDecl(syntheticName, raw.schema);
+      if (syntheticDecl !== null) {
+        syntheticTypes.push(syntheticDecl);
+      }
+      const innerType = { kind: "named", name: syntheticName } satisfies NamedRef;
+      // Wrap in OptionalRef if not required
+      const type: TypeRef =
+        raw.required === false
+          ? ({ kind: "optional", inner: innerType } satisfies OptionalRef)
+          : innerType;
+
+      return {
+        name: raw.name,
+        type,
+        description: raw.description ?? "",
+      };
+    }
+    
+    // Handle objects without properties (generic JSON objects)
+    // These should be treated as Record<string, unknown> in TypeScript
+    console.warn(
+      `[Rule 6] Generic object parameter for ${moduleName}.${methodName}.${raw.name} — ` +
+        `treating as generic object`
+    );
+    const innerType = { kind: "generic-object" } satisfies GenericObjectRef;
+    const type: TypeRef =
+      raw.required === false
+        ? ({ kind: "optional", inner: innerType } satisfies OptionalRef)
+        : innerType;
+
+    return {
+      name: raw.name,
+      type,
+      description: raw.description ?? "",
+    };
+  }
+
   const innerType = resolveTypeRef(raw.schema, schemas);
   // Wrap in OptionalRef if not required
   const type: TypeRef =
@@ -350,6 +408,7 @@ function buildResult(
 
 function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
   const description = schema.description ?? "";
+  const platform = parsePlatformValue(schema["x-firebolt-platform"]);
 
   // Enum
   if (Array.isArray(schema.enum)) {
@@ -376,6 +435,7 @@ function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
       name,
       values,
       description,
+      platform,
     } satisfies EnumTypeDecl;
   }
 
@@ -406,7 +466,30 @@ function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
       name,
       properties,
       description,
+      platform,
     } satisfies ObjectTypeDecl;
+  }
+
+  // Array alias
+  if (schema.type === "array" && schema.items) {
+    return {
+      kind: "array-alias",
+      name,
+      items: resolveTypeRef(schema.items, {}),
+      description,
+      platform,
+    } satisfies ArrayAliasDecl;
+  }
+
+  // Scalar alias (primitive with a name)
+  if (schema.type && !schema.enum && !schema.properties) {
+    return {
+      kind: "scalar-alias",
+      name,
+      target: resolveTypeRef(schema, {}),
+      description,
+      platform,
+    } satisfies ScalarAliasDecl;
   }
 
   // Other schemas we don't need for the PoC
@@ -436,6 +519,11 @@ function resolveTypeRef(
   // Array
   if (schema.type === "array" && schema.items) {
     return { kind: "array", items: resolveTypeRef(schema.items, _schemas) };
+  }
+
+  // Generic object (type: object without properties)
+  if (schema.type === "object" && (!schema.properties || Object.keys(schema.properties).length === 0)) {
+    return { kind: "generic-object" } satisfies GenericObjectRef;
   }
 
   // Primitive (Rule 5: propagate format; Rule 7: propagate value constraints)

@@ -163,7 +163,7 @@ Showing the complete chain for all four PoC modules (abbreviated to key nodes).
 LAYER 1 — OPENSPEC
 ─────────────────────────────────────────────────────────
 
-openspec/specs/discovery/spec.md     platform: both
+openspec/specs/api/discovery/spec.md     platform: both
   actions:
     watched:
       params: [entityId(string,req), progress(double,opt),
@@ -171,7 +171,7 @@ openspec/specs/discovery/spec.md     platform: both
                agePolicy($ref:AgePolicy,opt)]
       result: none
 
-openspec/specs/lifecycle2/spec.md    platform: native
+openspec/specs/api/lifecycle2/spec.md    platform: native
   types:
     LifecycleState: enum [initializing,paused,active,suspended,hibernated,terminating]
     StateChangedEvent: object {oldState: $ref:LifecycleState, newState: $ref:LifecycleState}
@@ -227,7 +227,7 @@ declare namespace Discovery {
 LAYER 1 — OPENSPEC
 ─────────────────────────────────────────────────────────
 
-openspec/specs/localization/spec.md   platform: both
+openspec/specs/api/localization/spec.md   platform: both
   events:
     onCountryChanged:
       payload:
@@ -287,7 +287,7 @@ UnsubscribeFn onCountryChanged(std::function<void(std::string)> callback);
 LAYER 1 — OPENSPEC
 ─────────────────────────────────────────────────────────
 
-openspec/specs/accessibility/spec.md   platform: both
+openspec/specs/api/accessibility/spec.md   platform: both
   types:
     VoiceGuidanceSettings:
       properties:

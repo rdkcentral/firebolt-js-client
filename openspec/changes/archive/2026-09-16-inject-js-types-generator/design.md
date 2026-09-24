@@ -103,7 +103,7 @@ export { factory, FireboltClient, FireboltTransport, FactoryConfig, ExtensionSch
 
 For the `Device.deviceClass()` method:
 
-1. **Spec** (`openspec/specs/device/spec.md`):
+1. **Spec** (`openspec/specs/api/device/spec.md`):
    ```markdown
    ### Property: deviceClass
    - **Kind**: property

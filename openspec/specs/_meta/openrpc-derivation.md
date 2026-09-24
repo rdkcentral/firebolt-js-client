@@ -18,7 +18,7 @@ The derivation process reads one or more `spec.md` files and produces one or mor
 - Validated against a schema validator before acceptance
 
 ```
-openspec/specs/<module>/spec.md
+openspec/specs/api/<module>/spec.md
       │
       ▼  (AI-assisted derivation + human review)
 openrpc/<module>.json
@@ -33,8 +33,8 @@ They must be referenced rather than re-declared:
 
 | Schema name        | Source                               | Purpose                              |
 |--------------------|--------------------------------------|--------------------------------------|
-| `ListenResponse`   | `openspec/specs/shared/spec.md`      | Subscribe confirmation payload       |
-| `FireboltError`    | `openspec/specs/shared/spec.md`      | Error carrier (JSON-RPC aligned)     |
+| `ListenResponse`   | `openspec/specs/api/shared/spec.md`      | Subscribe confirmation payload       |
+| `FireboltError`    | `openspec/specs/api/shared/spec.md`      | Error carrier (JSON-RPC aligned)     |
 
 In OpenRPC JSON, reference them as:
 ```json
