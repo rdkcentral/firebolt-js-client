@@ -13,9 +13,9 @@ actions:
     since: "9.0.0"
     params:
       - name: intent
-        type: string
+        type: object
         required: true
-        description: The intent as a JSON document
+        description: The intent as a JSON object
       - name: handlerAppId
         type: string
         required: false
@@ -24,7 +24,9 @@ actions:
     examples:
       - description: Send a play intent
         params:
-          intent: '{"action":"play","entityId":"entity-123"}'
+          intent:
+            action: "play"
+            entityId: "entity-123"
 
 properties:
   - name: intent
@@ -38,7 +40,8 @@ properties:
       - description: Recent intent received
         result:
           intentId: 1
-          intent: '{"action":"play"}'
+          intent:
+            action: "play"
 
 types:
   - name: IntentPayload
@@ -48,6 +51,6 @@ types:
         type: unsigned
         description: Monotonically increasing intent ID
       - name: intent
-        type: string
-        description: The intent as a JSON document
+        type: object
+        description: The intent as a JSON object
 ---

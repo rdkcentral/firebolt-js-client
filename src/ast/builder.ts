@@ -28,6 +28,7 @@ import {
   PrimitiveRef,
   Constraints,
   TypeDecl,
+  GenericObjectRef,
   TypeRef,
   ArrayAliasDecl,
   ScalarAliasDecl,
@@ -238,7 +239,7 @@ function buildMethod(
 
   // Build params
   const params: Param[] = filteredParams.map((p) =>
-    buildParam(p, schemas)
+    buildParam(p, schemas, syntheticTypes, methodBaseName, moduleName)
   );
 
   // Build result (Rule 1 + Rule 6)
@@ -264,8 +265,61 @@ function buildMethod(
 
 function buildParam(
   raw: OpenRPCParam,
-  schemas: Record<string, OpenRPCSchema>
+  schemas: Record<string, OpenRPCSchema>,
+  syntheticTypes: TypeDecl[],
+  methodName: string,
+  moduleName: string
 ): Param {
+  // Rule 6 for parameters: detect inline anonymous object schema → create synthetic TypeDecl
+  if (
+    !isRefSchema(raw.schema) &&
+    raw.schema.type === "object" &&
+    !raw.schema.title
+  ) {
+    // Handle objects with properties
+    if (raw.schema.properties) {
+      const syntheticName = `${moduleName}${capitalize(methodName)}${capitalize(raw.name)}`;
+      console.warn(
+        `[Rule 6] Inline anonymous parameter schema for ${moduleName}.${methodName}.${raw.name} — ` +
+          `creating synthetic TypeDecl "${syntheticName}"`
+      );
+      const syntheticDecl = buildTypeDecl(syntheticName, raw.schema);
+      if (syntheticDecl !== null) {
+        syntheticTypes.push(syntheticDecl);
+      }
+      const innerType = { kind: "named", name: syntheticName } satisfies NamedRef;
+      // Wrap in OptionalRef if not required
+      const type: TypeRef =
+        raw.required === false
+          ? ({ kind: "optional", inner: innerType } satisfies OptionalRef)
+          : innerType;
+
+      return {
+        name: raw.name,
+        type,
+        description: raw.description ?? "",
+      };
+    }
+    
+    // Handle objects without properties (generic JSON objects)
+    // These should be treated as Record<string, unknown> in TypeScript
+    console.warn(
+      `[Rule 6] Generic object parameter for ${moduleName}.${methodName}.${raw.name} — ` +
+        `treating as generic object`
+    );
+    const innerType = { kind: "generic-object" } satisfies GenericObjectRef;
+    const type: TypeRef =
+      raw.required === false
+        ? ({ kind: "optional", inner: innerType } satisfies OptionalRef)
+        : innerType;
+
+    return {
+      name: raw.name,
+      type,
+      description: raw.description ?? "",
+    };
+  }
+
   const innerType = resolveTypeRef(raw.schema, schemas);
   // Wrap in OptionalRef if not required
   const type: TypeRef =
@@ -465,6 +519,11 @@ function resolveTypeRef(
   // Array
   if (schema.type === "array" && schema.items) {
     return { kind: "array", items: resolveTypeRef(schema.items, _schemas) };
+  }
+
+  // Generic object (type: object without properties)
+  if (schema.type === "object" && (!schema.properties || Object.keys(schema.properties).length === 0)) {
+    return { kind: "generic-object" } satisfies GenericObjectRef;
   }
 
   // Primitive (Rule 5: propagate format; Rule 7: propagate value constraints)

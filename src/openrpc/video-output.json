@@ -10,7 +10,7 @@
     {
       "name": "VideoOutput.resolution",
       "summary": "Get the current video output resolution.",
-      "description": "Returns the current HDMI output resolution of the device.",
+      "description": "Returns the width and height of the video signal on the video output, in pixels. Typically used by a streaming app to determine the highest resolution of video to select. OTT/STB device: returns the video resolution over HDMI. TV device: returns the resolution of the panel.",
       "params": [],
       "result": {
         "name": "result",
@@ -94,7 +94,7 @@
     {
       "name": "VideoOutput.onHdcpChanged",
       "summary": "Subscribe to HDCP state changes.",
-      "description": "Event for when VideoOutput.hdcp changed.",
+      "description": "Event for when VideoOutput.hdcp changed. Returns the current state of output protection on the video output. OTT/STB device: returns the negotiated HDCP version on the video output, or none if an encrypted connection has not been made between the OTT/STB device and any attached TV. TV device: returns direct.",
       "params": [
         {
           "name": "listen",
@@ -129,14 +129,14 @@
       "VideoResolution": {
         "title": "VideoResolution",
         "type": "object",
-        "description": "Video resolution output.",
+        "description": "Video resolution output in pixels. Allowed width/height combinations: (720, 480), (720, 576), (1280, 720), (1920, 1080), (3840, 2160).",
         "properties": {
           "width": {
-            "type": "unsigned",
+            "type": "integer",
             "description": "The width of the video resolution in pixels"
           },
           "height": {
-            "type": "unsigned",
+            "type": "integer",
             "description": "The height of the video resolution in pixels"
           }
         },

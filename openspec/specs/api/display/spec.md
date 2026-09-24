@@ -9,18 +9,25 @@ description: |
 
 actions:
   - name: colorimetry
-    description: Returns the colorimetry settings of the attached display.
+    description: |
+      Returns an unordered list of colorimetry values supported by the attached TV or integral display.
+      Returns an empty list if no TV is attached.
     since: "9.0.0"
     platform: web
     result:
-      type:
+      type: array
+      items:
         $ref: ColorimetryValue
     examples:
-      - description: Display supports standard color gamut
-        result: "SDR"
+      - description: Display supports BT.709 and BT.2020
+        result:
+          - "bt709"
+          - "bt2020"
 
   - name: videoResolutions
-    description: Returns a list of video resolutions supported by the display.
+    description: |
+      Returns an unordered list of HD video resolutions and frame rates supported by the attached TV or integral display.
+      Returns an empty list if no TV is attached.
     since: "9.0.0"
     platform: web
     result:
@@ -28,29 +35,35 @@ actions:
       items:
         $ref: VideoResolution
     examples:
-      - description: Display supports 4K and 1080p
+      - description: Display supports 1080p60 and 2160p60
         result:
-          - "3840x2160"
-          - "1920x1080"
+          - "1080p60"
+          - "2160p60"
 
 types:
   - name: ColorimetryValue
     kind: enum
     description: Colorimetry standard.
     values:
-      - id: "SDR"
-        description: Standard dynamic range
-      - id: "HDR"
-        description: High dynamic range
+      - id: "bt709"
+        description: BT.709 colorimetry
+      - id: "bt2020"
+        description: BT.2020 colorimetry
 
   - name: VideoResolution
     kind: enum
-    description: Video resolution.
+    description: HD video resolution and frame rate.
     values:
-      - id: "1920x1080"
-        description: Full HD
-      - id: "3840x2160"
-        description: 4K
-      - id: "7680x4320"
-        description: 8K
+      - id: "720p50"
+        description: 720p at 50Hz
+      - id: "720p60"
+        description: 720p at 60Hz
+      - id: "1080p50"
+        description: 1080p at 50Hz
+      - id: "1080p60"
+        description: 1080p at 60Hz
+      - id: "2160p50"
+        description: 2160p at 50Hz
+      - id: "2160p60"
+        description: 2160p at 60Hz
 ---

@@ -142,7 +142,7 @@
     {
       "name": "Localization.presentationLanguage",
       "summary": "Get the presentation language.",
-      "description": "Returns the presentation language setting. The presentation language is a BCP 47 locale tag.",
+      "description": "The presentation language of the device, e.g. en-US",
       "params": [],
       "result": {
         "name": "result",
@@ -166,7 +166,7 @@
     {
       "name": "Localization.onPresentationLanguageChanged",
       "summary": "Subscribe to presentation language changes.",
-      "description": "Fired when the presentation language setting changes.",
+      "description": "Fired when the presentation language setting changes. The presentation language of the device, e.g. en-US",
       "params": [
         {
           "name": "listen",

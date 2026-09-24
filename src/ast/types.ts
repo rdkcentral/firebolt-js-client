@@ -181,7 +181,8 @@ export type TypeRef =
   | PrimitiveRef
   | NamedRef
   | ArrayRef
-  | OptionalRef;
+  | OptionalRef
+  | GenericObjectRef;
 
 export type PrimitiveKind = "bool" | "string" | "unsigned" | "double";
 
@@ -246,4 +247,12 @@ export interface ArrayRef {
 export interface OptionalRef {
   kind: "optional";
   inner: TypeRef;
+}
+
+/**
+ * Represents a generic JSON object without specific structure.
+ * Used for parameters that are defined as type: object without properties.
+ */
+export interface GenericObjectRef {
+  kind: "generic-object";
 }

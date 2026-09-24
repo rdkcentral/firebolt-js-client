@@ -42,8 +42,7 @@ properties:
 
   - name: presentationLanguage
     description: |
-      Returns the presentation language setting.
-      The presentation language is a BCP 47 locale tag.
+      The presentation language of the device, e.g. en-US
     since: "8.0.0"
     result:
       type: string

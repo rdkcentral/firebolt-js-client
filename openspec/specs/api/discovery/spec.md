@@ -24,7 +24,9 @@ actions:
       - name: progress
         type: double
         required: false
-        description: Playback progress as a value from 0.0 (start) to 1.0 (end)
+        description: |
+          Playback progress. For VOD content: value from 0 to 0.99.
+          For live content: number of seconds watched.
       - name: completed
         type: bool
         required: false
@@ -33,12 +35,14 @@ actions:
         type: string
         format: date-time
         required: false
-        description: ISO 8601 UTC timestamp of when the content was watched
+        description: ISO 8601 UTC timestamp in format "YYYY-MM-DDThh:mm:ss.sssZ"
       - name: agePolicy
         type:
           $ref: "shared:AgePolicy"
         required: false
-        description: Age policy applied by the app to this content
+        description: |
+          Age policy applied by the app to this content.
+          Valid values: "app:adult", "app:child", "app:teen"
     result: none
     examples:
       - description: Report partial watch with adult age policy
