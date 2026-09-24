@@ -29,6 +29,8 @@ import {
   Constraints,
   TypeDecl,
   TypeRef,
+  ArrayAliasDecl,
+  ScalarAliasDecl,
 } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -60,6 +62,8 @@ interface OpenRPCSchema {
   // Numeric constraint keywords (Rule 7)
   minimum?: number;
   maximum?: number;
+  // Platform classification for types
+  "x-firebolt-platform"?: string;
 }
 
 interface RefSchema {
@@ -350,6 +354,7 @@ function buildResult(
 
 function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
   const description = schema.description ?? "";
+  const platform = parsePlatformValue(schema["x-firebolt-platform"]);
 
   // Enum
   if (Array.isArray(schema.enum)) {
@@ -376,6 +381,7 @@ function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
       name,
       values,
       description,
+      platform,
     } satisfies EnumTypeDecl;
   }
 
@@ -406,7 +412,30 @@ function buildTypeDecl(name: string, schema: OpenRPCSchema): TypeDecl | null {
       name,
       properties,
       description,
+      platform,
     } satisfies ObjectTypeDecl;
+  }
+
+  // Array alias
+  if (schema.type === "array" && schema.items) {
+    return {
+      kind: "array-alias",
+      name,
+      items: resolveTypeRef(schema.items, {}),
+      description,
+      platform,
+    } satisfies ArrayAliasDecl;
+  }
+
+  // Scalar alias (primitive with a name)
+  if (schema.type && !schema.enum && !schema.properties) {
+    return {
+      kind: "scalar-alias",
+      name,
+      target: resolveTypeRef(schema, {}),
+      description,
+      platform,
+    } satisfies ScalarAliasDecl;
   }
 
   // Other schemas we don't need for the PoC

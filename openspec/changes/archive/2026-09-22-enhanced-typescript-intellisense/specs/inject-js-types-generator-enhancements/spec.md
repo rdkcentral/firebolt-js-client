@@ -134,7 +134,7 @@ The generator SHALL include a spec reader utility that reads spec.md files and e
 
 #### Scenario: Read spec file for module
 - **WHEN** generator needs spec data for a module
-- **THEN** spec reader reads `openspec/specs/<module>/spec.md`
+- **THEN** spec reader reads `openspec/specs/api/<module>/spec.md`
 - **AND** parser extracts YAML frontmatter
 - **AND** parser returns structured module data (description, version, platform, stability)
 

@@ -119,7 +119,7 @@ function emitFireboltClientInterface(modules: Module[]): string[] {
 function emitFireboltServiceManagerGlobal(): string[] {
   return [
     `/** Global FireboltServiceManager injected by WPE WebKit extension */`,
-    declare global { const FireboltServiceManager: FireboltServiceManager; }
+    `declare global { const FireboltServiceManager: FireboltServiceManager; }`,
   ];
 }
 

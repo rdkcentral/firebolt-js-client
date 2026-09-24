@@ -12,7 +12,7 @@ A build-time code generator that reads OpenRPC contracts for Firebolt 9 API modu
 ┌─────────────────────────────────────────────────────────────────┐
 │                     AUTHORING LAYER                             │
 │                                                                 │
-│   openspec/specs/<capability>/spec.md                           │
+│   openspec/specs/api/<capability>/spec.md                           │
 │   "What does this API mean?"                                    │
 │   Human language, intent, constraints, capabilities             │
 └───────────────────────┬─────────────────────────────────────────┘
@@ -133,7 +133,7 @@ npm test
 
 ### Adding a New Module
 
-1. **Author the spec** — create `openspec/specs/<module>/spec.md` following the format in `openspec/specs/_meta/spec-format.md`.
+1. **Author the spec** — create `openspec/specs/api/<module>/spec.md` following the format in `openspec/specs/_meta/spec-format.md`.
 
 2. **Derive OpenRPC** — following `openspec/specs/_meta/openrpc-derivation.md`, create `src/openrpc/<module>.json`. Key rules:
    - Subscribe methods get a `listen: boolean` param injected

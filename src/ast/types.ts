@@ -80,6 +80,17 @@ export function resolveMethodPlatform(method: Method, module: Module): Platform 
   return method.platform ?? module.platform;
 }
 
+/**
+ * Resolve the effective platform for a type.
+ * Returns the type's platform if specified, otherwise the module's platform.
+ */
+export function resolveTypePlatform(type: TypeDecl, module: Module): Platform {
+  if (type.platform) {
+    return type.platform;
+  }
+  return module.platform;
+}
+
 // ---------------------------------------------------------------------------
 // Type declarations
 // ---------------------------------------------------------------------------
@@ -96,6 +107,8 @@ export interface EnumTypeDecl {
   name: string;
   values: EnumValue[];
   description: string;
+  /** Platform classification for this type. If undefined, inherits from Module.platform. */
+  platform?: Platform;
 }
 
 export interface ObjectTypeDecl {
@@ -103,6 +116,8 @@ export interface ObjectTypeDecl {
   name: string;
   properties: ObjectProperty[];
   description: string;
+  /** Platform classification for this type. If undefined, inherits from Module.platform. */
+  platform?: Platform;
 }
 
 export interface ObjectProperty {
@@ -117,6 +132,8 @@ export interface UnionTypeDecl {
   name: string;
   variants: TypeRef[];
   description: string;
+  /** Platform classification for this type. If undefined, inherits from Module.platform. */
+  platform?: Platform;
 }
 
 export interface ArrayAliasDecl {
@@ -124,6 +141,8 @@ export interface ArrayAliasDecl {
   name: string;
   items: TypeRef;
   description: string;
+  /** Platform classification for this type. If undefined, inherits from Module.platform. */
+  platform?: Platform;
 }
 
 export interface ScalarAliasDecl {
@@ -131,6 +150,8 @@ export interface ScalarAliasDecl {
   name: string;
   target: TypeRef;
   description: string;
+  /** Platform classification for this type. If undefined, inherits from Module.platform. */
+  platform?: Platform;
 }
 
 // ---------------------------------------------------------------------------

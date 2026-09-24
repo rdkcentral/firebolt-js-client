@@ -62,7 +62,7 @@ export interface SpecModuleData {
  * @returns Parsed spec module data, or null if file doesn't exist
  */
 export function readSpecFile(moduleName: string): SpecModuleData | null {
-  const specPath = path.join(process.cwd(), "openspec", "specs", moduleName.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase(), "spec.md");
+  const specPath = path.join(process.cwd(), "openspec", "specs", "api", moduleName.toLowerCase(), "spec.md");
 
   if (!fs.existsSync(specPath)) {
     console.warn(`Spec file not found for module: ${moduleName} at ${specPath}`);
@@ -71,11 +71,11 @@ export function readSpecFile(moduleName: string): SpecModuleData | null {
 
   try {
     const content = fs.readFileSync(specPath, "utf-8");
-    return parseSpecContent(content);
+    return parseSpecContent(content, moduleName);
   } catch (error) {
-    throw new Error(
-      `Failed to parse spec file for module ${moduleName} at ${specPath}: ${error instanceof Error ? error.message : String(error)}`
-    );
+    // There could be spec files which doesnt need transformation
+    console.warn(`Failed to load spec for module ${moduleName}: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
   }
 }
 
@@ -84,7 +84,7 @@ export function readSpecFile(moduleName: string): SpecModuleData | null {
  * @param content - The file content
  * @returns Parsed spec module data
  */
-function parseSpecContent(content: string): SpecModuleData {
+function parseSpecContent(content: string, moduleName?: string): SpecModuleData {
   // Extract YAML frontmatter (between --- markers)
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatterMatch) {
@@ -107,7 +107,8 @@ function parseSpecContent(content: string): SpecModuleData {
   if (!parsed.version) {
     throw new Error("Missing required field: version");
   }
-  if (!parsed.platform) {
+  // Platform field is optional for shared module only
+  if (!parsed.platform && moduleName !== "Shared") {
     throw new Error("Missing required field: platform");
   }
   if (!parsed.stability) {
@@ -117,7 +118,7 @@ function parseSpecContent(content: string): SpecModuleData {
   return {
     description: parsed.description || "",
     version: parsed.version,
-    platform: parsed.platform,
+    platform: parsed.platform || "both", // Default to "both" for shared module
     stability: parsed.stability,
     actions: parsed.actions || [],
     properties: parsed.properties || [],
@@ -166,7 +167,7 @@ export function findMethodSpec(
  * @returns Map of module name to spec data
  */
 export function loadAllSpecs(): Map<string, SpecModuleData> {
-  const specsDir = path.join(process.cwd(), "openspec", "specs");
+  const specsDir = path.join(process.cwd(), "openspec", "specs", "api");
   const specMap = new Map<string, SpecModuleData>();
 
   if (!fs.existsSync(specsDir)) {
@@ -179,14 +180,11 @@ export function loadAllSpecs(): Map<string, SpecModuleData> {
   for (const dir of moduleDirs) {
     if (!dir.isDirectory()) continue;
 
-    // Skip _meta directory
-    if (dir.name === "_meta") continue;
-
     const specPath = path.join(specsDir, dir.name, "spec.md");
     if (!fs.existsSync(specPath)) continue;
 
     try {
-      const moduleName = dir.name.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("");
+      const moduleName = dir.name.charAt(0).toUpperCase() + dir.name.slice(1); // Convert to PascalCase
       const specData = readSpecFile(moduleName);
       if (specData) {
         specMap.set(moduleName, specData);

@@ -30,6 +30,7 @@ import localizationDoc from "../../src/openrpc/localization.json";
 import accessibilityDoc from "../../src/openrpc/accessibility.json";
 import deviceDoc from "../../src/openrpc/device.json";
 import displayDoc from "../../src/openrpc/display.json";
+import sharedDoc from "../../src/openrpc/shared.json";
 
 const ast = buildAST([
   discoveryDoc as never,
@@ -38,6 +39,7 @@ const ast = buildAST([
   accessibilityDoc as never,
   deviceDoc as never,
   displayDoc as never,
+  sharedDoc as never,
 ]);
 const config: GenConfig = { outDir: "/tmp/firebolt-test-out" };
 const outputs = runAll(ast.modules, config);
@@ -55,39 +57,39 @@ function getOutput(pathFragment: string): string {
 
 describe("12.1 Enum identifier consistency — AppAdult across all targets", () => {
   test("TypeScript: type AgePolicy contains string literal app:adult", () => {
-    const ts = getOutput("ts/Discovery.d.ts");
+    const ts = getOutput("ts/Shared.d.ts");
     expect(ts).toContain('"app:adult"');
   });
 
   test("TypeScript: uses AppAdult (no, TS uses serializedId in literal union)", () => {
     // TS generator uses serializedId in string literal union — that is correct by convention
-    const ts = getOutput("ts/Discovery.d.ts");
+    const ts = getOutput("ts/Shared.d.ts");
     expect(ts).toContain("app:adult");
   });
 
   test("ReScript: @as(\"app:adult\") AppAdult", () => {
-    const res = getOutput("res/Discovery.res");
+    const res = getOutput("res/Shared.res");
     expect(res).toContain('@as("app:adult") AppAdult');
   });
 
   test("Kotlin: AppAdult(\"app:adult\")", () => {
-    const kt = getOutput("kt/Discovery.kt");
+    const kt = getOutput("kt/Shared.kt");
     expect(kt).toContain('AppAdult("app:adult")');
   });
 
   test("C++: AppAdult, // wire: \"app:adult\"", () => {
-    const cpp = getOutput("cpp/firebolt/Discovery.hpp");
+    const cpp = getOutput("cpp/firebolt/Shared.hpp");
     expect(cpp).toContain("AppAdult");
     expect(cpp).toContain('"app:adult"');
   });
 
   test("Python .pyi: Literal contains \"app:adult\"", () => {
-    const pyi = getOutput("discovery.pyi");
+    const pyi = getOutput("shared.pyi");
     expect(pyi).toContain('"app:adult"');
   });
 
   test("Python _protocol.py: AppAdult = \"app:adult\"", () => {
-    const proto = getOutput("discovery_protocol.py");
+    const proto = getOutput("shared_protocol.py");
     expect(proto).toContain('AppAdult = "app:adult"');
   });
 });

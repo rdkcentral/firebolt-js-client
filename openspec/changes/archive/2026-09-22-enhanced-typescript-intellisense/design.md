@@ -101,7 +101,7 @@ The `typeof Firebolt.ModuleName` pattern doesn't provide good intellisense becau
 **Example: Localization.country() method**
 
 ```
-1. Spec File (openspec/specs/localization/spec.md):
+1. Spec File (openspec/specs/api/localization/spec.md):
    properties:
      - name: country
        description: Returns the country setting

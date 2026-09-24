@@ -194,18 +194,18 @@ HdcpType:
 ## Implementation Steps
 
 ### 1. Update Device Spec
-1. Add uptime action/property to `openspec/specs/device/spec.md`
-2. Add brandName action/property to `openspec/specs/device/spec.md`
-3. Add modelId action/property to `openspec/specs/device/spec.md`
-4. Add osName action/property to `openspec/specs/device/spec.md`
-5. Add osVersion action/property to `openspec/specs/device/spec.md`
-6. Add firmware action/property to `openspec/specs/device/spec.md`
-7. Add name property to `openspec/specs/device/spec.md`
-8. Add onNameChanged event to `openspec/specs/device/spec.md`
+1. Add uptime action/property to `openspec/specs/api/device/spec.md`
+2. Add brandName action/property to `openspec/specs/api/device/spec.md`
+3. Add modelId action/property to `openspec/specs/api/device/spec.md`
+4. Add osName action/property to `openspec/specs/api/device/spec.md`
+5. Add osVersion action/property to `openspec/specs/api/device/spec.md`
+6. Add firmware action/property to `openspec/specs/api/device/spec.md`
+7. Add name property to `openspec/specs/api/device/spec.md`
+8. Add onNameChanged event to `openspec/specs/api/device/spec.md`
 
 ### 2. Update Metrics Spec
-1. Add signIn action to `openspec/specs/metrics/spec.md`
-2. Add signOut action to `openspec/specs/metrics/spec.md`
+1. Add signIn action to `openspec/specs/api/metrics/spec.md`
+2. Add signOut action to `openspec/specs/api/metrics/spec.md`
 3. Update mediaLoadStart to use object parameter
 4. Update mediaPlay to use object parameter
 5. Update mediaPause to use object parameter
@@ -217,13 +217,13 @@ HdcpType:
 11. Update mediaEnded to use object parameter
 
 ### 3. Update Localization Spec
-1. Add timeZone property to `openspec/specs/localization/spec.md`
-2. Add onTimeZoneChanged event to `openspec/specs/localization/spec.md`
+1. Add timeZone property to `openspec/specs/api/localization/spec.md`
+2. Add onTimeZoneChanged event to `openspec/specs/api/localization/spec.md`
 
 ### 4. Update VideoOutput Spec
-1. Add hdcp property to `openspec/specs/video-output/spec.md`
-2. Add onHdcpChanged event to `openspec/specs/video-output/spec.md`
-3. Add HdcpType enum definition to `openspec/specs/video-output/spec.md`
+1. Add hdcp property to `openspec/specs/api/video-output/spec.md`
+2. Add onHdcpChanged event to `openspec/specs/api/video-output/spec.md`
+3. Add HdcpType enum definition to `openspec/specs/api/video-output/spec.md`
 
 ### 5. Update OpenRPC Files
 1. Update `src/openrpc/device.json` with new Device methods

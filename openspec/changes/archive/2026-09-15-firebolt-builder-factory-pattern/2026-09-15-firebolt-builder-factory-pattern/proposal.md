@@ -43,7 +43,7 @@ Since there are no existing consumers for the firebolt web implementation, this 
 - **Test code**: `src/generators/inject-js.test.ts` - comprehensive update to test new patterns
 - **Generated output**: `generated/inject-js/firebolt-inject.js` - will be completely regenerated with new structure
 - **Documentation**: 
-  - `openspec/specs/wpe-inject-js-generator/spec.md` - major update with new requirements
+  - `openspec/specs/api/wpe-inject-js-generator/spec.md` - major update with new requirements
   - `openspec/specs/_meta/inject-js-parameter-patterns.md` - update to reflect static generation approach
   - New extension schema documentation for app developers
 - **User code**: Complete replacement - consumers will need to update to use factory pattern and new transport interface
@@ -70,5 +70,5 @@ All Firebolt 9 web and both platform modules are affected by this change as the 
 - Reference implementation: `webkitExtension/resources/firebolt-builder.js` (feat/fireboltweb branch)
 - Compatibility layer: `webkitExtension/resources/firebolt-bridge.js` (feat/fireboltweb branch) - excluded from this scope
 - Current generator: `src/generators/inject-js.ts`
-- Current spec: `openspec/specs/wpe-inject-js-generator/spec.md`
+- Current spec: `openspec/specs/api/wpe-inject-js-generator/spec.md`
 - Parameter patterns: `openspec/specs/_meta/inject-js-parameter-patterns.md`

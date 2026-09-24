@@ -5,7 +5,7 @@
  * returns a list of GeneratorOutput entries — one file per output path.
  */
 
-import { CanonicalAST, Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef, resolveMethodPlatform } from "../ast/types";
+import { CanonicalAST, Constraints, Module, OptionalRef, Platform, PrimitiveRef, TypeRef, TypeDecl, resolveMethodPlatform, resolveTypePlatform } from "../ast/types";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -183,15 +183,32 @@ export function runAll(
         return true;
       });
       
-      // Skip if no methods match this generator's target
-      if (filteredMethods.length === 0) {
+      // Filter types by platform: EXCLUDE types that don't match this generator's target
+      const filteredTypes: TypeDecl[] = module.types.filter(type => {
+        const effectivePlatform = resolveTypePlatform(type, module);
+        
+        // EXCLUDE if type is explicitly for the other platform
+        if (entry.targetPlatform === "web" && effectivePlatform === "native") {
+          return false;  // Web generator excludes native-only types
+        }
+        if (entry.targetPlatform === "native" && effectivePlatform === "web") {
+          return false;  // Native generator excludes web-only types
+        }
+        
+        // INCLUDE for "both" or matching platform
+        return true;
+      });
+      
+      // Skip if no methods match this generator's target AND no types match
+      if (filteredMethods.length === 0 && filteredTypes.length === 0) {
         continue;
       }
       
-      // Generate with filtered methods
+      // Generate with filtered methods and types
       const filteredModule: Module = {
         ...module,
-        methods: filteredMethods
+        methods: filteredMethods,
+        types: filteredTypes
       };
       outputs.push(...entry.gen(filteredModule, config));
     }
