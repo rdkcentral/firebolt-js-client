@@ -79,13 +79,20 @@ jobs:
           cd package
           npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
+
+      - name: Publish to public npm registry
+        run: |
+          cd package
+          npm publish --registry https://registry.npmjs.org --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.version }}
-          name: @firebolt-js/types@${{ inputs.version }}
+          name: "@firebolt-js/types@${{ inputs.version }}"
           body: |
             Release of @firebolt-js/types version ${{ inputs.version }}
             
@@ -93,4 +100,4 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
