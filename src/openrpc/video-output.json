@@ -25,7 +25,10 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": "3840x2160"
+            "value": {
+              "width": 3840,
+              "height": 2160
+            }
           }
         }
       ]
@@ -57,7 +60,10 @@
           "params": [],
           "result": {
             "name": "result",
-            "value": "1920x1080"
+            "value": {
+              "width": 1920,
+              "height": 1080
+            }
           }
         }
       ]
@@ -122,10 +128,24 @@
     "schemas": {
       "VideoResolution": {
         "title": "VideoResolution",
-        "type": "string",
-        "description": "Video resolution output. The resolution in format WIDTHxHEIGHT.",
+        "type": "object",
+        "description": "Video resolution output.",
+        "properties": {
+          "width": {
+            "type": "unsigned",
+            "description": "The width of the video resolution in pixels"
+          },
+          "height": {
+            "type": "unsigned",
+            "description": "The height of the video resolution in pixels"
+          }
+        },
+        "required": ["width", "height"],
         "examples": [
-          "3840x2160"
+          {
+            "width": 3840,
+            "height": 2160
+          }
         ]
       },
       "HdcpType": {

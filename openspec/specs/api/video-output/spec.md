@@ -17,7 +17,9 @@ properties:
         $ref: VideoResolution
     examples:
       - description: Device output resolution is 4K
-        result: "3840x2160"
+        result:
+          width: 3840
+          height: 2160
 
   - name: hdcp
     description: |
@@ -33,6 +35,19 @@ properties:
         result: "hdcp2.2"
 
 events:
+  - name: onResolutionChanged
+    description: Event for when VideoOutput.resolution changed.
+    since: "8.0.0"
+    params: []
+    result:
+      type:
+        $ref: VideoResolution
+    examples:
+      - description: Resolution changed to 1080p
+        result:
+          width: 1920
+          height: 1080
+
   - name: onHdcpChanged
     description: Event for when VideoOutput.hdcp changed.
     since: "9.0.0"
@@ -48,11 +63,12 @@ types:
   - name: VideoResolution
     description: Video resolution output.
     properties:
-      - name: resolution
-        type: string
-        description: |
-          The current video resolution in format WIDTHxHEIGHT.
-          Common values: "1920x1080", "3840x2160", "7680x4320"
+      - name: width
+        type: unsigned
+        description: The width of the video resolution in pixels
+      - name: height
+        type: unsigned
+        description: The height of the video resolution in pixels
 
   - name: HdcpType
     kind: enum
