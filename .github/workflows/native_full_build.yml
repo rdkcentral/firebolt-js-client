@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-entservices-on-pr:
-    name: Build entservices-maintenancemanager component in GitHub rdkcentral
+    name: Build Firebolt Webkit Extension component in GitHub rdkcentral
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/rdkcentral/docker-rdk-ci:latest

@@ -32,11 +32,11 @@ cmake -G Ninja \
     -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Build with Coverity (if cov-build is available)
-if command -v cov-build &> /dev/null; then
+if command -v cov-build >/dev/null 2>&1 && cov-build --help >/dev/null 2>&1; then
     echo "Building with cov-build..."
     cov-build --dir cov-int cmake --build .
 else
-    echo "cov-build not found, building without Coverity..."
+    echo "cov-build not found or not functional, building without Coverity..."
     cmake --build .
 fi
 
