@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
 
       - name: Validate version format
@@ -111,7 +111,7 @@ jobs:
         if: ${{ inputs.dry_run != 'true' }}
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to public npm registry
