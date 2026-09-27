@@ -1,6 +1,6 @@
 # @firebolt-js/types
 
-TypeScript definitions for the Firebolt 9 inject-js factory/builder pattern, enabling VS Code intellisense, hover documentation, and type safety for app developers.
+TypeScript definitions for the Firebolt 9 FireboltServiceManager global pattern, enabling VS Code intellisense, hover documentation, and type safety for app developers using WPE WebKit extensions.
 
 ## Installation
 
@@ -12,29 +12,21 @@ npm install --save-dev @firebolt-js/types
 
 ## Usage
 
-The package provides TypeScript definitions for the Firebolt inject-js factory pattern:
+The package provides TypeScript definitions for the FireboltServiceManager global object that is injected by the WPE WebKit extension:
 
 ```typescript
-import { factory, FireboltTransport, FactoryConfig } from "@firebolt-js/types";
+// Access the FireboltServiceManager version
+console.log("Firebolt version:", FireboltServiceManager.version);
 
-// Configure the factory
-const config: FactoryConfig = {
-  transport: yourTransportImplementation,
-  enableDebug: true,
-};
-
-// Create the builder
-const builder = factory(config);
-
-// Build the Firebolt client
-const firebolt = await builder.build();
+// Get the Firebolt client
+const firebolt = await FireboltServiceManager.get();
 
 // Use the Firebolt client with full type safety
 const deviceClass = await firebolt.Device.deviceClass();
 const country = await firebolt.Localization.country();
 
 // Subscribe to events
-const unsubscribe = firebolt.Localization.onCountryChanged((event) => {
+const unsubscribe = firebolt.Localization.onCountryChanged((event, cancelled) => {
   console.log("Country changed:", event);
 });
 
@@ -46,12 +38,10 @@ firebolt.cleanup();
 
 The package includes the following TypeScript definitions:
 
-- **FireboltTransport**: Interface for the transport layer
-- **ExtensionSchema**: Interface for dynamic API extension
-- **FactoryConfig**: Configuration interface for the factory function
-- **FireboltBuilder**: Interface for the builder object
+- **FireboltServiceManager**: Global interface injected by WPE WebKit extension
+  - `version`: Readonly string containing the Firebolt SDK version
+  - `get()`: Method that returns a Promise resolving to the FireboltClient
 - **FireboltClient**: Interface for the Firebolt client with all module namespaces
-- **factory**: Factory function to create the builder
 
 ## Module Namespaces
 
@@ -70,23 +60,21 @@ The FireboltClient interface includes all web/both platform modules:
 
 Each module namespace contains its methods and events with full type definitions.
 
-## Extension Schema
+## Event Callbacks
 
-You can extend the Firebolt API dynamically using the extension schema:
+Event callbacks in Firebolt 9 use a two-parameter signature:
 
 ```typescript
-const configWithExtension: FactoryConfig = {
-  transport: yourTransportImplementation,
-  extensionSchema: [
-    {
-      name: "CustomModule",
-      methods: ["customMethod"],
-      events: [],
-      methodsWithObject: [],
-    },
-  ],
-};
+firebolt.Localization.onCountryChanged((event, cancelled) => {
+  if (cancelled) {
+    console.log("Event was cancelled due to connection failure");
+    return;
+  }
+  console.log("Country changed:", event);
+});
 ```
+
+The second parameter `cancelled` is `true` when the event is cancelled due to connection failures, allowing you to handle disconnection scenarios gracefully.
 
 ## IDE Features
 

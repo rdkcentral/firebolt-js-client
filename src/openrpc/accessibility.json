@@ -263,7 +263,7 @@
             "items": {
               "type": "string"
             },
-            "description": "List of ISO 639-2/B language codes in order of user preference."
+            "description": "List of ISO 639-2/B language codes in order of user preference. Empty list if not initialized."
           }
         },
         "required": [

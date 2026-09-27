@@ -16,9 +16,9 @@
 
 - [x] 3.1 Update README.md output path table (lines 118-123)
 - [x] 3.2 Update README.md architecture diagram references to out/ directory
-- [x] 3.3 Update openspec/specs/firebolt-cli/spec.md output path references
-- [x] 3.4 Update openspec/specs/header-generation/spec.md output path references  
-- [x] 3.5 Update openspec/specs/wpe-inject-js-generator/spec.md output path references
+- [x] 3.3 Update openspec/specs/api/firebolt-cli/spec.md output path references
+- [x] 3.4 Update openspec/specs/api/header-generation/spec.md output path references  
+- [x] 3.5 Update openspec/specs/api/wpe-inject-js-generator/spec.md output path references
 - [x] 3.6 Review and update .github/workflows/ci.yml if it references output directory
 - [x] 3.7 Review and update .github/workflows/release.yml if it references output directory
 

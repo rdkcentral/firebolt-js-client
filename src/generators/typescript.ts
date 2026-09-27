@@ -10,7 +10,7 @@
  *   - Output: generated/ts/<Module>.d.ts
  */
 
-import {
+import type {
   ArrayRef,
   EnumTypeDecl,
   Method,
@@ -365,6 +365,8 @@ function typeRefToTS(ref: TypeRef): string {
       return `${typeRefToTS((ref as ArrayRef).items)}[]`;
     case "optional":
       return `${typeRefToTS((ref as OptionalRef).inner)} | undefined`;
+    case "generic-object":
+      return "Record<string, unknown>";
   }
 }
 

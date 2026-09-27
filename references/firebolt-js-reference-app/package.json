@@ -1,0 +1,12 @@
+{
+  "name": "firebolt-js-reference-app",
+  "version": "1.0.0",
+  "description": "Reference app for testing Firebolt type definitions with plain JavaScript",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Manual testing required - open in VS Code to test IDE features\""
+  },
+  "devDependencies": {
+    "@firebolt-js/types": "file:../../package"
+  }
+}

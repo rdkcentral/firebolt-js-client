@@ -12,22 +12,22 @@
 
 ## 2. Convert Spec Files to Array Syntax [spec]
 
-- [x] 2.1 Convert openspec/specs/accessibility/spec.md to array syntax [spec]
-- [x] 2.2 Convert openspec/specs/actions/spec.md to array syntax [spec]
-- [x] 2.3 Convert openspec/specs/advertising/spec.md to array syntax [spec]
-- [x] 2.4 Convert openspec/specs/ast-builder/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
-- [x] 2.5 Convert openspec/specs/device/spec.md to array syntax [spec]
-- [x] 2.6 Convert openspec/specs/discovery/spec.md to array syntax [spec]
-- [x] 2.7 Convert openspec/specs/display/spec.md to array syntax [spec]
-- [x] 2.8 Convert openspec/specs/firebolt-cli/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
-- [x] 2.9 Convert openspec/specs/header-generation/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
-- [x] 2.10 Convert openspec/specs/lifecycle2/spec.md to array syntax [spec]
-- [x] 2.11 Convert openspec/specs/localization/spec.md to array syntax [spec]
-- [x] 2.12 Convert openspec/specs/metrics/spec.md to array syntax [spec]
-- [x] 2.13 Convert openspec/specs/network/spec.md to array syntax [spec]
-- [x] 2.14 Convert openspec/specs/shared/spec.md to array syntax [spec]
-- [x] 2.15 Convert openspec/specs/video-output/spec.md to array syntax [spec]
-- [x] 2.16 Convert openspec/specs/wpe-inject-js-generator/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
+- [x] 2.1 Convert openspec/specs/api/accessibility/spec.md to array syntax [spec]
+- [x] 2.2 Convert openspec/specs/api/actions/spec.md to array syntax [spec]
+- [x] 2.3 Convert openspec/specs/api/advertising/spec.md to array syntax [spec]
+- [x] 2.4 Convert openspec/specs/api/ast-builder/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
+- [x] 2.5 Convert openspec/specs/api/device/spec.md to array syntax [spec]
+- [x] 2.6 Convert openspec/specs/api/discovery/spec.md to array syntax [spec]
+- [x] 2.7 Convert openspec/specs/api/display/spec.md to array syntax [spec]
+- [x] 2.8 Convert openspec/specs/api/firebolt-cli/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
+- [x] 2.9 Convert openspec/specs/api/header-generation/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
+- [x] 2.10 Convert openspec/specs/api/lifecycle2/spec.md to array syntax [spec]
+- [x] 2.11 Convert openspec/specs/api/localization/spec.md to array syntax [spec]
+- [x] 2.12 Convert openspec/specs/api/metrics/spec.md to array syntax [spec]
+- [x] 2.13 Convert openspec/specs/api/network/spec.md to array syntax [spec]
+- [x] 2.14 Convert openspec/specs/api/shared/spec.md to array syntax [spec]
+- [x] 2.15 Convert openspec/specs/api/video-output/spec.md to array syntax [spec]
+- [x] 2.16 Convert openspec/specs/api/wpe-inject-js-generator/spec.md to array syntax [spec] (delta spec, no YAML frontmatter to convert)
 
 ## 3. Validate OpenRPC Derivation [openrpc]
 

@@ -47,10 +47,10 @@ Additionally, several Metrics methods currently have individual parameters but s
 ## Impact
 
 - **Spec code**: 
-  - `openspec/specs/device/spec.md` - add 7 new methods/events
-  - `openspec/specs/metrics/spec.md` - add 2 new methods, update 9 existing methods
-  - `openspec/specs/localization/spec.md` - add 1 new property and 1 event
-  - `openspec/specs/video-output/spec.md` - add 1 new property and 1 event
+  - `openspec/specs/api/device/spec.md` - add 7 new methods/events
+  - `openspec/specs/api/metrics/spec.md` - add 2 new methods, update 9 existing methods
+  - `openspec/specs/api/localization/spec.md` - add 1 new property and 1 event
+  - `openspec/specs/api/video-output/spec.md` - add 1 new property and 1 event
 - **OpenRPC code**:
   - `src/openrpc/device.json` - add OpenRPC definitions for new Device methods
   - `src/openrpc/metrics.json` - update OpenRPC definitions for Metrics methods
@@ -84,7 +84,7 @@ All language generators (TypeScript, ReScript, Kotlin/JS, C++, Python) will auto
 ## References
 
 - Reference implementation: `webkitExtension/resources/firebolt-builder.js` (feat/fireboltweb branch)
-- Current Device spec: `openspec/specs/device/spec.md`
-- Current Metrics spec: `openspec/specs/metrics/spec.md`
-- Current Localization spec: `openspec/specs/localization/spec.md`
-- Current VideoOutput spec: `openspec/specs/video-output/spec.md`
+- Current Device spec: `openspec/specs/api/device/spec.md`
+- Current Metrics spec: `openspec/specs/api/metrics/spec.md`
+- Current Localization spec: `openspec/specs/api/localization/spec.md`
+- Current VideoOutput spec: `openspec/specs/api/video-output/spec.md`

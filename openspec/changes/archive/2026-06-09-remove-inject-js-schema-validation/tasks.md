@@ -1,8 +1,8 @@
 ## 1. Specification Updates
 
-- [x] 1.1 [spec] Remove "Requirement: Call method stubs validate both directions" from openspec/specs/wpe-inject-js-generator/spec.md
-- [x] 1.2 [spec] Remove "Requirement: Schema validation is fully recursive" from openspec/specs/wpe-inject-js-generator/spec.md
-- [x] 1.3 [spec] Remove "Requirement: Event notifications validate payloads before dispatch" from openspec/specs/wpe-inject-js-generator/spec.md
+- [x] 1.1 [spec] Remove "Requirement: Call method stubs validate both directions" from openspec/specs/api/wpe-inject-js-generator/spec.md
+- [x] 1.2 [spec] Remove "Requirement: Schema validation is fully recursive" from openspec/specs/api/wpe-inject-js-generator/spec.md
+- [x] 1.3 [spec] Remove "Requirement: Event notifications validate payloads before dispatch" from openspec/specs/api/wpe-inject-js-generator/spec.md
 - [x] 1.4 [spec] Update "Requirement: Call method stubs send JSON-RPC..." to remove pre-validation language and result validation language
 - [x] 1.5 [spec] Update "Requirement: Event notifications are routed by method field" to remove validation language; keep payload extraction
 

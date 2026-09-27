@@ -1,19 +1,19 @@
 ## 1. Spec Updates
 
-- [x] 1.1 [spec] Update openspec/specs/metrics/spec.md - Add entityId and agePolicy to startContent action
-- [x] 1.2 [spec] Update openspec/specs/metrics/spec.md - Add entityId and agePolicy to stopContent action
-- [x] 1.3 [spec] Update openspec/specs/metrics/spec.md - Rename pageName to pageId and add agePolicy to page action
-- [x] 1.4 [spec] Update openspec/specs/metrics/spec.md - Replace error action parameters with new structure (type, code, description, visible, parameters, agePolicy)
-- [x] 1.5 [spec] Update openspec/specs/metrics/spec.md - Add target parameter to mediaSeeking action
-- [x] 1.6 [spec] Update openspec/specs/metrics/spec.md - Add position parameter to mediaSeeked action
-- [x] 1.7 [spec] Update openspec/specs/metrics/spec.md - Add rate parameter to mediaRateChanged action
-- [x] 1.8 [spec] Update openspec/specs/metrics/spec.md - Add bitrate, width, height, profile parameters to mediaRenditionChanged action
-- [x] 1.9 [spec] Update openspec/specs/metrics/spec.md - Replace event action parameters with schema and data
-- [x] 1.10 [spec] Update openspec/specs/metrics/spec.md - Replace agePolicy with build parameter in appInfo action
-- [x] 1.11 [spec] Update openspec/specs/metrics/spec.md - Replace ErrorType enum values (network, media, restriction, entitlement, other)
-- [x] 1.12 [spec] Update openspec/specs/shared/spec.md - Add AgePolicy type definition
-- [x] 1.13 [spec] Update openspec/specs/discovery/spec.md - Update watched action to reference shared AgePolicy
-- [x] 1.14 [spec] Update openspec/specs/wpe-inject-js-generator/spec.md - Add single-primitive-wrap pattern requirements
+- [x] 1.1 [spec] Update openspec/specs/api/metrics/spec.md - Add entityId and agePolicy to startContent action
+- [x] 1.2 [spec] Update openspec/specs/api/metrics/spec.md - Add entityId and agePolicy to stopContent action
+- [x] 1.3 [spec] Update openspec/specs/api/metrics/spec.md - Rename pageName to pageId and add agePolicy to page action
+- [x] 1.4 [spec] Update openspec/specs/api/metrics/spec.md - Replace error action parameters with new structure (type, code, description, visible, parameters, agePolicy)
+- [x] 1.5 [spec] Update openspec/specs/api/metrics/spec.md - Add target parameter to mediaSeeking action
+- [x] 1.6 [spec] Update openspec/specs/api/metrics/spec.md - Add position parameter to mediaSeeked action
+- [x] 1.7 [spec] Update openspec/specs/api/metrics/spec.md - Add rate parameter to mediaRateChanged action
+- [x] 1.8 [spec] Update openspec/specs/api/metrics/spec.md - Add bitrate, width, height, profile parameters to mediaRenditionChanged action
+- [x] 1.9 [spec] Update openspec/specs/api/metrics/spec.md - Replace event action parameters with schema and data
+- [x] 1.10 [spec] Update openspec/specs/api/metrics/spec.md - Replace agePolicy with build parameter in appInfo action
+- [x] 1.11 [spec] Update openspec/specs/api/metrics/spec.md - Replace ErrorType enum values (network, media, restriction, entitlement, other)
+- [x] 1.12 [spec] Update openspec/specs/api/shared/spec.md - Add AgePolicy type definition
+- [x] 1.13 [spec] Update openspec/specs/api/discovery/spec.md - Update watched action to reference shared AgePolicy
+- [x] 1.14 [spec] Update openspec/specs/api/wpe-inject-js-generator/spec.md - Add single-primitive-wrap pattern requirements
 
 ## 2. OpenRPC Schema Updates
 

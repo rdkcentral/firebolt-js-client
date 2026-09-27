@@ -1,38 +1,38 @@
 ## 1. Device Spec Updates
 
-- [x] 1.1 [spec] Add uptime action/property to openspec/specs/device/spec.md
-- [x] 1.2 [spec] Add brandName action/property to openspec/specs/device/spec.md
-- [x] 1.3 [spec] Add modelId action/property to openspec/specs/device/spec.md
-- [x] 1.4 [spec] Add osName action/property to openspec/specs/device/spec.md
-- [x] 1.5 [spec] Add osVersion action/property to openspec/specs/device/spec.md
-- [x] 1.6 [spec] Add firmware action/property to openspec/specs/device/spec.md
-- [x] 1.7 [spec] Add name property to openspec/specs/device/spec.md
-- [x] 1.8 [spec] Add onNameChanged event to openspec/specs/device/spec.md
+- [x] 1.1 [spec] Add uptime action/property to openspec/specs/api/device/spec.md
+- [x] 1.2 [spec] Add brandName action/property to openspec/specs/api/device/spec.md
+- [x] 1.3 [spec] Add modelId action/property to openspec/specs/api/device/spec.md
+- [x] 1.4 [spec] Add osName action/property to openspec/specs/api/device/spec.md
+- [x] 1.5 [spec] Add osVersion action/property to openspec/specs/api/device/spec.md
+- [x] 1.6 [spec] Add firmware action/property to openspec/specs/api/device/spec.md
+- [x] 1.7 [spec] Add name property to openspec/specs/api/device/spec.md
+- [x] 1.8 [spec] Add onNameChanged event to openspec/specs/api/device/spec.md
 
 ## 2. Metrics Spec Updates
 
-- [x] 2.1 [spec] Add signIn action to openspec/specs/metrics/spec.md
-- [x] 2.2 [spec] Add signOut action to openspec/specs/metrics/spec.md
-- [x] 2.3 [spec] Update mediaLoadStart to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.4 [spec] Update mediaPlay to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.5 [spec] Update mediaPause to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.6 [spec] Update mediaWaiting to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.7 [spec] Update mediaSeeking to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.8 [spec] Update mediaSeeked to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.9 [spec] Update mediaRateChanged to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.10 [spec] Update mediaRenditionChanged to use object parameter in openspec/specs/metrics/spec.md
-- [x] 2.11 [spec] Update mediaEnded to use object parameter in openspec/specs/metrics/spec.md
+- [x] 2.1 [spec] Add signIn action to openspec/specs/api/metrics/spec.md
+- [x] 2.2 [spec] Add signOut action to openspec/specs/api/metrics/spec.md
+- [x] 2.3 [spec] Update mediaLoadStart to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.4 [spec] Update mediaPlay to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.5 [spec] Update mediaPause to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.6 [spec] Update mediaWaiting to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.7 [spec] Update mediaSeeking to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.8 [spec] Update mediaSeeked to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.9 [spec] Update mediaRateChanged to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.10 [spec] Update mediaRenditionChanged to use object parameter in openspec/specs/api/metrics/spec.md
+- [x] 2.11 [spec] Update mediaEnded to use object parameter in openspec/specs/api/metrics/spec.md
 
 ## 3. Localization Spec Updates
 
-- [x] 3.1 [spec] Add timeZone property to openspec/specs/localization/spec.md
-- [x] 3.2 [spec] Add onTimeZoneChanged event to openspec/specs/localization/spec.md
+- [x] 3.1 [spec] Add timeZone property to openspec/specs/api/localization/spec.md
+- [x] 3.2 [spec] Add onTimeZoneChanged event to openspec/specs/api/localization/spec.md
 
 ## 4. VideoOutput Spec Updates
 
-- [x] 4.1 [spec] Add hdcp property to openspec/specs/video-output/spec.md
-- [x] 4.2 [spec] Add onHdcpChanged event to openspec/specs/video-output/spec.md
-- [x] 4.3 [spec] Add HdcpType enum definition to openspec/specs/video-output/spec.md
+- [x] 4.1 [spec] Add hdcp property to openspec/specs/api/video-output/spec.md
+- [x] 4.2 [spec] Add onHdcpChanged event to openspec/specs/api/video-output/spec.md
+- [x] 4.3 [spec] Add HdcpType enum definition to openspec/specs/api/video-output/spec.md
 
 ## 5. OpenRPC File Updates
 

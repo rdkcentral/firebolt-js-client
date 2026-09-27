@@ -327,7 +327,8 @@ test("single-primitive-wrap pattern is NOT used for methods with multiple parame
   const ast = makeAST({ modules: [testModule] });
   const code = generateBundle(ast);
   expect(code).toContain("_addMethodWithObjectParam");
-  expect(code).not.toContain("_addMethodWithPrimitiveWrap");
+  // Check that the function is not CALLED for this method (it's still defined in preamble for extensions)
+  expect(code).not.toContain('_addMethodWithPrimitiveWrap(_TestModule, "multiParam"');
 });
 
 test("single-primitive-wrap pattern is NOT used for methods with optional single property", () => {
@@ -365,5 +366,6 @@ test("single-primitive-wrap pattern is NOT used for methods with optional single
   const ast = makeAST({ modules: [testModule] });
   const code = generateBundle(ast);
   expect(code).toContain("_addMethodWithObjectParam");
-  expect(code).not.toContain("_addMethodWithPrimitiveWrap");
+  // Check that the function is not CALLED for this method (it's still defined in preamble for extensions)
+  expect(code).not.toContain('_addMethodWithPrimitiveWrap(_TestModule, "optionalParam"');
 });

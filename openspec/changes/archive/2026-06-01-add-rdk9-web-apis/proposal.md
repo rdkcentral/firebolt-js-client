@@ -38,5 +38,5 @@ No breaking changes — all existing OpenRPC methods and types are preserved unc
 - **Generator changes**: None — existing inject-js generator already handles all type patterns introduced (primitives, objects, enums, arrays, optionals) and already filters to `platform: web | both`
 - **OpenRPC files added**: `src/openrpc/actions.json`, `advertising.json`, `device.json`, `display.json`, `metrics.json`, `network.json`, `video-output.json`
 - **OpenRPC files updated**: `src/openrpc/accessibility.json`, `localization.json`
-- **Spec files added**: `openspec/specs/actions/spec.md`, `advertising/spec.md`, `device/spec.md`, `display/spec.md`, `metrics/spec.md`, `network/spec.md`, `video-output/spec.md`
-- **Spec files updated**: `openspec/specs/accessibility/spec.md`, `localization/spec.md`
+- **Spec files added**: `openspec/specs/api/actions/spec.md`, `advertising/spec.md`, `device/spec.md`, `display/spec.md`, `metrics/spec.md`, `network/spec.md`, `video-output/spec.md`
+- **Spec files updated**: `openspec/specs/api/accessibility/spec.md`, `localization/spec.md`

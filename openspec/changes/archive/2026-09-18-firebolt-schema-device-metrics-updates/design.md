@@ -103,7 +103,7 @@ function _addMethodWithPrimitiveWrap(module, methodName, moduleName, paramName) 
 
 ### Example: Metrics.appInfo with Single-Primitive-Wrap Pattern
 
-**Spec (openspec/specs/metrics/spec.md):**
+**Spec (openspec/specs/api/metrics/spec.md):**
 ```yaml
 - name: appInfo
   description: Sends app-specific metrics to the platform.
@@ -193,7 +193,7 @@ await firebolt.Metrics.appInfo("1.2.3");
 
 ### Example: Metrics.error with New Parameter Structure
 
-**Spec (openspec/specs/metrics/spec.md):**
+**Spec (openspec/specs/api/metrics/spec.md):**
 ```yaml
 - name: error
   description: Logs an error that occurred within the app.

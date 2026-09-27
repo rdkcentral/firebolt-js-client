@@ -3,7 +3,7 @@
 The firebolt-js-client pipeline derives everything from OpenSpec module specs:
 
 ```
-openspec/specs/<module>/spec.md   (human-authored YAML frontmatter)
+openspec/specs/api/<module>/spec.md   (human-authored YAML frontmatter)
         ↓
 src/openrpc/<module>.json         (AI-derived OpenRPC contract)
         ↓
@@ -60,7 +60,7 @@ All other new modules are `platform: both` (C++ and JS both `:tick:`).
 ### D3 — Metrics `AgePolicy` enum lives in `shared`, not `metrics`
 
 All 13 Metrics methods that take `agePolicy` accept the same `"app:adult" |
-"app:child" | "app:teen"` enum already defined in `openspec/specs/shared/spec.md`
+"app:child" | "app:teen"` enum already defined in `openspec/specs/api/shared/spec.md`
 (`Discovery.AgePolicy`). The Metrics spec will `$ref` `Shared.AgePolicy` rather
 than redefine it.
 
@@ -76,7 +76,7 @@ Every type pattern introduced by this change is already handled by the AST build
 ### D5 — Pipeline trace: `Device.hdr` / `Device.onHdrChanged`
 
 ```yaml
-# openspec/specs/device/spec.md  (spec layer)
+# openspec/specs/api/device/spec.md  (spec layer)
 properties:
   hdr:
     description: Returns the HDR formats supported by the attached display.

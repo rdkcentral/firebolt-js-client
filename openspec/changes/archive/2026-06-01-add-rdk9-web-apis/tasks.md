@@ -1,17 +1,17 @@
 ## 1. Spec — Update existing modules [spec]
 
-- [x] 1.1 [spec] Update `openspec/specs/accessibility/spec.md`: convert `voiceGuidanceSettings` from `actions` to `properties`; add `audioDescription`, `closedCaptionsSettings`, `highContrastUI` as `properties` entries with types and examples
-- [x] 1.2 [spec] Update `openspec/specs/localization/spec.md`: convert `onCountryChanged` event entry to a `properties` entry `country`; add `preferredAudioLanguages` and `presentationLanguage` as `properties` entries
+- [x] 1.1 [spec] Update `openspec/specs/api/accessibility/spec.md`: convert `voiceGuidanceSettings` from `actions` to `properties`; add `audioDescription`, `closedCaptionsSettings`, `highContrastUI` as `properties` entries with types and examples
+- [x] 1.2 [spec] Update `openspec/specs/api/localization/spec.md`: convert `onCountryChanged` event entry to a `properties` entry `country`; add `preferredAudioLanguages` and `presentationLanguage` as `properties` entries
 
 ## 2. Spec — Create new module specs [spec]
 
-- [x] 2.1 [spec] Create `openspec/specs/actions/spec.md`: `platform: both`; `actions: start`; `properties: intent` with `IntentPayload` type
-- [x] 2.2 [spec] Create `openspec/specs/advertising/spec.md`: `platform: both`; `actions: advertisingId` returning `AdvertisingId` type with `IfaType` and `Lmt` enums
-- [x] 2.3 [spec] Create `openspec/specs/device/spec.md`: `platform: both`; `actions: uid, deviceClass`; `properties: hdr, dolbyAtmosExperienceAvailable`; types `DeviceClass`, `HdrCapabilities`
-- [x] 2.4 [spec] Create `openspec/specs/display/spec.md`: `platform: web`; `actions: colorimetry, videoResolutions`; types `ColorimetryValue`, `VideoResolution` enums
-- [x] 2.5 [spec] Create `openspec/specs/network/spec.md`: `platform: both`; `properties: connected`
-- [x] 2.6 [spec] Create `openspec/specs/video-output/spec.md`: `platform: both`; `properties: resolution`; type `VideoResolution` object
-- [x] 2.7 [spec] Create `openspec/specs/metrics/spec.md`: `platform: both`; 17 `actions` entries: `ready`, `startContent`, `stopContent`, `page`, `error`, `mediaLoadStart`, `mediaPlay`, `mediaPlaying`, `mediaPause`, `mediaWaiting`, `mediaSeeking`, `mediaSeeked`, `mediaRateChanged`, `mediaRenditionChanged`, `mediaEnded`, `event`, `appInfo`; type `ErrorType` enum; `$ref` `Shared.AgePolicy` for agePolicy params
+- [x] 2.1 [spec] Create `openspec/specs/api/actions/spec.md`: `platform: both`; `actions: start`; `properties: intent` with `IntentPayload` type
+- [x] 2.2 [spec] Create `openspec/specs/api/advertising/spec.md`: `platform: both`; `actions: advertisingId` returning `AdvertisingId` type with `IfaType` and `Lmt` enums
+- [x] 2.3 [spec] Create `openspec/specs/api/device/spec.md`: `platform: both`; `actions: uid, deviceClass`; `properties: hdr, dolbyAtmosExperienceAvailable`; types `DeviceClass`, `HdrCapabilities`
+- [x] 2.4 [spec] Create `openspec/specs/api/display/spec.md`: `platform: web`; `actions: colorimetry, videoResolutions`; types `ColorimetryValue`, `VideoResolution` enums
+- [x] 2.5 [spec] Create `openspec/specs/api/network/spec.md`: `platform: both`; `properties: connected`
+- [x] 2.6 [spec] Create `openspec/specs/api/video-output/spec.md`: `platform: both`; `properties: resolution`; type `VideoResolution` object
+- [x] 2.7 [spec] Create `openspec/specs/api/metrics/spec.md`: `platform: both`; 17 `actions` entries: `ready`, `startContent`, `stopContent`, `page`, `error`, `mediaLoadStart`, `mediaPlay`, `mediaPlaying`, `mediaPause`, `mediaWaiting`, `mediaSeeking`, `mediaSeeked`, `mediaRateChanged`, `mediaRenditionChanged`, `mediaEnded`, `event`, `appInfo`; type `ErrorType` enum; `$ref` `Shared.AgePolicy` for agePolicy params
 
 ## 3. OpenRPC — Update existing modules [openrpc]
 

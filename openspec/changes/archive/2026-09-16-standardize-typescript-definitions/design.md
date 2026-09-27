@@ -122,7 +122,7 @@ Actions.onIntent((event, cancelled) => {
 
 ### Example: Actions.start Method
 
-**Spec (openspec/specs/actions/spec.md):**
+**Spec (openspec/specs/api/actions/spec.md):**
 ```markdown
 ### Action: start
 **Kind:** action

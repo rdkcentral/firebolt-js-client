@@ -184,6 +184,8 @@ function typeRefToKt(ref: TypeRef): string {
       return `Array<${typeRefToKt((ref as ArrayRef).items)}>`;
     case "optional":
       return `${typeRefToKt((ref as OptionalRef).inner)}?`;
+    case "generic-object":
+      return "dynamic";
   }
 }
 

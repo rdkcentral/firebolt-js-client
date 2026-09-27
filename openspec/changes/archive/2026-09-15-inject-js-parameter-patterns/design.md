@@ -113,7 +113,7 @@ if (desc.kind === "subscribe") {
 
 ### Example: No-Param Method
 
-**Spec (openspec/specs/accessibility/spec.md):**
+**Spec (openspec/specs/api/accessibility/spec.md):**
 ```markdown
 ### Property: audioDescription
 **Kind:** property
@@ -161,7 +161,7 @@ const isEnabled = await Accessibility.audioDescription();
 
 ### Example: Single-Param Method
 
-**Spec (openspec/specs/discovery/spec.md):**
+**Spec (openspec/specs/api/discovery/spec.md):**
 ```markdown
 ### Action: watched
 **Kind:** action

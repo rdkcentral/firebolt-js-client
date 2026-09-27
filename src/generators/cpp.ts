@@ -190,6 +190,9 @@ function typeRefToCpp(ref: TypeRef): string {
       return `std::vector<${typeRefToCpp((ref as ArrayRef).items)}>`;
     case "optional":
       return `std::optional<${typeRefToCpp((ref as OptionalRef).inner)}>`;
+    case "generic-object":
+      // Generic object type for JSON without specific structure
+      return "nlohmann::json";
   }
 }
 

@@ -1,8 +1,8 @@
 ## 1. Project Setup
 
-- [x] 1.1 [spec] Author `openspec/specs/discovery/spec.md` — `AgePolicy` enum + `watched` action with all five params and one example
-- [x] 1.2 [spec] Author `openspec/specs/lifecycle2/spec.md` — `LifecycleState` enum + `StateChangedEvent` object + `onStateChanged` event with one example
-- [x] 1.3 [spec] Verify `openspec/specs/shared/spec.md` is complete with `ListenResponse` and `FireboltError`
+- [x] 1.1 [spec] Author `openspec/specs/api/discovery/spec.md` — `AgePolicy` enum + `watched` action with all five params and one example
+- [x] 1.2 [spec] Author `openspec/specs/api/lifecycle2/spec.md` — `LifecycleState` enum + `StateChangedEvent` object + `onStateChanged` event with one example
+- [x] 1.3 [spec] Verify `openspec/specs/api/shared/spec.md` is complete with `ListenResponse` and `FireboltError`
 - [x] 1.4 [spec] Initialise `package.json` with TypeScript project config and add dependencies: `typescript`, `commander`, `@open-rpc/schema-utils-js`, `@types/node`
 - [x] 1.5 [spec] Create `tsconfig.json` targeting Node.js with strict mode enabled
 
@@ -85,14 +85,14 @@
 
 ## 14. Localization Module
 
-- [x] 14.1 [spec] Author `openspec/specs/localization/spec.md` — `platform: both`; `onCountryChanged` subscribe event with payload `type: string, minLength: 2, maxLength: 2, pattern: "^[A-Z]{2}$"`; include worked example (`"US"`, `"GB"`)
+- [x] 14.1 [spec] Author `openspec/specs/api/localization/spec.md` — `platform: both`; `onCountryChanged` subscribe event with payload `type: string, minLength: 2, maxLength: 2, pattern: "^[A-Z]{2}$"`; include worked example (`"US"`, `"GB"`)
 - [x] 14.2 [openrpc] Derive `src/openrpc/localization.json` — `Localization.onCountryChanged` subscribe method; result is `oneOf[ListenResponse, { type:"string", minLength:2, maxLength:2, pattern:"^[A-Z]{2}$", description:"ISO 3166-1 alpha-2 country code" }]`
 - [x] 14.3 [generator] Add Localization to the CLI module list; verify 6 output files generated: `ts/Localization.d.ts`, `res/Localization.res`, `kt/Localization.kt`, `cpp/firebolt/Localization.hpp`, `py/localization.pyi`, `py/localization_protocol.py`
 - [x] 14.4 [test] Add 12.5 consistency tests — verify string constraint notes (`minLength=2`, `maxLength=2`, `pattern=^[A-Z]{2}$`) appear in all five generator outputs for `onCountryChanged`; verify Python emits `Annotated[str, "..."]` and imports `Annotated`
 
 ## 15. Accessibility Module
 
-- [x] 15.1 [spec] Author `openspec/specs/accessibility/spec.md` — `platform: both`; `VoiceGuidanceSettings` object type with `enabled: bool`, `rate: double (minimum: 0.1, maximum: 10)`, `navigationHints: bool`; `voiceGuidanceSettings` action returning `$ref: VoiceGuidanceSettings`
+- [x] 15.1 [spec] Author `openspec/specs/api/accessibility/spec.md` — `platform: both`; `VoiceGuidanceSettings` object type with `enabled: bool`, `rate: double (minimum: 0.1, maximum: 10)`, `navigationHints: bool`; `voiceGuidanceSettings` action returning `$ref: VoiceGuidanceSettings`
 - [x] 15.2 [openrpc] Derive `src/openrpc/accessibility.json` — `Accessibility.voiceGuidanceSettings` method with `result.$ref: VoiceGuidanceSettings`; `VoiceGuidanceSettings` schema in `components/schemas` with `rate` having `"type":"number", "format":"double", "minimum":0.1, "maximum":10`
 - [x] 15.3 [generator] Add Accessibility to the CLI module list; verify 7 output files generated across all five targets (same pattern as Localization plus a second Python file)
 - [x] 15.4 [test] Add 12.6 consistency tests — verify numeric constraint notes (`minimum=0.1`, `maximum=10`) appear on the `rate` property in all five generator outputs; verify Python emits `Annotated[float, "..."]`

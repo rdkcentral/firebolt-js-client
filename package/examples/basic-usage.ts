@@ -2,64 +2,41 @@
  * Basic usage example for @firebolt-js/types
  * 
  * This example demonstrates how to use the Firebolt TypeScript definitions
- * with the inject-js factory/builder pattern.
+ * with the FireboltServiceManager global pattern in WPE WebKit extensions.
  */
 
-import { factory, FireboltTransport, FactoryConfig } from "@firebolt-js/types";
+// Example 1: Access FireboltServiceManager version
+console.log("Firebolt version:", FireboltServiceManager.version);
 
-// Example 1: Basic factory initialization
-const basicConfig: FactoryConfig = {
-  transport: {
-    send: (data: string) => {
-      console.log("Sending:", data);
-    },
-    open: () => {
-      console.log("Opening connection");
-    },
-    close: () => {
-      console.log("Closing connection");
-    },
-  },
-};
-
-const builder = factory(basicConfig);
-
-// Example 2: Using the builder
+// Example 2: Get the Firebolt client
 async function initializeFirebolt() {
-  const firebolt = await builder.build();
+  const firebolt = await FireboltServiceManager.get();
   
   // Access modules with full type safety
   // const deviceInfo = await firebolt.Device.deviceClass();
   // const country = await firebolt.Localization.country();
   
-  // Subscribe to events
-  // const unsubscribe = firebolt.Localization.onCountryChanged((event) => {
+  // Subscribe to events with cancellation handling
+  // const unsubscribe = firebolt.Localization.onCountryChanged((event, cancelled) => {
+  //   if (cancelled) {
+  //     console.log("Event was cancelled due to connection failure");
+  //     return;
+  //   }
   //   console.log("Country changed:", event);
   // });
   
-  // Cleanup
+  // Cleanup when done
   // firebolt.cleanup();
 }
 
-// Example 3: Using extension schema
-const extendedConfig: FactoryConfig = {
-  transport: basicConfig.transport,
-  extensionSchema: [
-    {
-      name: "CustomModule",
-      methods: ["customMethod"],
-      events: [],
-      methodsWithObject: [],
-    },
-  ],
-};
-
-const extendedBuilder = factory(extendedConfig);
-
-// Example 4: Debug mode
-const debugConfig: FactoryConfig = {
-  transport: basicConfig.transport,
-  enableDebug: true,
-};
-
-const debugBuilder = factory(debugConfig);
+// Example 3: Error handling
+async function initializeWithErrorHandling() {
+  try {
+    const firebolt = await FireboltServiceManager.get();
+    console.log("Firebolt client initialized successfully");
+    
+    // Use the client...
+  } catch (error) {
+    console.error("Failed to initialize Firebolt:", error);
+  }
+}
