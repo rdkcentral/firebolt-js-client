@@ -1,0 +1,41 @@
+name: Test Release Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package/package.json'
+      - '.github/workflows/release-types.yml'
+
+jobs:
+  test-build:
+    name: Test Type Definitions Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install npm dependencies
+        run: |
+          npm ci
+
+      - name: Build type definitions
+        run: |
+          cd package
+          npm run build
+
+      - name: Verify output
+        run: |
+          if [ ! -f package/firebolt-inject.d.ts ]; then
+            echo "Error: firebolt-inject.d.ts was not generated"
+            exit 1
+          fi
+          echo "Build successful - firebolt-inject.d.ts exists"
+          ls -lh package/firebolt-inject.d.ts
