@@ -87,7 +87,11 @@ jobs:
         if: ${{ inputs.dry_run != 'true' }}
         run: |
           cd package
-          npm publish
+          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
+            npm publish --tag rc
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
@@ -95,7 +99,11 @@ jobs:
         if: ${{ inputs.dry_run == 'true' }}
         run: |
           cd package
-          npm publish --dry-run
+          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
+            npm publish --tag rc --dry-run
+          else
+            npm publish --dry-run
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
@@ -110,7 +118,11 @@ jobs:
         if: ${{ inputs.dry_run != 'true' }}
         run: |
           cd package
-          npm publish --registry https://registry.npmjs.org --access public
+          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
+            npm publish --registry https://registry.npmjs.org --access public --tag rc
+          else
+            npm publish --registry https://registry.npmjs.org --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
 
@@ -118,7 +130,11 @@ jobs:
         if: ${{ inputs.dry_run == 'true' }}
         run: |
           cd package
-          npm publish --registry https://registry.npmjs.org --access public --dry-run
+          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
+            npm publish --registry https://registry.npmjs.org --access public --tag rc --dry-run
+          else
+            npm publish --registry https://registry.npmjs.org --access public --dry-run
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
 

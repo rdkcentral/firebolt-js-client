@@ -56,7 +56,11 @@ jobs:
       - name: Test npm publish (dry-run)
         run: |
           cd package
-          npm publish --dry-run
+          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
+            npm publish --tag rc --dry-run
+          else
+            npm publish --dry-run
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
