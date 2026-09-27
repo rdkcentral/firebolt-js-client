@@ -5,9 +5,10 @@ on:
     branches: [ main, 'sprint/**', 'release/**', develop ]
   pull_request:
     branches: [ main, 'sprint/**', 'release/**', topic/RDK*, develop ]
-
+permissions:
+  contents: read
 jobs:
-  build-entservices-on-pr:
+  build-firebolt-webkitextension-on-pr:
     name: Build Firebolt Webkit Extension component in GitHub rdkcentral
     runs-on: ubuntu-latest
     container:
