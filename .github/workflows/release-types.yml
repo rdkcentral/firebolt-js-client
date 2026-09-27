@@ -10,8 +10,11 @@ on:
       dry_run:
         description: 'Dry run mode (skip actual publishing)'
         required: false
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
 
 permissions:
   contents: write
@@ -71,7 +74,7 @@ jobs:
           npm version "$VERSION" --no-git-tag-version
 
       - name: Create git tag
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: |
           VERSION="${{ inputs.version }}"
           TAG_NAME="v${VERSION}"
@@ -81,7 +84,7 @@ jobs:
           git push origin "$TAG_NAME"
 
       - name: Publish to GitHub npm registry
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: |
           cd package
           npm publish
@@ -89,7 +92,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
       - name: Test npm publish (dry-run)
-        if: ${{ inputs.dry_run }}
+        if: ${{ inputs.dry_run == 'true' }}
         run: |
           cd package
           npm publish --dry-run
@@ -97,14 +100,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
       - name: Setup Node.js for npmjs registry
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run != 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to public npm registry
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run != 'true' }}
         run: |
           cd package
           npm publish --registry https://registry.npmjs.org --access public
@@ -112,7 +115,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
 
       - name: Test public npm publish (dry-run)
-        if: ${{ inputs.dry_run }}
+        if: ${{ inputs.dry_run == 'true' }}
         run: |
           cd package
           npm publish --registry https://registry.npmjs.org --access public --dry-run
@@ -120,7 +123,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
 
       - name: Create GitHub Release
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run != 'true' }}
         uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77
         with:
           tag_name: v${{ inputs.version }}
@@ -135,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
       - name: Create test GitHub Release (dry-run)
-        if: ${{ inputs.dry_run }}
+        if: ${{ inputs.dry_run == 'true' }}
         uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77
         with:
           tag_name: test-v${{ inputs.version }}
