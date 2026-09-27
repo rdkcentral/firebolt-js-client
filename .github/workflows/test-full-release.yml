@@ -1,0 +1,90 @@
+name: Test Full Release Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Test version number (e.g., 9.0.1-test)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  test-release:
+    name: Test Full Release Process
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Install npm dependencies
+        run: |
+          npm ci
+
+      - name: Build type definitions
+        run: |
+          cd package
+          npm run build
+
+      - name: Update package version (test)
+        run: |
+          VERSION="${{ inputs.version }}"
+          cd package
+          npm version "$VERSION" --no-git-tag-version
+          echo "Updated package version to $VERSION"
+
+      - name: Test npm publish (dry-run)
+        run: |
+          cd package
+          npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
+
+      - name: Create test git tag
+        run: |
+          VERSION="${{ inputs.version }}"
+          TAG_NAME="test-v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Test release @firebolt-js/types@$VERSION"
+          git push origin "$TAG_NAME"
+          echo "Created test tag: $TAG_NAME"
+
+      - name: Create draft GitHub Release (test)
+        uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77
+        with:
+          tag_name: test-v${{ inputs.version }}
+          name: "TEST: @firebolt-js/types@${{ inputs.version }}"
+          body: |
+            **TEST RELEASE - DO NOT USE**
+
+            This is a test release to verify the release pipeline works correctly.
+            Version: ${{ inputs.version }}
+          draft: true
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup instructions
+        run: |
+          echo "=========================================="
+          echo "Test release created successfully!"
+          echo "=========================================="
+          echo "Test tag: test-v${{ inputs.version }}"
+          echo "Draft release created on GitHub"
+          echo ""
+          echo "To cleanup after testing:"
+          echo "1. Delete the draft release from GitHub"
+          echo "2. Delete the test tag: git push origin --delete test-v${{ inputs.version }}"
+          echo "3. Delete local tag: git tag -d test-v${{ inputs.version }}"
