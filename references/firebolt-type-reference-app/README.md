@@ -11,11 +11,67 @@ The reference app serves two purposes:
 
 ## Installation
 
-The app uses `@rdkcentral/firebolt-js-types` as a dev dependency (as types are only needed during development):
+The app uses `@rdkcentral/firebolt-js-types` as a dev dependency (as types are only needed during development).
+
+### Setup npmrc for GitHub Packages
+
+Since `@rdkcentral/firebolt-js-types` is published to GitHub Packages, you need to configure npm to use the GitHub registry for this scope.
+
+**Create or update `.npmrc` in the project root:**
+```bash
+@rdkcentral:registry=https://npm.pkg.github.com
+```
+
+**Authenticate with GitHub Packages:**
+
+1. Create a GitHub personal access token:
+   - Go to https://github.com/settings/tokens
+   - Click "Generate new token" → "Generate new token (classic)"
+   - Select the `read:packages` scope
+   - Generate and copy the token
+
+2. Add the token to your npm configuration:
+
+   **Option A: Global npm config (recommended)**
+   ```bash
+   npm config set //npm.pkg.github.com/:_authToken YOUR_TOKEN_HERE
+   ```
+
+   **Option B: Project-specific .npmrc**
+   Add to your project's `.npmrc`:
+   ```
+   //npm.pkg.github.com/:_authToken=YOUR_TOKEN_HERE
+   ```
+
+### Install Dependencies
 
 ```bash
 cd references/firebolt-type-reference-app
 npm install
+```
+
+### Using Specific Versions
+
+The `package.json` specifies the version of `@rdkcentral/firebolt-js-types` to use. To use a different version from GitHub Packages:
+
+**Option 1: Install a specific version**
+```bash
+npm install @rdkcentral/firebolt-js-types@0.1.1-rc --save-dev
+```
+
+**Option 2: Install the latest version**
+```bash
+npm install @rdkcentral/firebolt-js-types@latest --save-dev
+```
+
+**Option 3: Install a release candidate**
+```bash
+npm install @rdkcentral/firebolt-js-types@rc --save-dev
+```
+
+**To check available versions:**
+```bash
+npm view @rdkcentral/firebolt-js-types versions --registry https://npm.pkg.github.com
 ```
 
 ## Manual IDE Testing
