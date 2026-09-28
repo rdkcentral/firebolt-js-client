@@ -10,7 +10,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "build": "cd .. && npm run build && npm run generate -- --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts .",
+    "build": "cd .. && npm run build && npm run generate:types && cp generated/inject-js/firebolt-inject.d.ts .",
     "prepublishOnly": "npm run build"
   }
 }
