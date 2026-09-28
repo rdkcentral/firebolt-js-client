@@ -46,7 +46,7 @@ The OpenSpec workflow will guide you through creating necessary artifacts:
 - **specs/** - API specifications for new modules
 - **tasks.md** - Implementation steps
 
-Use the Devin skill to generate artifacts:
+Use the OpenSpec proposal workflow to generate artifacts:
 ```
 /opsx:propose
 ```

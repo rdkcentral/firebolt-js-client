@@ -55,15 +55,16 @@ export FIREBOLT_ENDPOINT=ws://localhost:9999
 Pass configuration through WPEWebKit's user data:
 
 ```cpp
+GVariantDict firebolt_settings;
+g_variant_dict_init(&firebolt_settings, NULL);
+g_variant_dict_insert(&firebolt_settings, "fireboltEndpoint", "s",
+                      "ws://localhost:9999");
+g_variant_dict_insert(&firebolt_settings, "enableDebug", "b", TRUE);
+
 GVariantDict settings;
 g_variant_dict_init(&settings, NULL);
-
-// Set Firebolt endpoint
-g_variant_dict_insert(&settings, "fireboltEndpoint", "s", "ws://localhost:9999");
-
-// Enable debug mode
-g_variant_dict_insert(&settings, "enableDebug", "b", TRUE);
-
+g_variant_dict_insert_value(&settings, "firebolt",
+                            g_variant_dict_end(&firebolt_settings));
 GVariant *settings_variant = g_variant_dict_end(&settings);
 ```
 
@@ -119,12 +120,9 @@ const deviceInfo = await firebolt.device.info();
 
 The extension uses a builder pattern for initialization:
 
-```javascript
-// The extension calls this internally
-FireboltServiceManager.builder({
-  get: () => builderInstance
-});
-```
+// The extension invokes the builder callback internally.
+// Web applications initialize the client with:
+const firebolt = await FireboltServiceManager.get();
 
 ## Integration with Firebolt JS Client
 

@@ -15,7 +15,7 @@ The app uses `@rdkcentral/firebolt-js-types` as a dev dependency (as types are o
 
 ### Setup npmrc for GitHub Packages
 
-Since `@rdkcentral/firebolt-js-types` is published to GitHub Packages, you need to configure npm to use the GitHub registry for this scope.
+The checked-in app uses the local package at `file:../../package`, so `npm install` does not require GitHub Packages authentication. Use the published-package setup below only after switching the dependency to a registry version.
 
 **Create or update `.npmrc` in the project root:**
 ```bash
