@@ -1,4 +1,4 @@
-import { FireboltClient } from "@firebolt-js/types";
+import { FireboltClient } from "@rdkcentral/firebolt-js-types";
 
 
 // Example 1: Access FireboltServiceManager version

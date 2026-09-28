@@ -1,5 +1,5 @@
 /**
- * Automated installation test for @firebolt-js/types package.
+ * Automated installation test for @rdkcentral/firebolt-js-types package.
  * 
  * This test verifies that the package can be installed as a dev dependency
  * and that the types are available after installation.
@@ -11,11 +11,11 @@ import path from "path";
 
 const REFERENCE_APP_PATH = path.join(__dirname, "../firebolt-type-reference-app");
 
-console.log("Starting automated installation test for @firebolt-js/types...");
+console.log("Starting automated installation test for @rdkcentral/firebolt-js-types...");
 
 try {
   // Test 1: Install the package as dev dependency
-  console.log("Test 1: Installing @firebolt-js/types as dev dependency...");
+  console.log("Test 1: Installing @rdkcentral/firebolt-js-types as dev dependency...");
   execSync(`cd ${REFERENCE_APP_PATH} && npm install`, { stdio: "inherit" });
   console.log("✓ Package installed successfully");
 
@@ -24,7 +24,7 @@ try {
   const packageJsonPath = path.join(REFERENCE_APP_PATH, "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
   
-  if (!packageJson.devDependencies || !packageJson.devDependencies["@firebolt-js/types"]) {
+  if (!packageJson.devDependencies || !packageJson.devDependencies["@rdkcentral/firebolt-js-types"]) {
     throw new Error("Package not found in devDependencies");
   }
   console.log("✓ Package found in devDependencies");
@@ -33,7 +33,7 @@ try {
   console.log("Test 3: Verifying types file is available...");
   const typesPath = path.join(
     REFERENCE_APP_PATH,
-    "node_modules/@firebolt-js/types/firebolt-inject.d.ts"
+    "node_modules/@rdkcentral/firebolt-js-types/firebolt-inject.d.ts"
   );
   
   if (!fs.existsSync(typesPath)) {
@@ -52,7 +52,7 @@ try {
   console.log("✓ Reference app built successfully");
 
   console.log("\n✅ All installation tests passed!");
-  console.log("The @firebolt-js/types package is correctly installed as a dev dependency.");
+  console.log("The @rdkcentral/firebolt-js-types package is correctly installed as a dev dependency.");
   console.log("Types are available and the reference app builds successfully.");
 
 } catch (error) {

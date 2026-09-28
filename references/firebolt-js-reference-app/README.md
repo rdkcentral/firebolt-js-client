@@ -11,7 +11,7 @@ The reference app serves two purposes:
 
 ## Installation
 
-The app uses `@firebolt-js/types` as a dev dependency (as types are only needed during development):
+The app uses `@rdkcentral/firebolt-js-types` as a dev dependency (as types are only needed during development):
 
 ```bash
 cd references/firebolt-js-reference-app
@@ -52,12 +52,12 @@ Open this project in VS Code to test the following IDE features:
 This app uses JSDoc type annotations to provide type safety in plain JavaScript:
 
 ```javascript
-/** @type {import("@firebolt-js/types").FireboltClient} */
+/** @type {import("@rdkcentral/firebolt-js-types").FireboltClient} */
 const firebolt = await FireboltServiceManager.get();
 ```
 
 This pattern:
-- Imports types from the `@firebolt-js/types` package
+- Imports types from the `@rdkcentral/firebolt-js-types` package
 - Provides IntelliSense and type checking in VS Code
 - Works without TypeScript compilation
 - Leverages the existing JSDoc comments in the generated `.d.ts` files

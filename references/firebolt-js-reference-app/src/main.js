@@ -4,7 +4,7 @@ console.log("FireboltServiceManager version:", FireboltServiceManager.version);
 // Example 2: Using FireboltServiceManager.get() to get the Firebolt client
 async function initializeFirebolt() {
   try {
-    /** @type {import("@firebolt-js/types").FireboltClient} */
+    /** @type {import("@rdkcentral/firebolt-js-types").FireboltClient} */
     const firebolt = await FireboltServiceManager.get();
     
     console.log("Firebolt client initialized:", firebolt);
