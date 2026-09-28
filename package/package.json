@@ -1,5 +1,5 @@
 {
-  "name": "@firebolt-js/types",
+  "name": "@rdkcentral/firebolt-js-types",
   "version": "9.0.0",
   "description": "TypeScript definitions for Firebolt 9 FireboltServiceManager global pattern",
   "types": "firebolt-inject.d.ts",
@@ -10,7 +10,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "build": "cd .. && npm run build && npm run generate:types && cp generated/inject-js/firebolt-inject.d.ts .",
-    "prepublishOnly": "npm run build"
+    "generate": "cd .. && npm run generate:types",
+    "prepublishOnly": "npm run generate"
   }
 }

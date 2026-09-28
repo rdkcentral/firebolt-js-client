@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   release-types:
-    name: Release @firebolt-js/types
+    name: Release @rdkcentral/firebolt-js-types
     runs-on: ubuntu-latest
 
     steps:
@@ -62,9 +62,15 @@ jobs:
         run: |
           npm ci
 
-      - name: Build type definitions
+      - name: Generate type definitions
         run: |
           cd package
+          npm run generate
+
+      - name: Test type definitions
+        run: |
+          cd references/firebolt-type-reference-app
+          npm install
           npm run build
 
       - name: Update package version
@@ -80,7 +86,7 @@ jobs:
           TAG_NAME="v${VERSION}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG_NAME" -m "Release @firebolt-js/types@$VERSION"
+          git tag -a "$TAG_NAME" -m "Release @rdkcentral/firebolt-js-types@$VERSION"
           git push origin "$TAG_NAME"
 
       - name: Publish to GitHub npm registry
@@ -107,45 +113,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FIREBOLT_WEB_PUB }}
 
-      - name: Setup Node.js for npmjs registry
-        if: ${{ inputs.dry_run != 'true' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Publish to public npm registry
-        if: ${{ inputs.dry_run != 'true' }}
-        run: |
-          cd package
-          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
-            npm publish --registry https://registry.npmjs.org --access public --tag rc
-          else
-            npm publish --registry https://registry.npmjs.org --access public
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
-
-      - name: Test public npm publish (dry-run)
+      - name: Test type definitions (dry-run)
         if: ${{ inputs.dry_run == 'true' }}
         run: |
-          cd package
-          if [[ "${{ inputs.version }}" == *"-rc"* ]]; then
-            npm publish --registry https://registry.npmjs.org --access public --tag rc --dry-run
-          else
-            npm publish --registry https://registry.npmjs.org --access public --dry-run
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
+          cd references/firebolt-type-reference-app
+          npm install
+          npm run build
 
       - name: Create GitHub Release
         if: ${{ inputs.dry_run != 'true' }}
         uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77
         with:
           tag_name: v${{ inputs.version }}
-          name: "@firebolt-js/types@${{ inputs.version }}"
+          name: "@rdkcentral/firebolt-js-types@${{ inputs.version }}"
           body: |
-            Release of @firebolt-js/types version ${{ inputs.version }}
+            Release of @rdkcentral/firebolt-js-types version ${{ inputs.version }}
 
             This release includes updated TypeScript definitions for Firebolt ${{ inputs.version }}.
           draft: false
@@ -158,7 +140,7 @@ jobs:
         uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77
         with:
           tag_name: test-v${{ inputs.version }}
-          name: "DRY-RUN: @firebolt-js/types@${{ inputs.version }}"
+          name: "DRY-RUN: @rdkcentral/firebolt-js-types@${{ inputs.version }}"
           body: |
             **DRY RUN RELEASE - DO NOT USE**
 

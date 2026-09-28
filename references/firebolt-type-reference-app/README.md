@@ -1,6 +1,6 @@
 # Firebolt Type Reference App
 
-This is a reference application for testing the Firebolt TypeScript definitions package (`@firebolt-js/types`). It demonstrates how to use the inject-js factory/builder pattern and provides a realistic environment for manual IDE testing.
+This is a reference application for testing the Firebolt TypeScript definitions package (`@rdkcentral/firebolt-js-types`). It demonstrates how to use the inject-js factory/builder pattern and provides a realistic environment for manual IDE testing.
 
 ## Purpose
 
@@ -11,7 +11,7 @@ The reference app serves two purposes:
 
 ## Installation
 
-The app uses `@firebolt-js/types` as a dev dependency (as types are only needed during development):
+The app uses `@rdkcentral/firebolt-js-types` as a dev dependency (as types are only needed during development):
 
 ```bash
 cd references/firebolt-type-reference-app

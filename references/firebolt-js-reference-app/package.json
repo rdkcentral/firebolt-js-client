@@ -7,6 +7,6 @@
     "test": "echo \"Manual testing required - open in VS Code to test IDE features\""
   },
   "devDependencies": {
-    "@firebolt-js/types": "file:../../package"
+    "@rdkcentral/firebolt-js-types": "file:../../package"
   }
 }

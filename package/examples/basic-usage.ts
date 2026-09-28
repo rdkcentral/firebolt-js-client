@@ -1,5 +1,5 @@
 /**
- * Basic usage example for @firebolt-js/types
+ * Basic usage example for @rdkcentral/firebolt-js-types
  * 
  * This example demonstrates how to use the Firebolt TypeScript definitions
  * with the FireboltServiceManager global pattern in WPE WebKit extensions.

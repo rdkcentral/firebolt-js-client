@@ -1,4 +1,4 @@
-# @firebolt-js/types
+# @rdkcentral/firebolt-js-types
 
 TypeScript definitions for the Firebolt 9 FireboltServiceManager global pattern, enabling VS Code intellisense, hover documentation, and type safety for app developers using WPE WebKit extensions.
 
@@ -7,7 +7,7 @@ TypeScript definitions for the Firebolt 9 FireboltServiceManager global pattern,
 Install as a dev dependency (types are only needed during development):
 
 ```bash
-npm install --save-dev @firebolt-js/types
+npm install --save-dev @rdkcentral/firebolt-js-types
 ```
 
 ## Usage
@@ -84,6 +84,20 @@ When installed, this package provides:
 - **Hover Documentation**: JSDoc comments appear when hovering over methods and parameters
 - **Type Checking**: TypeScript validates correct usage and catches errors
 - **Navigation**: "Go to Definition" works for all types and methods
+
+## Development
+
+To build the type definitions locally:
+
+```bash
+cd package
+npm run generate
+```
+
+This will:
+1. Build the generator in the parent directory
+2. Generate the TypeScript definitions for the inject-js target
+3. Copy the generated `firebolt-inject.d.ts` file to the package directory
 
 ## Versioning
 
