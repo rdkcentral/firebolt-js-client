@@ -174,11 +174,13 @@ webkitExtension/
 
 ## Updating JavaScript Resources
 
-The JavaScript resources in the `resources/` directory are embedded into the extension during build. To update them:
+The JavaScript resources in the `resources/` directory are embedded into the extension during build. `firebolt-builder.js` is generated from the OpenRPC API definitions; do not edit it by hand. From the repository root, regenerate it with:
 
-1. Modify the JavaScript files in `resources/`
-2. Rebuild the extension
-3. Reinstall/reload the extension in WPEWebKit
+```bash
+npm run generate
+```
+
+Modify other resource files, such as `firebolt-bridge.js`, directly when needed. Then rebuild the extension and reinstall or reload it in WPEWebKit.
 
 ## Troubleshooting
 
