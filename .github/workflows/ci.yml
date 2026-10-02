@@ -34,10 +34,14 @@ jobs:
         run: |
           npm run generate
 
+      - name: Check generated WebKit builder freshness
+        run: |
+          git diff --exit-code -- webkitExtension/resources/firebolt-builder.js
+
       - name: Build
         run: |
           npm run build
 
-      - name: Test
+      - name: Test generator and builder parity
         run: |
           npm test

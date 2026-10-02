@@ -116,6 +116,7 @@ const STATIC_PREAMBLE = `
   var _connected = false;
   var _fireboltInstance = null;
   var _connectionResolvers = [];
+  var _connectionRejectors = [];
   var _nextId = 1;
   var _pendingCalls = Object.create(null);
   var _eventListeners = Object.create(null);
@@ -170,7 +171,7 @@ const STATIC_PREAMBLE = `
           ? message.params.value
           : message.params;
         for (var i = 0; i < cbs.length; i++) {
-          cbs[i](payload)
+          cbs[i](payload, false)
         }
       }
     }
@@ -179,10 +180,12 @@ const STATIC_PREAMBLE = `
   function _onOpen() {
     console.log("Firebolt transport opened");
     _connected = true;
+    _connecting = false;
     if (!_fireboltInstance) {
       _fireboltInstance = _buildFireboltInstance()
     }
     var resolvers = _connectionResolvers.splice(0);
+    _connectionRejectors.splice(0);
     for (var i = 0; i < resolvers.length; i++) {
       resolvers[i](_fireboltInstance)
     }
@@ -191,6 +194,7 @@ const STATIC_PREAMBLE = `
   function _onClose() {
     console.log("Firebolt transport closed");
     _connected = false;
+    _connecting = false;
   }
 
   function _onError(error) {
@@ -198,15 +202,29 @@ const STATIC_PREAMBLE = `
     clearPendingCalls();
     clearEventListeners();
     _connected = false;
-    _connect()
+    try {
+      _connect()
+    } catch (error) {
+      var rejectors = _connectionRejectors.splice(0);
+      _connectionResolvers.splice(0);
+      for (var i = 0; i < rejectors.length; i++) {
+        rejectors[i](error)
+      }
+      throw error;
+    }
   }
 
   function _connect() {
     if (_connected){
       return false;
     }
-    _transport.open();
     _connecting = true;
+    try {
+      _transport.open();
+    } catch (error) {
+      _connecting = false;
+      throw error;
+    }
   }
 
   function _notConnectedError() {
@@ -455,21 +473,19 @@ const STATIC_PREAMBLE = `
   }
 
   function clearEventListeners() {
-    for (var eventName in _eventListeners) {
-      for (var i = 0; i < _eventListeners[eventName].length; i++) {
-        _eventListeners[eventName][i](null, false);
+    var eventListeners = _eventListeners;
+    _eventListeners = Object.create(null);
+    for (var eventName in eventListeners) {
+      for (var i = 0; i < eventListeners[eventName].length; i++) {
+        try {
+          eventListeners[eventName][i](null, true);
+        } catch (error) {
+          console.error("Firebolt event cancellation callback failed:", error);
+        }
       }
     }
-    _eventListeners = Object.create(null);
   }
 
-  function reset() {
-    clearEventListeners();
-    clearPendingCalls();
-    _connectionResolvers = [];
-    _connected = false;
-    _connecting = false;
-  }
 `;
 
 // ---------------------------------------------------------------------------
@@ -479,11 +495,8 @@ const STATIC_PREAMBLE = `
 const STATIC_POSTAMBLE = `
   Object.defineProperty(_fireboltRegistry, "cleanup", {
     value: function() {
-      reset();
-      if (_transport && _transport.close) {
-        _transport.close()
-      }
-      _fireboltInstance = null;
+      clearEventListeners();
+      clearPendingCalls();
     },
     writable: false,
     enumerable: true,
@@ -499,15 +512,19 @@ const STATIC_POSTAMBLE = `
       throw new Error("Transport is required")
     }
     if (typeof extensionSchema === "string" && extensionSchema.length > 0) {
-      let parsedExtensionSchema = _commonParse(extensionSchema);
-      if (_commonArrayCheck(parsedExtensionSchema)) {
-        _extensionSchema = parsedExtensionSchema
-      } else {
-        console.warn("invalid extension after parsing")
+      try {
+        let parsedExtensionSchema = _commonParse(extensionSchema);
+        if (_commonArrayCheck(parsedExtensionSchema)) {
+          _extensionSchema = parsedExtensionSchema
+        } else {
+          console.warn("invalid extension after parsing")
+        }
+      } catch (error) {
+        console.warn("Error parsing extension schema: " + error);
       }
     }
   
-    var requiredMethods = ["send", "open", "close"];
+    var requiredMethods = ["send", "open"];
     for (var i = 0; i < requiredMethods.length; i++) {
       var method = requiredMethods[i];
       if (!transport[method]) {
@@ -531,8 +548,13 @@ const STATIC_POSTAMBLE = `
         if (_connected && _fireboltInstance) {
           return Promise.resolve(_fireboltInstance)
         }
-        var p = new Promise(function(resolve) {
-          _connectionResolvers.push(resolve)
+        var connectionResolver;
+        var rejectBuild;
+        var p = new Promise(function(resolve, reject) {
+          connectionResolver = resolve;
+          rejectBuild = reject;
+          _connectionResolvers.push(resolve);
+          _connectionRejectors.push(reject)
         });
         if (!_connecting) {
           if (!_transportSet) {
@@ -542,19 +564,24 @@ const STATIC_POSTAMBLE = `
             _transport.onError = _onError;
             _transportSet = true;
           }
-          _connect();
+          try {
+            _connect();
+          } catch (error) {
+            var resolverIndex = _connectionResolvers.indexOf(connectionResolver);
+            if (resolverIndex !== -1) {
+              _connectionResolvers.splice(resolverIndex, 1);
+              _connectionRejectors.splice(resolverIndex, 1)
+            }
+            _connecting = false;
+            rejectBuild(error);
+          }
         }
         return p
       }
     }
   };
 
-  Object.defineProperty(global, "factory", {
-    value: factory,
-    writable: false,
-    configurable: false,
-    enumerable: true
-  });
+  __GLOBAL_FACTORY_EXPORT__
 
   return factory;
 `;
@@ -563,7 +590,18 @@ const STATIC_POSTAMBLE = `
 // Assemble generate()
 // ---------------------------------------------------------------------------
 
-function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
+const GLOBAL_FACTORY_EXPORT = `Object.defineProperty(global, "factory", {
+    value: factory,
+    writable: false,
+    configurable: false,
+    enumerable: true
+  });`;
+
+function generateProfile(
+  ast: CanonicalAST,
+  filePath: string,
+  exposeGlobalFactory: boolean
+): GeneratorOutput[] {
   // Filter to web + both platform modules only
   const webModules = ast.modules.filter(
     (m) => m.platform === "web" || m.platform === "both"
@@ -577,17 +615,29 @@ function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
     `  // --- Static module definitions ---`,
     staticModules,
     `  // --- End static module definitions ---`,
-    STATIC_POSTAMBLE,
+    STATIC_POSTAMBLE.replace(
+      "__GLOBAL_FACTORY_EXPORT__",
+      exposeGlobalFactory ? GLOBAL_FACTORY_EXPORT : ""
+    ),
     `})(typeof globalThis !== "undefined" ? globalThis : window);`,
   ].join("\n");
 
   return [
     {
-      filePath: "inject-js/firebolt-inject.js",
+      filePath,
       content,
     },
   ];
 }
 
+function generate(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
+  return generateProfile(ast, "inject-js/firebolt-inject.js", true);
+}
+
+function generateWebKitBuilder(ast: CanonicalAST, _config: GenConfig): GeneratorOutput[] {
+  return generateProfile(ast, "inject-js/firebolt-webkit-builder.js", false);
+}
+
 // Register as a full-AST generator targeting the web platform
 registerFullASTGenerator("inject-js", generate, "web");
+registerFullASTGenerator("webkit-builder", generateWebKitBuilder, "web");

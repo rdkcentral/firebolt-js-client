@@ -27,13 +27,33 @@ The inject-js generator SHALL emit a self-contained IIFE that returns a factory 
 
 ---
 
-### Requirement: Transport interface uses send, open, close with callback properties
-The factory function SHALL accept a transport object with methods `send(msg)`, `open()`, and `close()`. The transport SHALL have callback properties `onMessage`, `onOpen`, `onClose`, and `onError` that are set by the factory.
+### Requirement: Generator emits a WebKit builder profile from the Canonical AST
+The inject-js generator SHALL provide a WebKit builder profile that uses the same Canonical AST and method-stub generation rules as the regular inject-js target. The WebKit profile SHALL include only modules and methods whose platform is `web` or `both`, and SHALL NOT maintain a separate hand-authored API list.
 
-#### Scenario: Transport validation checks required methods
+#### Scenario: API additions flow into both generated targets
+- **WHEN** a call or subscribe method is added to a web or both-platform API and the Canonical AST is rebuilt
+- **THEN** the regular inject-js target and WebKit builder profile MUST both expose that method using the applicable generated parameter pattern
+
+#### Scenario: Native-only methods are excluded from the WebKit profile
+- **WHEN** a method is marked native-only in the Canonical AST
+- **THEN** the WebKit builder profile MUST NOT expose that method
+
+#### Scenario: WebKit profile preserves the extension factory contract
+- **WHEN** the WebKit builder profile is evaluated by the WebKit JavaScriptCore context
+- **THEN** evaluation MUST return the factory function expected by `evaluate_builder_script`
+- **THEN** calling the factory with `{ transport, extensionSchema, enableDebug }` MUST return an object with a `build()` method
+- **THEN** the profile MUST NOT require the `FireboltServiceManager` bridge to be regenerated
+
+---
+
+### Requirement: Transport interface uses send, open, close with callback properties
+The factory function SHALL require a transport object with methods `send(msg)` and `open()`. A `close()` method MAY be present but SHALL NOT be required or invoked by the client. The transport SHALL have callback properties `onMessage`, `onOpen`, `onClose`, and `onError` that are set by the factory.
+
+#### Scenario: Transport validation requires only send and open
 - **WHEN** the factory function validates the transport
-- **THEN** it MUST check for `send`, `open`, and `close` methods
-- **THEN** it MUST throw an Error if any required method is missing or not a function
+- **THEN** it MUST check for `send` and `open` methods
+- **THEN** it MUST throw an Error if either required method is missing or not a function
+- **THEN** it MUST accept a transport without a `close` method
 
 #### Scenario: Factory sets transport callback properties
 - **WHEN** the `build()` method is called
@@ -224,25 +244,24 @@ Incoming messages with a `method` field and no `id` field SHALL be treated as Fi
 The `FireboltClient` returned by `build()` SHALL include a `cleanup()` method that:
 1. Calls `clearEventListeners()` to notify all listeners with `(null, true)`.
 2. Calls `clearPendingCalls()` to reject all pending call Promises.
-3. Resets the internal connection state flags (`_connecting=false`, `_connected=false`).
-4. Calls `transport.close()` if available.
-5. Clears the singleton reference.
+3. Preserves the transport, transport callback handlers, connection state, connection resolvers, and singleton FireboltClient.
+4. Does not call `transport.close()`.
 
-#### Scenario: cleanup() clears state and calls transport
+#### Scenario: cleanup() clears client listeners and pending calls without closing transport
 - **WHEN** `firebolt.cleanup()` is called while connected
-- **THEN** `transport.close()` MUST be called if available
 - **THEN** all event listeners MUST be called with `(null, true)`
 - **THEN** all pending calls MUST be rejected
-- **THEN** the internal state MUST be reset
+- **THEN** the transport MUST remain open and its callback handlers MUST remain installed
+- **THEN** the connected state and FireboltClient singleton MUST be preserved
 
 #### Scenario: Pending calls are rejected on cleanup
 - **WHEN** a call Promise is pending and `firebolt.cleanup()` is called
 - **THEN** the pending call Promise MUST reject with an Error
 
-#### Scenario: build() after cleanup() initiates fresh connection
-- **WHEN** `firebolt.cleanup()` has been called and `build()` is invoked again
-- **THEN** the transport MUST be reconnected
-- **THEN** a new singleton FireboltClient MUST be created and returned
+#### Scenario: Calls continue on the existing connection after cleanup
+- **WHEN** `firebolt.cleanup()` has been called while the transport remains connected
+- **THEN** subsequent API calls MUST use the existing transport without reopening it
+- **THEN** `build()` MUST return the existing singleton FireboltClient
 
 ---
 
