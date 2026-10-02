@@ -195,3 +195,11 @@ describe("smoke test: generate firebolt-inject.js from real OpenRPC files", () =
     expect(src).toContain("_Accessibility");
   });
 });
+
+test("GResource embeds the generated WebKit builder from its production path", () => {
+  const resourcesDir = path.resolve(__dirname, "../../webkitExtension/resources");
+  const resourceManifest = fs.readFileSync(path.join(resourcesDir, "fireboltresourcebundle.xml"), "utf-8");
+
+  expect(fs.existsSync(path.join(resourcesDir, "firebolt-builder.js"))).toBe(true);
+  expect(resourceManifest).toContain('<file compressed="true" alias="firebolt-builder.js">firebolt-builder.js</file>');
+});
