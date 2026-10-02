@@ -116,6 +116,7 @@ const STATIC_PREAMBLE = `
   var _connected = false;
   var _fireboltInstance = null;
   var _connectionResolvers = [];
+  var _connectionRejectors = [];
   var _nextId = 1;
   var _pendingCalls = Object.create(null);
   var _eventListeners = Object.create(null);
@@ -184,6 +185,7 @@ const STATIC_PREAMBLE = `
       _fireboltInstance = _buildFireboltInstance()
     }
     var resolvers = _connectionResolvers.splice(0);
+    _connectionRejectors.splice(0);
     for (var i = 0; i < resolvers.length; i++) {
       resolvers[i](_fireboltInstance)
     }
@@ -200,7 +202,16 @@ const STATIC_PREAMBLE = `
     clearPendingCalls();
     clearEventListeners();
     _connected = false;
-    _connect()
+    try {
+      _connect()
+    } catch (error) {
+      var rejectors = _connectionRejectors.splice(0);
+      _connectionResolvers.splice(0);
+      for (var i = 0; i < rejectors.length; i++) {
+        rejectors[i](error)
+      }
+      throw error;
+    }
   }
 
   function _connect() {
@@ -542,7 +553,8 @@ const STATIC_POSTAMBLE = `
         var p = new Promise(function(resolve, reject) {
           connectionResolver = resolve;
           rejectBuild = reject;
-          _connectionResolvers.push(resolve)
+          _connectionResolvers.push(resolve);
+          _connectionRejectors.push(reject)
         });
         if (!_connecting) {
           if (!_transportSet) {
@@ -557,7 +569,8 @@ const STATIC_POSTAMBLE = `
           } catch (error) {
             var resolverIndex = _connectionResolvers.indexOf(connectionResolver);
             if (resolverIndex !== -1) {
-              _connectionResolvers.splice(resolverIndex, 1)
+              _connectionResolvers.splice(resolverIndex, 1);
+              _connectionRejectors.splice(resolverIndex, 1)
             }
             _connecting = false;
             rejectBuild(error);
