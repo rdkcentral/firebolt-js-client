@@ -208,7 +208,12 @@ const STATIC_PREAMBLE = `
       return false;
     }
     _connecting = true;
-    _transport.open();
+    try {
+      _transport.open();
+    } catch (error) {
+      _connecting = false;
+      throw error;
+    }
   }
 
   function _notConnectedError() {

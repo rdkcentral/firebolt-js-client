@@ -239,6 +239,25 @@ test("build rejects when transport.open throws synchronously", async () => {
   await expect(factory({ transport }).build()).rejects.toThrow("open failed");
 });
 
+test("failed reconnect resets connecting so a later build retries", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const builder = factory({ transport });
+  const openSpy = jest.spyOn(transport, "open");
+  const initialBuild = builder.build();
+  transport.onOpen?.();
+  const client = await initialBuild;
+
+  openSpy.mockImplementationOnce(() => {
+    throw new Error("reconnect open failed");
+  });
+  expect(() => transport.onError?.(new Error("connection lost"))).toThrow("reconnect open failed");
+
+  const retryBuild = builder.build();
+  expect(openSpy).toHaveBeenCalledTimes(3);
+  transport.onOpen?.();
+  await expect(retryBuild).resolves.toBe(client);
+});
+
 test("cleanup cancels listeners and pending calls while preserving the connection", async () => {
   const { factory, transport } = evalBundle(generateBundle(makeAST()));
   const closeSpy = jest.spyOn(transport, "close");
