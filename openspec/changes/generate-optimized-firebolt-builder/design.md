@@ -42,7 +42,7 @@ No new AST node types or enum identifier rules are introduced.
 
 The WebKit profile keeps the current callable contract: evaluating the resource yields a factory; calling it with `{ transport, extensionSchema, enableDebug }` returns a builder with `build()`. The generated profile must not rely on a global `factory` property because the native extension consumes the evaluation result directly. `FireboltServiceManager` remains the bridge's responsibility.
 
-Runtime behavior follows the existing generator requirements: event callbacks receive `(payload, false)`, cancellation receives `(null, true)`, extension-schema parse failures warn and continue, and cleanup resets the connection and closes the transport. The generated output, rather than a hand-edited builder, is the place to resolve current behavior drift.
+Runtime behavior follows the generator requirements: event callbacks receive `(payload, false)`, cancellation receives `(null, true)`, extension-schema parse failures warn and continue, and cleanup cancels client-side listeners and pending calls without closing or resetting the transport connection. The generated output, rather than a hand-edited builder, is the place to resolve current behavior drift.
 
 ### Generate first, minify second, then embed
 

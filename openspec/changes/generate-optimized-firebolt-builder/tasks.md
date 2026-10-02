@@ -2,7 +2,7 @@
 
 - [x] 1.1 [generator] Refactor inject-js module traversal and method-pattern emission so the regular target and WebKit builder profile share Canonical AST logic.
 - [x] 1.2 [generator] Add the WebKit builder profile output under `generated/inject-js/`, returning the factory expected by JavaScriptCore without publishing a global `factory`.
-- [x] 1.3 [generator] Align generated runtime behavior with the extension contract for extension-schema parse errors, event callback cancellation, connection cleanup, and transport closure.
+- [x] 1.3 [generator] Align generated runtime behavior with the extension contract for extension-schema parse errors, event callback cancellation, and connection cleanup without transport closure.
 
 ## 2. Production Artifact
 

@@ -457,21 +457,19 @@ const STATIC_PREAMBLE = `
   }
 
   function clearEventListeners() {
-    for (var eventName in _eventListeners) {
-      for (var i = 0; i < _eventListeners[eventName].length; i++) {
-        _eventListeners[eventName][i](null, true);
+    var eventListeners = _eventListeners;
+    _eventListeners = Object.create(null);
+    for (var eventName in eventListeners) {
+      for (var i = 0; i < eventListeners[eventName].length; i++) {
+        try {
+          eventListeners[eventName][i](null, true);
+        } catch (error) {
+          console.error("Firebolt event cancellation callback failed:", error);
+        }
       }
     }
-    _eventListeners = Object.create(null);
   }
 
-  function reset() {
-    clearEventListeners();
-    clearPendingCalls();
-    _connectionResolvers = [];
-    _connected = false;
-    _connecting = false;
-  }
 `;
 
 // ---------------------------------------------------------------------------
@@ -481,11 +479,8 @@ const STATIC_PREAMBLE = `
 const STATIC_POSTAMBLE = `
   Object.defineProperty(_fireboltRegistry, "cleanup", {
     value: function() {
-      reset();
-      if (_transport && _transport.close) {
-        _transport.close()
-      }
-      _fireboltInstance = null;
+      clearEventListeners();
+      clearPendingCalls();
     },
     writable: false,
     enumerable: true,
@@ -513,7 +508,7 @@ const STATIC_POSTAMBLE = `
       }
     }
   
-    var requiredMethods = ["send", "open", "close"];
+    var requiredMethods = ["send", "open"];
     for (var i = 0; i < requiredMethods.length; i++) {
       var method = requiredMethods[i];
       if (!transport[method]) {
