@@ -3,7 +3,7 @@ name: Publish API Certification App
 on:
   push:
     branches:
-      - develop
+      - feat/autopub
   workflow_dispatch:
 
 permissions:
