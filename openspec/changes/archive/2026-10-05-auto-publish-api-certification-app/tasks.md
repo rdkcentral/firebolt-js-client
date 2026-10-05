@@ -13,11 +13,11 @@
 - [x] 2.1 [generator] Update the certification page to load the generated inventory, verify each method exists on the real Firebolt client, invoke methods sequentially, and report per-method outcomes while continuing after failures.
 - [x] 2.2 [generator] Treat resolved call promises and accepted subscriptions as passes, provide no-op event callbacks, clean up accepted subscriptions, and keep mock transport out of device certification results.
 - [x] 2.3 [generator] Add a GitHub Pages Actions workflow triggered by every push to `develop`; generate current assets, run coverage/fixture validation, and deploy `pub/` only when validation succeeds.
-- [ ] 2.4 [generator] Configure Pages permissions and the `github-pages` environment, verify deployment by temporarily targeting a test branch, then set the production trigger to `develop`.
+- [x] 2.4 [generator] Configure Pages permissions and the `github-pages` environment, verify deployment by temporarily targeting a test branch, then set the production trigger to `develop`.
 
 ## 3. Validate Coverage and Device Behavior
 
 - [x] 3.1 [test] Add a parity test that compares generated certification entries with all methods exposed by the web inject API and detects missing or extra methods.
 - [x] 3.2 [test] Test deterministic fixtures for supported parameter types and constraints, separate overrides, and clear failures for methods without usable generated or override values.
 - [x] 3.3 [test] Test runner success/failure reporting, subscription cleanup, and continuation after a rejected method.
-- [ ] 3.4 [test] Run the published certification page on a target device and verify every generated API method receives a successful call response or subscription acknowledgment.
+- [x] 3.4 [test] Run the published certification page on a target device and verify every generated API method receives a successful call response or subscription acknowledgment.
