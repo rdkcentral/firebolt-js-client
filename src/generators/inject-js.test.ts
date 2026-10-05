@@ -5,9 +5,15 @@
  * eval the output in a Node vm context with a mock transport.
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import * as vm from "vm";
+import { buildAST } from "../ast/builder";
 import { CanonicalAST, Module } from "../ast/types";
 import { GenConfig } from "./index";
+const { minifyBuilder } = require("../../scripts/minify-webkit-builder.cjs") as {
+  minifyBuilder: (source: string) => Promise<string>;
+};
 
 // Import the generator module for side-effects (registers itself)
 import "./inject-js";
@@ -62,6 +68,20 @@ function generateBundle(ast: CanonicalAST): string {
   return outputs[0].content;
 }
 
+function generateWebKitBundle(ast: CanonicalAST): string {
+  const config: GenConfig = { outDir: "/tmp/test" };
+  const outputs = runAllFullAST(ast, config, ["webkit-builder"]);
+  return outputs[0].content;
+}
+
+function buildRealApiAST(): CanonicalAST {
+  const openRpcDir = path.resolve(__dirname, "../openrpc");
+  const documents = fs.readdirSync(openRpcDir)
+    .filter((file) => file.endsWith(".json") && file !== "shared.json")
+    .map((file) => JSON.parse(fs.readFileSync(path.join(openRpcDir, file), "utf8")));
+  return buildAST(documents as never);
+}
+
 interface MockTransport {
   sentMessages: string[];
   open: () => void;
@@ -107,9 +127,23 @@ function evalBundle(code: string, mockTransport?: MockTransport) {
   };
   context.globalThis = context;
   vm.createContext(context);
-  vm.runInContext(code, context);
-  const factory = context.factory as (opts: { transport: MockTransport }) => { build: () => Promise<unknown> };
+  const result = vm.runInContext(code, context);
+  const factory = (context.factory ?? result) as (opts: {
+    transport: MockTransport;
+    extensionSchema?: string;
+    enableDebug?: boolean;
+  }) => { build: () => Promise<unknown> };
   return { context, transport, factory };
+}
+
+async function buildClient(code: string) {
+  const { factory, transport } = evalBundle(code);
+  const instancePromise = factory({ transport }).build();
+  transport.onOpen?.();
+  return {
+    client: await instancePromise as Record<string, unknown>,
+    transport,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -126,7 +160,7 @@ test("factory requires transport parameter", () => {
   expect(() => (factory as (opts: unknown) => unknown)({})).toThrow(/transport is required/i);
 });
 
-test("factory validates transport has required methods", () => {
+test("factory validates send/open without requiring client-owned transport close", () => {
   const factory = evalBundle(generateBundle(makeAST())).factory;
   
   // Missing send
@@ -139,10 +173,9 @@ test("factory validates transport has required methods", () => {
     transport: { send: () => {}, close: () => {} }
   })).toThrow(/open.*method/i);
 
-  // Missing close
-  expect(() => (factory as (opts: { transport: Partial<MockTransport> }) => unknown)({
-    transport: { send: () => {}, open: () => {} }
-  })).toThrow(/close.*method/i);
+  expect(() => factory({
+    transport: { send: () => {}, open: () => {} } as unknown as MockTransport,
+  })).not.toThrow();
 });
 
 test("factory returns object with build method", () => {
@@ -192,6 +225,159 @@ test("extension schema is parsed and stored", () => {
   // For now, just verify it doesn't throw
 });
 
+test("invalid extension schema warns and does not prevent factory creation", () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  expect(() => factory({ transport, extensionSchema: "{" } as { transport: MockTransport; extensionSchema: string })).not.toThrow();
+});
+
+test("build rejects when transport.open throws synchronously", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  transport.open = () => {
+    throw new Error("open failed");
+  };
+
+  await expect(factory({ transport }).build()).rejects.toThrow("open failed");
+});
+
+test("failed reconnect rejects all builds waiting for the initial connection", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const builder = factory({ transport });
+  const openSpy = jest.spyOn(transport, "open");
+  const firstBuild = builder.build();
+  const secondBuild = builder.build();
+
+  openSpy.mockImplementationOnce(() => {
+    throw new Error("reconnect open failed");
+  });
+  expect(() => transport.onError?.(new Error("connection lost"))).toThrow("reconnect open failed");
+
+  await Promise.all([
+    expect(firstBuild).rejects.toThrow("reconnect open failed"),
+    expect(secondBuild).rejects.toThrow("reconnect open failed"),
+  ]);
+});
+
+test("failed reconnect resets connecting so a later build retries", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const builder = factory({ transport });
+  const openSpy = jest.spyOn(transport, "open");
+  const initialBuild = builder.build();
+  transport.onOpen?.();
+  const client = await initialBuild;
+
+  openSpy.mockImplementationOnce(() => {
+    throw new Error("reconnect open failed");
+  });
+  expect(() => transport.onError?.(new Error("connection lost"))).toThrow("reconnect open failed");
+
+  const retryBuild = builder.build();
+  expect(openSpy).toHaveBeenCalledTimes(3);
+  transport.onOpen?.();
+  await expect(retryBuild).resolves.toBe(client);
+});
+
+test("cleanup cancels listeners and pending calls while preserving the connection", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const closeSpy = jest.spyOn(transport, "close");
+  const openSpy = jest.spyOn(transport, "open");
+  const builder = factory({ transport });
+  const clientPromise = builder.build();
+  transport.onOpen?.();
+  const client = await clientPromise as {
+    Localization: {
+      language: () => Promise<unknown>;
+      onLanguageChanged: (callback: (payload: unknown, cancelled: boolean) => void) => Promise<() => void>;
+    };
+    cleanup: () => void;
+  };
+  const callback = jest.fn();
+  const subscription = client.Localization.onLanguageChanged(callback);
+  const subscribeMessage = JSON.parse(transport.sentMessages[0]);
+  transport.onMessage?.(JSON.stringify({ id: subscribeMessage.id, result: null }));
+  const unsubscribe = await subscription;
+
+  transport.onMessage?.(JSON.stringify({
+    method: "Localization.onLanguageChanged",
+    params: { value: "en" },
+  }));
+  expect(callback).toHaveBeenCalledWith("en", false);
+
+  const pendingCall = client.Localization.language();
+  const disconnectedCall = expect(pendingCall).rejects.toThrow("Disconnected");
+  client.cleanup();
+  await disconnectedCall;
+
+  expect(callback).toHaveBeenLastCalledWith(null, true);
+  expect(closeSpy).not.toHaveBeenCalled();
+
+  const laterCall = client.Localization.language();
+  const laterRequest = JSON.parse(transport.sentMessages[2]);
+  expect(laterRequest).toMatchObject({ method: "Localization.language", params: {} });
+  transport.onMessage?.(JSON.stringify({ id: laterRequest.id, result: "still-connected" }));
+  await expect(laterCall).resolves.toBe("still-connected");
+  await expect(builder.build()).resolves.toBe(client);
+
+  expect(() => client.cleanup()).not.toThrow();
+  expect(closeSpy).not.toHaveBeenCalled();
+  expect(openSpy).toHaveBeenCalledTimes(1);
+  expect(typeof unsubscribe).toBe("function");
+});
+
+test("cleanup after remote close does not touch the transport", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const closeSpy = jest.spyOn(transport, "close");
+  const clientPromise = factory({ transport }).build();
+  transport.onOpen?.();
+  const client = await clientPromise as { cleanup: () => void };
+
+  transport.onClose?.();
+  expect(() => client.cleanup()).not.toThrow();
+  expect(closeSpy).not.toHaveBeenCalled();
+});
+
+test("cancellation isolates listener mutation and exceptions before clearing pending calls", async () => {
+  const { factory, transport } = evalBundle(generateBundle(makeAST()));
+  const closeSpy = jest.spyOn(transport, "close");
+  const openSpy = jest.spyOn(transport, "open");
+  const clientPromise = factory({ transport }).build();
+  transport.onOpen?.();
+  const client = await clientPromise as {
+    Localization: {
+      language: () => Promise<unknown>;
+      onLanguageChanged: (callback: (payload: unknown, cancelled: boolean) => void) => Promise<() => void>;
+    };
+    cleanup: () => void;
+  };
+  let firstUnsubscribe = () => {};
+  const firstCallback = jest.fn((_payload: unknown, cancelled: boolean) => {
+    if (cancelled) {
+      firstUnsubscribe();
+      throw new Error("listener failed");
+    }
+  });
+  const secondCallback = jest.fn();
+  const firstSubscription = client.Localization.onLanguageChanged(firstCallback);
+  const firstRequest = JSON.parse(transport.sentMessages[0]);
+  transport.onMessage?.(JSON.stringify({ id: firstRequest.id, result: null }));
+  firstUnsubscribe = await firstSubscription;
+  const secondSubscription = client.Localization.onLanguageChanged(secondCallback);
+  const secondRequest = JSON.parse(transport.sentMessages[1]);
+  transport.onMessage?.(JSON.stringify({ id: secondRequest.id, result: null }));
+  await secondSubscription;
+  const pendingCall = client.Localization.language();
+  const disconnectedCall = expect(pendingCall).rejects.toThrow("Disconnected");
+
+  expect(() => transport.onError?.(new Error("connection lost"))).not.toThrow();
+  await disconnectedCall;
+
+  expect(firstCallback).toHaveBeenLastCalledWith(null, true);
+  expect(secondCallback).toHaveBeenCalledWith(null, true);
+  expect(openSpy).toHaveBeenCalledTimes(2);
+
+  expect(() => client.cleanup()).not.toThrow();
+  expect(closeSpy).not.toHaveBeenCalled();
+});
+
 // ---------------------------------------------------------------------------
 // Native-only module filtering
 // ---------------------------------------------------------------------------
@@ -229,6 +415,158 @@ test("bundle contains static module definitions", () => {
   expect(code).toContain("_registerModule");
 });
 
+test("WebKit builder profile returns the shared factory without a global export", () => {
+  const code = generateWebKitBundle(makeAST());
+  const { context, factory, transport } = evalBundle(code);
+
+  expect(typeof factory).toBe("function");
+  expect(context.factory).toBeUndefined();
+  expect(typeof factory({ transport }).build).toBe("function");
+  expect(code).toContain('_addMethodNoParams(_Localization, "language", "Localization")');
+});
+
+test("generic and WebKit profiles match every member from the real OpenRPC AST", async () => {
+  const ast = buildRealApiAST();
+  const generic = await buildClient(generateBundle(ast));
+  const webkit = await buildClient(generateWebKitBundle(ast));
+  const genericClient = generic.client as Record<string, Record<string, unknown>>;
+  const webkitClient = webkit.client as Record<string, Record<string, unknown>>;
+  const expectedModules = ast.modules.filter((module) => module.platform !== "native");
+
+  expect(Object.keys(genericClient).sort()).toEqual([...expectedModules.map((module) => module.name), "cleanup"].sort());
+  expect(Object.keys(webkitClient).sort()).toEqual(Object.keys(genericClient).sort());
+  for (const module of expectedModules) {
+    const expectedMembers = module.methods
+      .filter((method) => method.platform !== "native")
+      .map((method) => method.name)
+      .sort();
+    expect(Object.keys(genericClient[module.name]).sort()).toEqual(expectedMembers);
+    expect(Object.keys(webkitClient[module.name]).sort()).toEqual(expectedMembers);
+  }
+});
+
+test("real API profiles send equivalent RPCs for all parameter patterns", async () => {
+  const ast = buildRealApiAST();
+  const generic = await buildClient(generateBundle(ast));
+  const webkit = await buildClient(generateWebKitBundle(ast));
+
+  async function invoke(
+    client: Record<string, unknown>,
+    transport: MockTransport,
+    moduleName: string,
+    methodName: string,
+    args: unknown[]
+  ) {
+    const module = client[moduleName] as Record<string, (...values: unknown[]) => Promise<unknown>>;
+    const response = module[methodName](...args);
+    const request = JSON.parse(transport.sentMessages[transport.sentMessages.length - 1]);
+    transport.onMessage?.(JSON.stringify({ id: request.id, result: null }));
+    await response;
+    return { method: request.method, params: request.params };
+  }
+
+  const calls = [
+    ["Accessibility", "audioDescription", []],
+    ["Actions", "start", [{ intent: { action: "play" }, handlerAppId: "test.app" }]],
+    ["Metrics", "appInfo", ["test-build"]],
+  ] as const;
+
+  for (const [moduleName, methodName, args] of calls) {
+    const genericCall = await invoke(generic.client, generic.transport, moduleName, methodName, [...args]);
+    const webkitCall = await invoke(webkit.client, webkit.transport, moduleName, methodName, [...args]);
+    expect(webkitCall).toEqual(genericCall);
+  }
+  expect(await invoke(webkit.client, webkit.transport, "Metrics", "appInfo", ["another-build"]))
+    .toEqual({ method: "Metrics.appInfo", params: { build: "another-build" } });
+});
+
+test("readable and minified WebKit profiles expose and execute extension schema APIs", async () => {
+  const readable = generateWebKitBundle(makeAST());
+  const artifacts = [readable, await minifyBuilder(readable)];
+  const extensionSchema = JSON.stringify([{
+    name: "ExtensionTest",
+    methods: ["ping"],
+    events: ["onChanged"],
+    methodsWithObject: [],
+  }]);
+
+  for (const code of artifacts) {
+    const { factory, transport } = evalBundle(code);
+    const clientPromise = factory({ transport, extensionSchema }).build();
+    transport.onOpen?.();
+    const client = await clientPromise as {
+      ExtensionTest: {
+        ping: () => Promise<unknown>;
+        onChanged: (callback: (payload: unknown, cancelled: boolean) => void) => Promise<() => void>;
+      };
+      cleanup: () => void;
+    };
+    expect(typeof client.ExtensionTest.ping).toBe("function");
+    expect(typeof client.ExtensionTest.onChanged).toBe("function");
+
+    const call = client.ExtensionTest.ping();
+    const request = JSON.parse(transport.sentMessages[0]);
+    expect(request).toMatchObject({ method: "ExtensionTest.ping", params: {} });
+    transport.onMessage?.(JSON.stringify({ id: request.id, result: "ok" }));
+    await expect(call).resolves.toBe("ok");
+
+    const callback = jest.fn();
+    const subscription = client.ExtensionTest.onChanged(callback);
+    const subscribeRequest = JSON.parse(transport.sentMessages[1]);
+    expect(subscribeRequest).toMatchObject({ method: "ExtensionTest.onChanged", params: { listen: true } });
+    transport.onMessage?.(JSON.stringify({ id: subscribeRequest.id, result: null }));
+    await subscription;
+    transport.onMessage?.(JSON.stringify({ method: "ExtensionTest.onChanged", params: { value: "updated" } }));
+    expect(callback).toHaveBeenCalledWith("updated", false);
+    client.cleanup();
+  }
+});
+
+test("minified WebKit profile is deterministic and preserves RPC, event, and cleanup behavior", async () => {
+  const readable = generateWebKitBundle(makeAST());
+  const minified = await minifyBuilder(readable);
+  expect(await minifyBuilder(readable)).toBe(minified);
+  expect(minified.length).toBeLessThan(readable.length);
+
+  const { client: rawClient, transport } = await buildClient(minified);
+  const client = rawClient as {
+    Localization: {
+      language: () => Promise<unknown>;
+      onLanguageChanged: (callback: (payload: unknown, cancelled: boolean) => void) => Promise<() => void>;
+    };
+    cleanup: () => void;
+  };
+  const closeSpy = jest.spyOn(transport, "close");
+
+  const languagePromise = client.Localization.language();
+  const languageRequest = JSON.parse(transport.sentMessages[0]);
+  expect(languageRequest).toMatchObject({ method: "Localization.language", params: {} });
+  transport.onMessage?.(JSON.stringify({ id: languageRequest.id, result: "en" }));
+  await expect(languagePromise).resolves.toBe("en");
+
+  const callback = jest.fn();
+  const subscriptionPromise = client.Localization.onLanguageChanged(callback);
+  const subscribeRequest = JSON.parse(transport.sentMessages[1]);
+  transport.onMessage?.(JSON.stringify({ id: subscribeRequest.id, result: null }));
+  const unsubscribe = await subscriptionPromise;
+  transport.onMessage?.(JSON.stringify({
+    method: "Localization.onLanguageChanged",
+    params: { value: "fr" },
+  }));
+  expect(callback).toHaveBeenCalledWith("fr", false);
+
+  client.cleanup();
+  expect(callback).toHaveBeenLastCalledWith(null, true);
+  expect(closeSpy).not.toHaveBeenCalled();
+
+  const subsequentCall = client.Localization.language();
+  const subsequentRequest = JSON.parse(transport.sentMessages[2]);
+  expect(subsequentRequest).toMatchObject({ method: "Localization.language", params: {} });
+  transport.onMessage?.(JSON.stringify({ id: subsequentRequest.id, result: "still-connected" }));
+  await expect(subsequentCall).resolves.toBe("still-connected");
+  expect(typeof unsubscribe).toBe("function");
+});
+
 test("bundle contains extension schema support", () => {
   const code = generateBundle(makeAST());
   expect(code).toContain("_addExtensions");
@@ -246,7 +584,8 @@ test("bundle contains new transport interface", () => {
   expect(code).toContain("_onClose");
   expect(code).toContain("_onError");
   expect(code).toContain("transport.open");
-  expect(code).toContain("transport.close");
+  expect(code).toContain('var requiredMethods = ["send", "open"]');
+  expect(code).not.toContain("_transport.close()");
 });
 
 // ---------------------------------------------------------------------------
@@ -295,7 +634,9 @@ test("single-primitive-wrap pattern is detected for methods with object containi
 
   const ast = makeAST({ modules: [testModule] });
   const code = generateBundle(ast);
+  const webKitCode = generateWebKitBundle(ast);
   expect(code).toContain("_addMethodWithPrimitiveWrap");
+  expect(webKitCode).toContain('_addMethodWithPrimitiveWrap(_TestModule, "appInfo", "TestModule", "build")');
 });
 
 test("single-primitive-wrap pattern is NOT used for methods with multiple parameters", () => {

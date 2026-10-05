@@ -18,8 +18,18 @@ The extension integrates with WPEWebKit to:
 - **WPEWebKit** development libraries
 - **C++17** compatible compiler
 - **GLib** and related dependencies
+- **Node.js** and **npm** (required to regenerate the embedded Firebolt builder)
 
 ### Build Instructions
+
+From the repository root, install the JavaScript dependencies and generate the API bundles before configuring the native build:
+
+```bash
+npm ci
+npm run generate
+```
+
+The generation step refreshes `webkitExtension/resources/firebolt-builder.js` from the OpenRPC-derived API definitions. Run it after API changes and include the updated generated resource in the same change. CMake embeds this file but does not run npm or regenerate it.
 
 ```bash
 # Create build directory
@@ -164,11 +174,13 @@ webkitExtension/
 
 ## Updating JavaScript Resources
 
-The JavaScript resources in the `resources/` directory are embedded into the extension during build. To update them:
+The JavaScript resources in the `resources/` directory are embedded into the extension during build. `firebolt-builder.js` is generated from the OpenRPC API definitions; do not edit it by hand. From the repository root, regenerate it with:
 
-1. Modify the JavaScript files in `resources/`
-2. Rebuild the extension
-3. Reinstall/reload the extension in WPEWebKit
+```bash
+npm run generate
+```
+
+Modify other resource files, such as `firebolt-bridge.js`, directly when needed. Then rebuild the extension and reinstall or reload it in WPEWebKit.
 
 ## Troubleshooting
 
