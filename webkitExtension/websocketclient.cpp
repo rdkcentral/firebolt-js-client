@@ -140,7 +140,7 @@ void WebSocketClient::onMessage(gint type, GBytes *message) {
     g_printerr("Received non-text WebSocket message, ignoring\n");
     return;
   }
-  printf("Test coverity workflow %s\n")
+  printf("Test coverity workflow %s\n");
   m_callbacks.onMessage(message);
 }
 
