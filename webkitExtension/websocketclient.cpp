@@ -17,6 +17,7 @@
  */
 
 #include "websocketclient.h"
+#include <stdio.h>
 #include <glib.h>
 
 static inline SoupFunctions &soup() { return SoupFunctions::get(); }
@@ -139,6 +140,7 @@ void WebSocketClient::onMessage(gint type, GBytes *message) {
     g_printerr("Received non-text WebSocket message, ignoring\n");
     return;
   }
+  printf("Test coverity workflow %s\n")
   m_callbacks.onMessage(message);
 }
 
