@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "generate": "ts-node src/cli.ts generate && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts && node scripts/minify-webkit-builder.cjs",
+    "generate:github-pages": "node scripts/generate-github-pages.cjs",
     "generate:webkit-builder": "ts-node src/cli.ts generate --targets webkit-builder && node scripts/minify-webkit-builder.cjs",
     "generate:types": "ts-node src/cli.ts generate --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
