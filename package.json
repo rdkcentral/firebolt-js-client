@@ -12,22 +12,28 @@
     "generate:github-pages": "node scripts/generate-github-pages.cjs",
     "generate:webkit-builder": "ts-node src/cli.ts generate --targets webkit-builder && node scripts/minify-webkit-builder.cjs",
     "generate:types": "ts-node src/cli.ts generate --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test:release-notes": "node --test scripts/generate-release-notes.test.cjs",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest && npm run test:release-notes"
   },
   "dependencies": {
     "commander": "^12.0.0",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@open-rpc/schema-utils-js": "^1.16.2",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.12.0",
-    "jest": "^29.7.0",
+    "jest": "^30.5.2",
     "terser": "5.51.2",
-    "ts-jest": "^29.1.4",
+    "ts-jest": "^29.4.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "argparse": "2.0.1"
   },
   "jest": {
     "preset": "ts-jest",
