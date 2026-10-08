@@ -32,6 +32,13 @@ jobs:
         run: npm ci
 
       - name: Lint pull request title
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$PR_TITLE" | npm exec -- commitlint
+        run: |
+          title="$(jq -r '.pull_request.title // empty' "$GITHUB_EVENT_PATH")"
+          if [ -z "$title" ]; then
+            echo "::error::Pull request title is missing from the event payload."
+            exit 1
+          fi
+
+          title_file="$RUNNER_TEMP/pr-title.txt"
+          printf '%s\n' "$title" > "$title_file"
+          npm exec -- commitlint --edit "$title_file"
