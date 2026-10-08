@@ -33,7 +33,8 @@
     "typescript": "^5.4.5"
   },
   "overrides": {
-    "argparse": "2.0.1"
+    "argparse": "2.0.1",
+    "handlebars": "4.7.10"
   },
   "jest": {
     "preset": "ts-jest",
