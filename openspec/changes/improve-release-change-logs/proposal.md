@@ -24,7 +24,7 @@ Commit messages entering `develop` are not consistently categorized, and JS clie
 
 - `.commitlintrc.json` and GitHub Actions PR validation workflow(s)
 - `.github/workflows/release-types.yml`, the `@rdkcentral/firebolt-js-types` GitHub Packages artifact, and GitHub release body generation
-- `CHANGELOG.md` generation for future releases
+- Dynamic release-note generation for GitHub Releases
 - GitHub branch protection or ruleset configuration for `develop`
 - No changes to generated APIs or target language outputs
 
