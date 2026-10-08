@@ -13,7 +13,7 @@
     "generate:webkit-builder": "ts-node src/cli.ts generate --targets webkit-builder && node scripts/minify-webkit-builder.cjs",
     "generate:types": "ts-node src/cli.ts generate --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
     "test:release-notes": "node --test scripts/generate-release-notes.test.cjs",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest && npm run test:release-notes"
   },
   "dependencies": {
     "commander": "^12.0.0",

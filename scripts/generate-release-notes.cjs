@@ -1,8 +1,8 @@
 const fs = require("node:fs");
 const { execFileSync, spawnSync } = require("node:child_process");
 
-const tagPattern = /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-const scopes = ["api", "webkit", "tooling"];
+ const tagPattern = /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+ const scopes = ["api", "webkit", "tooling"];
 
 function git(args) {
   return execFileSync("git", args, { encoding: "utf8" }).trim();
@@ -114,8 +114,11 @@ async function pullRequestsForCommit({ apiUrl, repository, token, sha }) {
     `${apiUrl}/repos/${repository}/commits/${sha}/pulls`,
     token,
   );
-  if (associated?.some((pullRequest) => pullRequest.merged_at)) {
-    return associated.filter((pullRequest) => pullRequest.merged_at);
+  const mergedPullRequests = (associated ?? []).filter(
+    (pullRequest) => pullRequest?.merged_at,
+  );
+  if (mergedPullRequests.length > 0) {
+    return mergedPullRequests;
   }
 
   const subject = git(["show", "-s", "--format=%s", sha]);
