@@ -13,7 +13,7 @@
 - [x] 2.4 [generator] Keep valid releases on `v${version}` and dry-run releases on `test-v${version}`; do not create a separate types-package namespace.
 - [x] 2.5 [generator] Select the previous published, non-draft release with a valid `v<semver>` tag, excluding draft dry-run releases.
 - [x] 2.6 [generator] Generate one categorized entry per merged PR in the valid tag range, grouping by scope, retaining type/title/link, excluding merge commits as standalone entries, and placing legacy titles in an uncategorized section.
-- [x] 2.7 [generator] Use the same generated notes and compare link in `CHANGELOG.md` and the GitHub release body; keep dry-run output from publishing or creating a valid release tag.
+- [x] 2.7 [generator] Generate release notes dynamically for the GitHub release body; keep dry-run output from publishing or creating a valid release tag.
 
 ## 3. Verification
 
@@ -21,4 +21,4 @@
 - [x] 3.2 [test] Test version/tag/package checks for exact SemVer alignment and the GitHub Packages registry.
 - [x] 3.3 [test] Test Yocto-style `v${version}` tag resolution to the package source checkout.
 - [x] 3.4 [test] Test PR-to-release-note mapping for merge commits, multiple commits per PR, legacy titles, scope grouping, and exactly-once inclusion.
-- [x] 3.5 [test] Run a release dry run for a known range and verify the GitHub body and changelog entries match without publishing or creating a valid release.
+- [x] 3.5 [test] Run a release dry run for a known range and verify the generated GitHub body without publishing or creating a valid release.

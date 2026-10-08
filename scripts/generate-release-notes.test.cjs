@@ -108,12 +108,18 @@ test("release workflow aligns v tags and package SemVer on GitHub Packages", () 
   const packageVersion = steps.find((step) => step.name === "Update package version");
   const createTag = steps.find((step) => step.name === "Create git tag");
   const createRelease = steps.find((step) => step.name === "Create GitHub Release");
+  const createDryRunRelease = steps.find((step) => step.name === "Create test GitHub Release (dry-run)");
 
   assert.equal(setupNode.with["registry-url"], "https://npm.pkg.github.com");
   assert.match(packageVersion.run, /npm version \"\$VERSION\"/);
   assert.match(createTag.run, /TAG_NAME=\"v\$\{VERSION\}\"/);
+  assert.equal(steps.some((step) => step.name === "Commit changelog"), false);
   assert.equal(createRelease.with.tag_name, "v${{ inputs.version }}");
+  assert.equal(createRelease.with.body_path, "release-notes.md");
+  assert.equal(createRelease.with.files, undefined);
   assert.equal(createRelease.with.prerelease, "${{ contains(inputs.version, '-rc') }}");
+  assert.equal(createDryRunRelease.with.body_path, "release-notes.md");
+  assert.equal(createDryRunRelease.with.files, undefined);
 });
 
 test("renders categorized PR notes once and preserves legacy titles", () => {

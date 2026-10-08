@@ -180,9 +180,7 @@ async function main() {
     ? `> DRY RUN: This release was not published.\n\n${releaseNotes}`
     : releaseNotes;
   const notesPath = process.env.RELEASE_NOTES_PATH || "release-notes.md";
-  const changelogPath = process.env.CHANGELOG_PATH || "CHANGELOG.md";
   fs.writeFileSync(notesPath, body);
-  fs.writeFileSync(changelogPath, `${releaseNotes}\n${fs.readFileSync(changelogPath, "utf8")}`);
   console.log(`Generated notes for ${pullRequests.length} merged pull requests since ${previousRelease.tag_name}`);
 }
 

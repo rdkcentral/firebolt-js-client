@@ -20,7 +20,7 @@ The system MUST require pull requests targeting `develop` to use the format `<ty
 - **THEN** the `develop` title policy does not block that pull request
 
 ### Requirement: GitHub Packages release preserves the Yocto tag contract
-The system MUST use `v${version}` as the canonical Git tag for the app-consumed `@rdkcentral/firebolt-js-types` GitHub Packages release so Yocto can resolve the source commit. The package MUST be published to the GitHub Packages npm registry with SemVer `${version}` from the checkout associated with that tag; the public npm registry MUST NOT be a publication target. The GitHub release and changelog MUST identify the same release version and source checkout. Release preflight MUST fail if the requested tag already exists. Existing tags MUST NOT be moved or overwritten.
+The system MUST use `v${version}` as the canonical Git tag for the app-consumed `@rdkcentral/firebolt-js-types` GitHub Packages release so Yocto can resolve the source commit. The package MUST be published to the GitHub Packages npm registry with SemVer `${version}` from the checkout associated with that tag; the public npm registry MUST NOT be a publication target. The GitHub release MUST identify the same release version and source checkout. Release preflight MUST fail if the requested tag already exists. Existing tags MUST NOT be moved or overwritten.
 
 #### Scenario: Tag and GitHub Packages version identify the same release
 - **WHEN** a package release is prepared with version `${version}`
@@ -39,11 +39,11 @@ The system MUST use `v${version}` as the canonical Git tag for the app-consumed 
 - **THEN** the baseline is the existing published, non-draft `v1.0.0` release
 
 ### Requirement: Release notes include every merged pull request in the valid release range
-For each package release, the system MUST generate categorized notes for every pull request merged after the previous valid release and through the new release. A valid previous release MUST be a published, non-draft GitHub Release with a matching `v<semver>` tag; published prereleases count. Each pull request MUST appear exactly once using its title and link, grouped by its scope and retaining its Conventional Commit type. The release body and generated `CHANGELOG.md` entry MUST contain the same change entries and a compare link for the selected `v<semver>` range. Merge commits MUST NOT appear as standalone entries. Draft `test-v<version>` dry runs MUST NOT affect the selected release range.
+For each package release, the system MUST generate categorized notes for every pull request merged after the previous valid release and through the new release. A valid previous release MUST be a published, non-draft GitHub Release with a matching `v<semver>` tag; published prereleases count. Each pull request MUST appear exactly once using its title and link, grouped by its scope and retaining its Conventional Commit type. The GitHub release body MUST contain those change entries and a compare link for the selected `v<semver>` range. The notes MUST be generated in the release workflow. Merge commits MUST NOT appear as standalone entries. Draft `test-v<version>` dry runs MUST NOT affect the selected release range.
 
 #### Scenario: Complete categorized release range
 - **WHEN** a release range contains merged pull requests with valid categorized titles
-- **THEN** every pull request appears once under its scope with its type, title, and link in both the GitHub release and changelog
+- **THEN** every pull request appears once under its scope with its type, title, and link in the generated GitHub release body
 
 #### Scenario: Select the preceding valid release
 - **WHEN** release notes are generated and the history contains published releases and draft `test-v...` dry runs
