@@ -1,0 +1,100 @@
+{
+  "openrpc": "1.2.4",
+  "info": {
+    "title": "Window",
+    "version": "9.0",
+    "x-firebolt-platform": "web",
+    "description": "Provides key interception capabilities for web-based apps. Apps can register to receive specific key events even when not in focus, as long as they are in the Active lifecycle state."
+  },
+  "methods": [
+    {
+      "name": "Window.addKeyIntercepts",
+      "summary": "Add keys to intercept set",
+      "description": "Adds the supplied list of keys to the set of keys that are received by this app when it is in the Active lifecycle state but not in focus. The key is represented by the JS event.key attribute defined in the Firebolt Key Codes Specification. No-op if a key is already in the intercept set. Validation is performed by the server, not the client library. Returns an error if called when the app is not in the Active lifecycle state.",
+      "params": [
+        {
+          "name": "keys",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "List of one or more key identifiers, unordered"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      },
+      "examples": [
+        {
+          "name": "addKeys",
+          "summary": "Add keys to intercept set",
+          "params": [
+            {
+              "name": "keys",
+              "value": [
+                "Key1",
+                "Key2"
+              ]
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "Window.removeKeyIntercepts",
+      "summary": "Remove keys from intercept set",
+      "description": "Removes the supplied list of keys from the set of keys that are received by this app when it is in the Active lifecycle state but not in focus. The key is represented by the JS event.key attribute defined in the Firebolt Key Codes Specification. No-op if a key is not in the intercept set. Validation is performed by the server, not the client library. Returns an error if called when the app is not in the Active lifecycle state.",
+      "params": [
+        {
+          "name": "keys",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "List of one or more key identifiers, unordered"
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      },
+      "examples": [
+        {
+          "name": "removeKeys",
+          "summary": "Remove keys from intercept set",
+          "params": [
+            {
+              "name": "keys",
+              "value": [
+                "Key1",
+                "Key2"
+              ]
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": null
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {}
+  }
+}
