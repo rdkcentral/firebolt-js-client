@@ -12,6 +12,9 @@
     "generate:github-pages": "node scripts/generate-github-pages.cjs",
     "generate:webkit-builder": "ts-node src/cli.ts generate --targets webkit-builder && node scripts/minify-webkit-builder.cjs",
     "generate:types": "ts-node src/cli.ts generate --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
+    "docs:convert": "node scripts/convert-specs-to-docs.cjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "npm run docs:convert && vitepress build docs",
     "test:release-notes": "node --test scripts/generate-release-notes.test.cjs",
     "test": "node --experimental-vm-modules node_modules/.bin/jest && npm run test:release-notes",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage && npm run test:release-notes"
@@ -31,7 +34,9 @@
     "terser": "5.51.2",
     "ts-jest": "^29.4.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^5.4.21",
+    "vitepress": "^1.6.4"
   },
   "overrides": {
     "argparse": "2.0.1",
