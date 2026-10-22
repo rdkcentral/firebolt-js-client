@@ -154,10 +154,12 @@ description: "${sanitizedDescription}"
     if (params.length === 1) {
       const param = params[0];
       // Check for single-primitive-wrap pattern:
-      // - param is a NamedRef to an object type
+      // - param is a NamedRef to an object type OR inline object
       // - object has exactly 1 property
       // - that property is required
       // - that property is a primitive type
+
+      // First check for NamedRef pattern
       if (param.type && param.type.$ref) {
         const ref = param.type.$ref;
         if (typeof ref === 'string' && ref.includes('#/types/')) {
@@ -173,6 +175,17 @@ description: "${sanitizedDescription}"
             if (primitiveTypes.includes(typeDecl.properties[0].type)) {
               return 'primitive-wrap';
             }
+          }
+        }
+      }
+
+      // Check for inline object pattern (like appInfo)
+      if (param.type === 'object' && param.properties && param.properties.length === 1) {
+        const prop = param.properties[0];
+        if (prop.required && prop.type && typeof prop.type === 'string') {
+          const primitiveTypes = ['string', 'number', 'bool', 'boolean', 'integer', 'unsigned'];
+          if (primitiveTypes.includes(prop.type)) {
+            return 'primitive-wrap';
           }
         }
       }
@@ -345,22 +358,45 @@ description: "${sanitizedDescription}"
           markdown += `| Parameter | Type | Description |\n`;
           markdown += `|-----------|------|-------------|\n`;
           action.params.forEach(param => {
-            // Pass the complete param object to formatReturnType
-            const paramType = formatReturnType(param, param.name);
-            const displayType = paramType === '[object Object]' ? 'object' : paramType;
-            // Replace newlines in description with spaces and sanitize special chars
-            const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
-            markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+            // Check if this is a primitive-wrap pattern (only applies when there's exactly 1 param)
+            const isPrimitiveWrap = action.params.length === 1 && getParamPattern(action.params, frontmatter.types || []) === 'primitive-wrap';
 
-            // If this param has nested properties, expand them
-            if (param.properties && param.properties.length > 0) {
-              param.properties.forEach(prop => {
-                const propType = formatReturnType(prop, prop.name);
-                const displayPropType = propType === '[object Object]' ? 'object' : propType;
-                const cleanPropDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
-                const required = prop.required === true ? '' : ' (optional)';
-                markdown += `| &nbsp;&nbsp;${prop.name}${required} | ${displayPropType} | ${cleanPropDescription} |\n`;
-              });
+            if (isPrimitiveWrap) {
+              // For primitive-wrap, show the inner primitive type instead of the object
+              let innerType = 'object';
+              if (param.type && param.type.$ref) {
+                const ref = param.type.$ref;
+                if (typeof ref === 'string' && ref.includes('#/types/')) {
+                  const match = ref.match(/\/types\/(.+)$/);
+                  const typeName = match ? match[1] : ref;
+                  const typeDecl = (frontmatter.types || []).find(t => t.name === typeName);
+                  if (typeDecl && typeDecl.properties && typeDecl.properties.length > 0) {
+                    innerType = typeDecl.properties[0].type;
+                  }
+                }
+              } else if (param.type === 'object' && param.properties && param.properties.length > 0) {
+                innerType = param.properties[0].type;
+              }
+              const displayType = innerType || 'object';
+              const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
+              markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+            } else {
+              // Normal parameter - show the type
+              const paramType = formatReturnType(param, param.name);
+              const displayType = paramType === '[object Object]' ? 'object' : paramType;
+              const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
+              markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+
+              // If this param has nested properties, expand them
+              if (param.properties && param.properties.length > 0) {
+                param.properties.forEach(prop => {
+                  const propType = formatReturnType(prop, prop.name);
+                  const displayPropType = propType === '[object Object]' ? 'object' : propType;
+                  const cleanPropDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
+                  const required = prop.required === true ? '' : ' (optional)';
+                  markdown += `| &nbsp;&nbsp;${prop.name}${required} | ${displayPropType} | ${cleanPropDescription} |\n`;
+                });
+              }
             }
           });
           markdown += `\n`;
@@ -383,6 +419,9 @@ description: "${sanitizedDescription}"
           if (pattern === 'primitive-wrap') {
             // Single primitive wrapped in object - unwrap for the example
             const param = action.params[0];
+            let paramName = null;
+
+            // Handle NamedRef pattern
             if (param.type && param.type.$ref) {
               const ref = param.type.$ref;
               if (typeof ref === 'string' && ref.includes('#/types/')) {
@@ -390,29 +429,25 @@ description: "${sanitizedDescription}"
                 const typeName = match ? match[1] : ref;
                 const typeDecl = (frontmatter.types || []).find(t => t.name === typeName);
                 if (typeDecl && typeDecl.properties && typeDecl.properties.length > 0) {
-                  const paramName = typeDecl.properties[0].name;
-                  markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${paramName});\n\`\`\`\n\n`;
-                } else {
-                  markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
+                  paramName = typeDecl.properties[0].name;
                 }
-              } else {
-                markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
               }
+            }
+            // Handle inline object pattern (like appInfo)
+            else if (param.type === 'object' && param.properties && param.properties.length > 0) {
+              paramName = param.properties[0].name;
+            }
+
+            if (paramName) {
+              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${paramName});\n\`\`\`\n\n`;
             } else {
               markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
             }
           } else {
             // Single object param or multiple params
-            // If single param has nested properties, show those in the example
-            if (action.params.length === 1 && action.params[0].properties && action.params[0].properties.length > 0) {
-              const param = action.params[0];
-              const propNames = param.properties.map(p => p.name).join(', ');
-              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}({ ${propNames} });\n\`\`\`\n\n`;
-            } else {
-              const paramNames = action.params.map(p => p.name).join(', ');
-              const args = action.params.length > 1 ? `{ ${paramNames} }` : paramNames;
-              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${args});\n\`\`\`\n\n`;
-            }
+            const paramNames = action.params.map(p => p.name).join(', ');
+            const args = action.params.length > 1 ? `{ ${paramNames} }` : paramNames;
+            markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${args});\n\`\`\`\n\n`;
           }
         } else {
           // Example without parameters
