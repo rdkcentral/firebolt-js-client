@@ -33,100 +33,9 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Helper function to format return type
-function formatReturnType(result, moduleName) {
-  if (!result) return 'void';
-  if (typeof result === 'string') {
-    // Handle "#/types/SomeType" format
-    if (result.includes('#/types/')) {
-      const match = result.match(/\/types\/(.+)$/);
-      const typeName = match ? match[1] : result;
-      // Create deeplink to type (with 'type-' prefix)
-      return `[${typeName}](#type-${typeName.toLowerCase()})`;
-    }
-    // Handle "shared:SomeType" format
-    if (result.includes('shared:')) {
-      return result.replace('shared:', '');
-    }
-    return result;
-  }
-  if (typeof result === 'object') {
-    // Handle direct $ref (like Accessibility pattern): { $ref: "#/types/TypeName" }
-    if (result.$ref) {
-      const ref = result.$ref;
-      if (typeof ref === 'string') {
-        if (ref.includes('shared:')) {
-          return ref.replace('shared:', '');
-        }
-        const match = ref.match(/\/types\/(.+)$/);
-        const typeName = match ? match[1] : ref;
-        // Create deeplink to type (with 'type-' prefix)
-        return `[${typeName}](#type-${typeName.toLowerCase()})`;
-      }
-      // If it's a YAML reference, try to convert to string
-      try {
-        const refStr = String(ref);
-        if (refStr.includes('shared:')) {
-          return refStr.replace('shared:', '');
-        }
-        const match = refStr.match(/\/types\/(.+)$/);
-        const typeName = match ? match[1] : refStr;
-        return `[${typeName}](#type-${typeName.toLowerCase()})`;
-      } catch {
-        return 'object';
-      }
-    }
-    if (result.type) {
-      if (typeof result.type === 'string') {
-        // Direct type string like "bool", "string", etc.
-        return result.type;
-      }
-      if (typeof result.type === 'object') {
-        // Handle nested { $ref: "..." }
-        if (result.type.$ref) {
-          const ref = result.type.$ref;
-          if (typeof ref === 'string') {
-            if (ref.includes('shared:')) {
-              return ref.replace('shared:', '');
-            }
-            const match = ref.match(/\/types\/(.+)$/);
-            const typeName = match ? match[1] : ref;
-            // Create deeplink to type (with 'type-' prefix)
-            return `[${typeName}](#type-${typeName.toLowerCase()})`;
-          }
-          // Handle case where $ref is still an object due to YAML parsing
-          if (ref && typeof ref === 'object' && ref.$ref) {
-            const refStr = ref.$ref;
-            if (refStr.includes('shared:')) {
-              return refStr.replace('shared:', '');
-            }
-            const match = refStr.match(/\/types\/(.+)$/);
-            const typeName = match ? match[1] : refStr;
-            return `[${typeName}](#type-${typeName.toLowerCase()})`;
-          }
-        }
-        // Handle nested { type: "bool", items: "string" } for arrays
-        if (result.type.type) {
-          const baseType = result.type.type;
-          const items = result.type.items;
-          if (items) {
-            return `${items}[]`;
-          }
-          return baseType;
-        }
-      }
-      return result.type;
-    }
-    // For complex objects, just return 'object' - the examples will show the structure
-    return 'object';
-  }
-  return typeof result;
-}
-
-// Read all spec.md files from the specs directory (exclude 'shared' and native-only modules)
+// Read all spec.md files from the specs directory (include shared, exclude native-only modules)
 const specFiles = fs.readdirSync(specsDir)
   .filter(dir => {
-    if (dir === 'shared') return false; // Internal types only
     const specPath = path.join(specsDir, dir, 'spec.md');
     if (!fs.existsSync(specPath)) return false;
     // Read and check platform field
@@ -134,7 +43,8 @@ const specFiles = fs.readdirSync(specsDir)
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const frontmatter = yaml.load(frontmatterMatch[1]);
-      // Exclude native-only modules (only include web and both)
+      // Exclude native-only modules (only include web and both), but include shared
+      if (dir === 'shared') return true;
       return frontmatter.platform !== 'native';
     }
     return true;
@@ -179,18 +89,32 @@ specFiles.forEach(specFile => {
 
   // Generate VitePress frontmatter
   const description = frontmatter.description || '';
+  // Sanitize description for YAML frontmatter: replace newlines, escape double quotes, replace em dashes, escape angle brackets, and truncate if too long
+  const sanitizedDescription = description
+    .replace(/\n/g, ' ')
+    .replace(/"/g, '\\"')
+    .replace(/[\u2014\u2013]/g, '--')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .substring(0, 500); // Truncate to avoid YAML parsing issues
   const vitepressFrontmatter = `---
 title: "${moduleName}"
-description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
+description: "${sanitizedDescription}"
 ---
 
 `;
 
   // Generate module content
   let markdown = vitepressFrontmatter;
-  markdown += `<div style="display: flex; align-items: center; margin-bottom: 16px;"><img src="/firebolt-logo-small.png" alt="Firebolt" style="height: 24px; margin-right: 8px;" /> Firebolt Web</div>\n\n`;
+  // Use markdown syntax instead of HTML div to avoid Vue parsing issues
   markdown += `# ${moduleName}\n\n`;
-  markdown += `${frontmatter.description || ''}\n\n`;
+  // Sanitize body description: replace em dashes with regular dashes
+  let bodyDescription = sanitizeText(frontmatter.description || '');
+  // For Shared module, provide a web-focused description
+  if (moduleName === 'Shared') {
+    bodyDescription = 'Common type definitions used across Firebolt Web modules. This page documents types that are referenced by multiple modules.';
+  }
+  markdown += `${bodyDescription}\n\n`;
 
   // Add version and platform info
   if (frontmatter.version) {
@@ -212,6 +136,16 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
   const hasEvents = frontmatter.events.length > 0;
   const hasTypes = frontmatter.types && frontmatter.types.length > 0;
 
+  // Helper function to sanitize text for Vue/VitePress
+  function sanitizeText(text) {
+    if (!text) return '';
+    // Replace em dash (U+2014) and en dash (U+2013) with regular dashes, and escape angle brackets
+    return text
+      .replace(/[\u2014\u2013]/g, '--')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   // Helper function to format return type
   function formatReturnType(result) {
     if (!result) return 'void';
@@ -223,9 +157,10 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         // Create deeplink to type (with 'type-' prefix)
         return `[${typeName}](#type-${typeName.toLowerCase()})`;
       }
-      // Handle "shared:SomeType" format
+      // Handle "shared:SomeType" format - link to shared types page
       if (result.includes('shared:')) {
-        return result.replace('shared:', '');
+        const typeName = result.replace('shared:', '');
+        return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
       }
       return result;
     }
@@ -235,7 +170,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         const ref = result.$ref;
         if (typeof ref === 'string') {
           if (ref.includes('shared:')) {
-            return ref.replace('shared:', '');
+            const typeName = ref.replace('shared:', '');
+            return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
           }
           const match = ref.match(/\/types\/(.+)$/);
           const typeName = match ? match[1] : ref;
@@ -246,7 +182,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         try {
           const refStr = String(ref);
           if (refStr.includes('shared:')) {
-            return refStr.replace('shared:', '');
+            const typeName = refStr.replace('shared:', '');
+            return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
           }
           const match = refStr.match(/\/types\/(.+)$/);
           const typeName = match ? match[1] : refStr;
@@ -258,7 +195,13 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
       if (result.type) {
         if (typeof result.type === 'string') {
           // Direct type string like "bool", "string", etc.
-          return result.type;
+          const baseType = result.type;
+          // Handle array with items at the top level
+          if (result.items) {
+            const itemsType = formatReturnType(result.items);
+            return `${itemsType}[]`;
+          }
+          return baseType;
         }
         if (typeof result.type === 'object') {
           // Handle nested { $ref: "..." }
@@ -266,7 +209,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
             const ref = result.type.$ref;
             if (typeof ref === 'string') {
               if (ref.includes('shared:')) {
-                return ref.replace('shared:', '');
+                const typeName = ref.replace('shared:', '');
+                return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
               }
               const match = ref.match(/\/types\/(.+)$/);
               const typeName = match ? match[1] : ref;
@@ -277,7 +221,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
             if (ref && typeof ref === 'object' && ref.$ref) {
               const refStr = ref.$ref;
               if (refStr.includes('shared:')) {
-                return refStr.replace('shared:', '');
+                const typeName = refStr.replace('shared:', '');
+                return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
               }
               const match = refStr.match(/\/types\/(.+)$/);
               const typeName = match ? match[1] : refStr;
@@ -289,7 +234,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
             const baseType = result.type.type;
             const items = result.type.items;
             if (items) {
-              return `${items}[]`;
+              const itemsType = formatReturnType(items);
+              return `${itemsType}[]`;
             }
             return baseType;
           }
@@ -310,11 +256,11 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
     if (hasProperties) {
       frontmatter.properties.forEach(prop => {
         markdown += `### ${prop.name}\n\n`;
-        // Replace newlines in description with spaces
-        const cleanDescription = (prop.description || '').replace(/\n/g, ' ');
+        // Replace newlines in description with spaces and sanitize special chars
+        const cleanDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
         markdown += `${cleanDescription}\n\n`;
         if (prop.result) {
-          const returnType = formatReturnType(prop.result, moduleName);
+          const returnType = formatReturnType(prop.result);
           // Fallback for any remaining [object Object]
           const displayType = returnType === '[object Object]' ? 'object' : returnType;
           // Don't wrap in backticks if it's a link (contains markdown link syntax)
@@ -343,18 +289,18 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
     if (hasActions) {
       frontmatter.actions.forEach(action => {
         markdown += `### ${action.name}\n\n`;
-        // Replace newlines in description with spaces
-        const cleanDescription = (action.description || '').replace(/\n/g, ' ');
+        // Replace newlines in description with spaces and sanitize special chars
+        const cleanDescription = sanitizeText((action.description || '').replace(/\n/g, ' '));
         markdown += `${cleanDescription}\n\n`;
         if (action.params && action.params.length > 0) {
           markdown += `**Parameters:**\n\n`;
           markdown += `| Parameter | Type | Description |\n`;
           markdown += `|-----------|------|-------------|\n`;
           action.params.forEach(param => {
-            const paramType = formatReturnType(param.type, moduleName);
+            const paramType = formatReturnType(param.type);
             const displayType = paramType === '[object Object]' ? 'object' : paramType;
-            // Replace newlines in description with spaces to avoid breaking table
-            const cleanParamDescription = (param.description || '').replace(/\n/g, ' ');
+            // Replace newlines in description with spaces and sanitize special chars
+            const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
             markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
           });
           markdown += `\n`;
@@ -387,8 +333,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
     if (hasEvents) {
       frontmatter.events.forEach(event => {
         markdown += `### ${event.name}\n\n`;
-        // Replace newlines in description with spaces
-        const cleanDescription = (event.description || '').replace(/\n/g, ' ');
+        // Replace newlines in description with spaces and sanitize special chars
+        const cleanDescription = sanitizeText((event.description || '').replace(/\n/g, ' '));
         markdown += `${cleanDescription}\n\n`;
         // Always show data and cancelled parameters for events
         markdown += `**Parameters:**\n\n`;
@@ -397,9 +343,9 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         // Add data parameter
         let dataType = 'void';
         if (event.result) {
-          dataType = formatReturnType(event.result, moduleName);
+          dataType = formatReturnType(event.result);
         } else if (event.payload) {
-          dataType = formatReturnType(event.payload, moduleName);
+          dataType = formatReturnType(event.payload);
         }
         const displayDataType = dataType === '[object Object]' ? 'object' : dataType;
         markdown += `| data | ${displayDataType} | Event payload data |\n`;
@@ -420,8 +366,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         // Skip if this event already exists explicitly in the spec
         if (!explicitEventNames.includes(eventName)) {
           markdown += `### ${eventName}\n\n`;
-          // Replace newlines in property description with spaces
-          const cleanPropDescription = (prop.description || '').replace(/\n/g, ' ');
+          // Replace newlines in property description with spaces and sanitize special chars
+          const cleanPropDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
           markdown += `Event for when ${moduleName}.${prop.name} changed. ${cleanPropDescription}\n\n`;
           // Always show data and cancelled parameters
           markdown += `**Parameters:**\n\n`;
@@ -430,7 +376,7 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
           // Add data parameter
           let dataType = 'void';
           if (prop.result) {
-            dataType = formatReturnType(prop.result, moduleName);
+            dataType = formatReturnType(prop.result);
           }
           const displayDataType = dataType === '[object Object]' ? 'object' : dataType;
           markdown += `| data | ${displayDataType} | Event payload data |\n`;
@@ -448,18 +394,28 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
   // Process types
   if (frontmatter.types && frontmatter.types.length > 0) {
     markdown += `## Types\n\n`;
-    frontmatter.types.forEach(type => {
+    // Filter types: for shared module, only include types that are publicly referenced (e.g., AgePolicy)
+    // Exclude internal transport types like ListenResponse and FireboltError
+    const typesToInclude = frontmatter.types.filter(type => {
+      if (moduleName === 'Shared') {
+        // Only include AgePolicy for web documentation
+        return type.name === 'AgePolicy';
+      }
+      return true;
+    });
+
+    typesToInclude.forEach(type => {
       // Add anchor for deeplinking (prefix with 'type-' to avoid conflicts)
       markdown += `### ${type.name} {#type-${type.name.toLowerCase()}}\n\n`;
-      // Replace newlines in type description with spaces
-      const cleanTypeDescription = (type.description || '').replace(/\n/g, ' ');
+      // Replace newlines in type description with spaces and sanitize special chars
+      const cleanTypeDescription = sanitizeText((type.description || '').replace(/\n/g, ' '));
       markdown += `${cleanTypeDescription}\n\n`;
       if (type.kind === 'enum' && type.values && type.values.length > 0) {
         markdown += `**Possible values:**\n\n`;
         type.values.forEach(value => {
           const valueStr = typeof value.id === 'string' ? `"${value.id}"` : value.id;
-          // Replace newlines in description with spaces
-          const cleanValueDescription = (value.description || '').replace(/\n/g, ' ');
+          // Replace newlines in description with spaces and sanitize special chars
+          const cleanValueDescription = sanitizeText((value.description || '').replace(/\n/g, ' '));
           markdown += `- \`${valueStr}\` - ${cleanValueDescription}\n`;
         });
         markdown += `\n`;
@@ -468,10 +424,10 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         markdown += `| Property | Type | Description |\n`;
         markdown += `|----------|------|-------------|\n`;
         type.properties.forEach(prop => {
-          const propType = formatReturnType(prop.type, moduleName);
+          const propType = formatReturnType(prop.type);
           const displayType = propType === '[object Object]' ? 'object' : propType;
-          // Replace newlines in description with spaces to avoid breaking table
-          const cleanDescription = (prop.description || '').replace(/\n/g, ' ');
+          // Replace newlines in description with spaces and sanitize special chars
+          const cleanDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
           markdown += `| ${prop.name} | ${displayType} | ${cleanDescription} |\n`;
         });
         markdown += `\n`;

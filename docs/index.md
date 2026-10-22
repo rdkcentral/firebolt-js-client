@@ -12,6 +12,7 @@ Welcome to the Firebolt Web JavaScript client documentation. This site provides 
 ## Quick Links
 
 - [API Documentation](/api/accessibility) - Complete API reference for all Firebolt 9 Web modules
+- [Shared Types](/api/shared) - Common type definitions used across modules
 - [References](/references) - External specifications and resources
 
 ## About Firebolt

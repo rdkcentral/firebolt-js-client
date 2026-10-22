@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/api-docs/',
   title: 'Firebolt Web API Documentation',
   description: 'API documentation for Firebolt 9 Web JavaScript client',
   head: [
-    ['link', { rel: 'icon', href: '/firebolt-logo-small.png' }]
+    ['link', { rel: 'icon', href: '/api-docs/firebolt-logo-small.png' }]
   ],
   themeConfig: {
     nav: [
@@ -27,6 +28,7 @@ export default defineConfig({
             { text: 'Metrics', link: '/api/metrics' },
             { text: 'Network', link: '/api/network' },
             { text: 'VideoOutput', link: '/api/video-output' },
+            { text: 'Shared Types', link: '/api/shared' },
           ]
         }
       ]
