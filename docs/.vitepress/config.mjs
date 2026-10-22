@@ -1,11 +1,11 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  base: '/api-docs/',
+  base: '/firebolt-js-client/api-docs/',
   title: 'Firebolt Web API Documentation',
   description: 'API documentation for Firebolt 9 Web JavaScript client',
   head: [
-    ['link', { rel: 'icon', href: '/api-docs/firebolt-logo-small.png' }]
+    ['link', { rel: 'icon', href: '/firebolt-js-client/api-docs/firebolt-logo-small.png' }]
   ],
   themeConfig: {
     nav: [
