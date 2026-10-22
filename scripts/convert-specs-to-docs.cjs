@@ -385,7 +385,7 @@ description: "${sanitizedDescription}"
               const paramType = formatReturnType(param, param.name);
               const displayType = paramType === '[object Object]' ? 'object' : paramType;
               const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
-              markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+              markdown += `| ${param.name}${param.required === false ? ' (optional)' : ''} | ${displayType} | ${cleanParamDescription} |\n`;
 
               // If this param has nested properties, expand them
               if (param.properties && param.properties.length > 0) {
