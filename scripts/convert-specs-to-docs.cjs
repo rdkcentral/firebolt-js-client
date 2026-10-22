@@ -62,8 +62,7 @@ specFiles.forEach(specFile => {
   // Split frontmatter and content
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!frontmatterMatch) {
-    console.error(`No frontmatter found in ${specFile}`);
-    return;
+    throw new Error(`No frontmatter found in ${specFile}`);
   }
 
   const frontmatterText = frontmatterMatch[1];
@@ -75,14 +74,12 @@ specFiles.forEach(specFile => {
     // Use default schema to parse quoted references correctly
     frontmatter = yaml.load(frontmatterText);
   } catch (e) {
-    console.error(`Failed to parse YAML in ${specFile}:`, e.message);
-    return;
+    throw new Error(`Failed to parse YAML in ${specFile}: ${e.message}`);
   }
 
   const moduleName = frontmatter.module;
   if (!moduleName) {
-    console.error(`No module name in ${specFile}`);
-    return;
+    throw new Error(`No module name in ${specFile}`);
   }
 
   console.log(`Processing module: ${moduleName}`);
@@ -385,7 +382,7 @@ description: "${sanitizedDescription}"
               const paramType = formatReturnType(param, param.name);
               const displayType = paramType === '[object Object]' ? 'object' : paramType;
               const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
-              markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+              markdown += `| ${param.name}${param.required === false ? ' (optional)' : ''} | ${displayType} | ${cleanParamDescription} |\n`;
 
               // If this param has nested properties, expand them
               if (param.properties && param.properties.length > 0) {
