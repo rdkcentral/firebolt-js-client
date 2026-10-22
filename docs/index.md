@@ -39,7 +39,7 @@ Once initialized, you can access modules and their methods:
 
 ```javascript
 // Get device information
-const deviceName = await firebolt.Device.name
+const deviceName = await firebolt.Device.name()
 
 // Subscribe to events
 firebolt.Device.onNameChanged((data, cancelled) => {

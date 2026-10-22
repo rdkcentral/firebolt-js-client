@@ -146,8 +146,42 @@ description: "${sanitizedDescription}"
       .replace(/>/g, '&gt;');
   }
 
+  // Helper function to determine parameter pattern (matches inject-js generator logic)
+  function getParamPattern(params, types) {
+    if (!params || params.length === 0) {
+      return 'no-params';
+    }
+    if (params.length === 1) {
+      const param = params[0];
+      // Check for single-primitive-wrap pattern:
+      // - param is a NamedRef to an object type
+      // - object has exactly 1 property
+      // - that property is required
+      // - that property is a primitive type
+      if (param.type && param.type.$ref) {
+        const ref = param.type.$ref;
+        if (typeof ref === 'string' && ref.includes('#/types/')) {
+          const match = ref.match(/\/types\/(.+)$/);
+          const typeName = match ? match[1] : ref;
+          const typeDecl = types.find(t => t.name === typeName);
+          if (typeDecl && typeDecl.kind === 'object' &&
+              typeDecl.properties && typeDecl.properties.length === 1 &&
+              typeDecl.properties[0].required &&
+              typeDecl.properties[0].type && typeof typeDecl.properties[0].type === 'string') {
+            // Check if it's a primitive type
+            const primitiveTypes = ['string', 'number', 'bool', 'boolean', 'integer', 'unsigned'];
+            if (primitiveTypes.includes(typeDecl.properties[0].type)) {
+              return 'primitive-wrap';
+            }
+          }
+        }
+      }
+    }
+    return 'single-param';
+  }
+
   // Helper function to format return type
-  function formatReturnType(result) {
+  function formatReturnType(result, propertyName = null) {
     if (!result) return 'void';
     if (typeof result === 'string') {
       // Handle "#/types/SomeType" format
@@ -162,12 +196,22 @@ description: "${sanitizedDescription}"
         const typeName = result.replace('shared:', '');
         return `[${typeName}](/api/shared#type-${typeName.toLowerCase()})`;
       }
+      // Special case: agePolicy property should link to shared type even if defined as string
+      if (propertyName === 'agePolicy' && result === 'string') {
+        return `[AgePolicy](/api/shared#type-agepolicy)`;
+      }
       return result;
     }
     if (typeof result === 'object') {
+      // First check if this is a param/prop object with a type field
+      const typeValue = result.type;
+      const itemsValue = result.items;
+      const refValue = result.$ref;
+      const propName = result.name || propertyName;
+
       // Handle direct $ref (like Accessibility pattern): { $ref: "#/types/TypeName" }
-      if (result.$ref) {
-        const ref = result.$ref;
+      if (refValue) {
+        const ref = refValue;
         if (typeof ref === 'string') {
           if (ref.includes('shared:')) {
             const typeName = ref.replace('shared:', '');
@@ -192,21 +236,25 @@ description: "${sanitizedDescription}"
           return 'object';
         }
       }
-      if (result.type) {
-        if (typeof result.type === 'string') {
+      if (typeValue) {
+        if (typeof typeValue === 'string') {
           // Direct type string like "bool", "string", etc.
-          const baseType = result.type;
+          const baseType = typeValue;
+          // Special case: agePolicy property should link to shared type even if defined as string
+          if (propName === 'agePolicy' && baseType === 'string') {
+            return `[AgePolicy](/api/shared#type-agepolicy)`;
+          }
           // Handle array with items at the top level
-          if (result.items) {
-            const itemsType = formatReturnType(result.items);
+          if (itemsValue) {
+            const itemsType = formatReturnType(itemsValue);
             return `${itemsType}[]`;
           }
           return baseType;
         }
-        if (typeof result.type === 'object') {
+        if (typeof typeValue === 'object') {
           // Handle nested { $ref: "..." }
-          if (result.type.$ref) {
-            const ref = result.type.$ref;
+          if (typeValue.$ref) {
+            const ref = typeValue.$ref;
             if (typeof ref === 'string') {
               if (ref.includes('shared:')) {
                 const typeName = ref.replace('shared:', '');
@@ -230,9 +278,9 @@ description: "${sanitizedDescription}"
             }
           }
           // Handle nested { type: "bool", items: "string" } for arrays
-          if (result.type.type) {
-            const baseType = result.type.type;
-            const items = result.type.items;
+          if (typeValue.type) {
+            const baseType = typeValue.type;
+            const items = typeValue.items;
             if (items) {
               const itemsType = formatReturnType(items);
               return `${itemsType}[]`;
@@ -240,7 +288,7 @@ description: "${sanitizedDescription}"
             return baseType;
           }
         }
-        return result.type;
+        return typeValue;
       }
       // For complex objects, just return 'object' - the examples will show the structure
       return 'object';
@@ -297,16 +345,28 @@ description: "${sanitizedDescription}"
           markdown += `| Parameter | Type | Description |\n`;
           markdown += `|-----------|------|-------------|\n`;
           action.params.forEach(param => {
-            const paramType = formatReturnType(param.type);
+            // Pass the complete param object to formatReturnType
+            const paramType = formatReturnType(param, param.name);
             const displayType = paramType === '[object Object]' ? 'object' : paramType;
             // Replace newlines in description with spaces and sanitize special chars
             const cleanParamDescription = sanitizeText((param.description || '').replace(/\n/g, ' '));
             markdown += `| ${param.name} | ${displayType} | ${cleanParamDescription} |\n`;
+
+            // If this param has nested properties, expand them
+            if (param.properties && param.properties.length > 0) {
+              param.properties.forEach(prop => {
+                const propType = formatReturnType(prop, prop.name);
+                const displayPropType = propType === '[object Object]' ? 'object' : propType;
+                const cleanPropDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
+                const required = prop.required === true ? '' : ' (optional)';
+                markdown += `| &nbsp;&nbsp;${prop.name}${required} | ${displayPropType} | ${cleanPropDescription} |\n`;
+              });
+            }
           });
           markdown += `\n`;
         }
         if (action.result) {
-          const returnType = formatReturnType(action.result, moduleName);
+          const returnType = formatReturnType(action.result);
           const displayType = returnType === '[object Object]' ? 'object' : returnType;
           // Don't wrap in backticks if it's a link (contains markdown link syntax)
           if (displayType.includes('[') && displayType.includes('](')) {
@@ -318,10 +378,42 @@ description: "${sanitizedDescription}"
         // Generate JavaScript usage example
         markdown += `**Usage:**\n\n`;
         if (action.params && action.params.length > 0) {
-          // Example with parameters
-          const paramNames = action.params.map(p => p.name).join(', ');
-          const args = action.params.length > 1 ? `{ ${paramNames} }` : paramNames;
-          markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${args});\n\`\`\`\n\n`;
+          // Determine parameter pattern (matches inject-js generator logic)
+          const pattern = getParamPattern(action.params, frontmatter.types || []);
+          if (pattern === 'primitive-wrap') {
+            // Single primitive wrapped in object - unwrap for the example
+            const param = action.params[0];
+            if (param.type && param.type.$ref) {
+              const ref = param.type.$ref;
+              if (typeof ref === 'string' && ref.includes('#/types/')) {
+                const match = ref.match(/\/types\/(.+)$/);
+                const typeName = match ? match[1] : ref;
+                const typeDecl = (frontmatter.types || []).find(t => t.name === typeName);
+                if (typeDecl && typeDecl.properties && typeDecl.properties.length > 0) {
+                  const paramName = typeDecl.properties[0].name;
+                  markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${paramName});\n\`\`\`\n\n`;
+                } else {
+                  markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
+                }
+              } else {
+                markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
+              }
+            } else {
+              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
+            }
+          } else {
+            // Single object param or multiple params
+            // If single param has nested properties, show those in the example
+            if (action.params.length === 1 && action.params[0].properties && action.params[0].properties.length > 0) {
+              const param = action.params[0];
+              const propNames = param.properties.map(p => p.name).join(', ');
+              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}({ ${propNames} });\n\`\`\`\n\n`;
+            } else {
+              const paramNames = action.params.map(p => p.name).join(', ');
+              const args = action.params.length > 1 ? `{ ${paramNames} }` : paramNames;
+              markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${args});\n\`\`\`\n\n`;
+            }
+          }
         } else {
           // Example without parameters
           markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;
@@ -424,7 +516,8 @@ description: "${sanitizedDescription}"
         markdown += `| Property | Type | Description |\n`;
         markdown += `|----------|------|-------------|\n`;
         type.properties.forEach(prop => {
-          const propType = formatReturnType(prop.type);
+          // Pass the complete prop object to formatReturnType
+          const propType = formatReturnType(prop, prop.name);
           const displayType = propType === '[object Object]' ? 'object' : propType;
           // Replace newlines in description with spaces and sanitize special chars
           const cleanDescription = sanitizeText((prop.description || '').replace(/\n/g, ' '));
