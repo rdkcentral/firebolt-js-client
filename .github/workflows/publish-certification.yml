@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - fix/apidocs
   workflow_dispatch:
 
 permissions:

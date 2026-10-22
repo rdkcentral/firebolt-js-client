@@ -45,3 +45,6 @@ const vitepressDist = path.join(root, "docs/.vitepress/dist");
 if (fs.existsSync(vitepressDist)) {
   copyRecursive(vitepressDist, path.join(outputDir, "api-docs"));
 }
+
+// Create .nojekyll file to disable Jekyll processing on GitHub Pages
+fs.writeFileSync(path.join(outputDir, ".nojekyll"), "");
