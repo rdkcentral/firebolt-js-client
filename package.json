@@ -13,7 +13,7 @@
     "generate:webkit-builder": "ts-node src/cli.ts generate --targets webkit-builder && node scripts/minify-webkit-builder.cjs",
     "generate:types": "ts-node src/cli.ts generate --targets inject-js-types && cp generated/inject-js/firebolt-inject.d.ts package/firebolt-inject.d.ts",
     "docs:convert": "node scripts/convert-specs-to-docs.cjs",
-    "docs:dev": "vitepress dev docs",
+    "docs:dev": "npm run docs:convert && vitepress dev docs",
     "docs:build": "npm run docs:convert && vitepress build docs",
     "test:release-notes": "node --test scripts/generate-release-notes.test.cjs",
     "test": "node --experimental-vm-modules node_modules/.bin/jest && npm run test:release-notes",

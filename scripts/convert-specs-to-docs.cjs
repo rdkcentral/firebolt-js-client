@@ -204,9 +204,12 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
   }
 
   // Track what sections exist
-  const hasProperties = frontmatter.properties && frontmatter.properties.length > 0;
-  const hasActions = frontmatter.actions && frontmatter.actions.length > 0;
-  const hasEvents = frontmatter.events && frontmatter.events.length > 0;
+  for (const section of ['properties', 'actions', 'events']) {
+    frontmatter[section] = (frontmatter[section] || []).filter(item => item.platform !== 'native');
+  }
+  const hasProperties = frontmatter.properties.length > 0;
+  const hasActions = frontmatter.actions.length > 0;
+  const hasEvents = frontmatter.events.length > 0;
   const hasTypes = frontmatter.types && frontmatter.types.length > 0;
 
   // Helper function to format return type
@@ -323,7 +326,7 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         }
         // Generate JavaScript usage example
         markdown += `**Usage:**\n\n`;
-        markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${prop.name};\n\`\`\`\n\n`;
+        markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${prop.name}();\n\`\`\`\n\n`;
         if (prop.examples && prop.examples.length > 0) {
           markdown += `**Example Response:**\n\n`;
           prop.examples.forEach(example => {
@@ -371,7 +374,8 @@ description: "${description.replace(/\n/g, ' ').replace(/"/g, '\\"')}"
         if (action.params && action.params.length > 0) {
           // Example with parameters
           const paramNames = action.params.map(p => p.name).join(', ');
-          markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${paramNames});\n\`\`\`\n\n`;
+          const args = action.params.length > 1 ? `{ ${paramNames} }` : paramNames;
+          markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}(${args});\n\`\`\`\n\n`;
         } else {
           // Example without parameters
           markdown += `\`\`\`javascript\nconst result = await firebolt.${moduleName}.${action.name}();\n\`\`\`\n\n`;

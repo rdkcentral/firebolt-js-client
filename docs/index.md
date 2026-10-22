@@ -25,7 +25,7 @@ Firebolt is a platform-agnostic API specification for connected TV applications.
 Before using any Firebolt API, you must initialize the Firebolt service:
 
 ```javascript
-import { FireboltServiceManager } from 'firebolt-js-client'
+// FireboltServiceManager is injected globally by the WPE WebKit extension.
 
 const firebolt = await FireboltServiceManager.get()
 ```
@@ -50,7 +50,7 @@ firebolt.Device.onNameChanged((data, cancelled) => {
 })
 
 // Call actions
-const result = await firebolt.Actions.start({ intent: 'play' })
+const result = await firebolt.Actions.start({ intent: { action: 'play', entityId: 'entity-123' } })
 ```
 
 ### Event Listeners
