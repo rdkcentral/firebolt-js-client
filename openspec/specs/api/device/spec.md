@@ -22,8 +22,7 @@ actions:
     description: Returns the class of the device.
     since: "9.0.0"
     result:
-      type:
-        $ref: DeviceClass
+      $ref: "#/types/DeviceClass"
     examples:
       - description: Set-top box
         result: "stb"
@@ -95,8 +94,7 @@ properties:
       Returns the HDR standards supported by the attached TV or integrated display.
     since: "8.0.0"
     result:
-      type:
-        $ref: HdrCapabilities
+      $ref: "#/types/HdrCapabilities"
     examples:
       - description: HDR10 and Dolby Vision supported
         result:
@@ -139,7 +137,7 @@ events:
 types:
   - name: DeviceClass
     kind: enum
-    description: Classification of the device.
+    description: The class of the device (string enum).
     values:
       - id: "ott"
         description: No tuner/demod, no integrated display
@@ -149,18 +147,23 @@ types:
         description: Possibly tuner/demod, with integrated display
 
   - name: HdrCapabilities
-    description: HDR format support flags.
+    kind: object
+    description: HDR standards supported by the device.
     properties:
       - name: hdr10
         type: bool
+        required: true
         description: HDR10 support
       - name: hdr10Plus
         type: bool
+        required: true
         description: HDR10+ support
       - name: dolbyVision
         type: bool
+        required: true
         description: Dolby Vision support
       - name: hlg
         type: bool
-        description: HLG (Hybrid Log-Gamma) support
+        required: true
+        description: HLG support
 ---

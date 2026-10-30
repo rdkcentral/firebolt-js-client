@@ -1,0 +1,42 @@
+name: L1-tests
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  L1-tests:
+    name: Generate, build, and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Generate type definitions
+        run: npm run generate
+
+      - name: Check generated WebKit builder freshness
+        run: git diff --exit-code -- webkitExtension/resources/firebolt-builder.js
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload L1 coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-L1-js-client
+          path: coverage/lcov.info
+          if-no-files-found: error

@@ -108,34 +108,30 @@ actions:
     description: Called when setting the URL of a media asset to play, in order to infer load time.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: mediaPlay
     description: Called when media playback should start due to autoplay, user-initiated play, or unpausing.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: mediaPlaying
@@ -143,51 +139,45 @@ actions:
       Called when media playback actually starts due to autoplay, user-initiated play, unpausing, or recovering from a buffering interruption.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: mediaPause
     description: Signals that media playback has been paused.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: mediaWaiting
     description: Signals that media playback is waiting (buffering) for data.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: mediaSeeking
@@ -282,17 +272,15 @@ actions:
     description: Signals that media playback has ended.
     since: "9.0.0"
     params:
-      - name: params
-        type: object
+      - name: entityId
+        type: string
         required: true
-        properties:
-          - name: entityId
-            type: string
-            description: Entity identifier for the media asset
-          - name: agePolicy
-            type: string
-            required: false
-            description: Age policy for the content
+        description: Entity identifier for the media asset
+      - name: agePolicy
+        type:
+          $ref: "shared:AgePolicy"
+        required: false
+        description: Age policy for the content
     result: null
 
   - name: event

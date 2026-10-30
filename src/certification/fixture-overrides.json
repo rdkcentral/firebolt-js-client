@@ -1,0 +1,15 @@
+{
+  "Actions.start": [
+    {
+      "intent": {
+        "action": "play",
+        "entityId": "certification-test-entity"
+      }
+    }
+  ],
+  "Discovery.watched": [
+    {
+      "entityId": "certification-test-entity"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ actions:
     result:
       type: array
       items:
-        $ref: ColorimetryValue
+        $ref: "#/types/ColorimetryValue"
     examples:
       - description: Display supports BT.709 and BT.2020
         result:
@@ -33,7 +33,7 @@ actions:
     result:
       type: array
       items:
-        $ref: VideoResolution
+        $ref: "#/types/VideoResolution"
     examples:
       - description: Display supports 1080p60 and 2160p60
         result:

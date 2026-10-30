@@ -1,0 +1,19 @@
+name: main-workflow
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  trigger-L1:
+    uses: ./.github/workflows/L1-tests.yml
+    permissions:
+      contents: read
