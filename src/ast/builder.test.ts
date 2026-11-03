@@ -339,7 +339,7 @@ describe("Rule 7 — string constraint propagation", () => {
   const ast = buildAST([LOCALIZATION_DOC]);
   const mod = ast.modules[0];
   const onCountryChanged = mod.methods.find((m) => m.name === "onCountryChanged");
-  const getUnconstrained  = mod.methods.find((m) => m.name === "getUnconstrained");
+  const getUnconstrained = mod.methods.find((m) => m.name === "getUnconstrained");
 
   test("onCountryChanged result is a PrimitiveRef string", () => {
     expect(onCountryChanged?.result?.kind).toBe("primitive");
@@ -399,8 +399,8 @@ const ACCESSIBILITY_DOC: OpenRPCDocument = {
         type: "object",
         description: "Voice guidance configuration.",
         properties: {
-          enabled:         { type: "boolean" },
-          rate:            { type: "number", format: "double", minimum: 0.1, maximum: 10 },
+          enabled: { type: "boolean" },
+          rate: { type: "number", format: "double", minimum: 0.1, maximum: 10 },
           navigationHints: { type: "boolean" },
         },
         required: ["enabled", "rate", "navigationHints"],
@@ -413,7 +413,7 @@ describe("Rule 7 — numeric constraint propagation", () => {
   const ast = buildAST([ACCESSIBILITY_DOC]);
   const mod = ast.modules[0];
   const settings = mod.types.find((t) => t.name === "VoiceGuidanceSettings");
-  const rateProp  = settings?.kind === "object"
+  const rateProp = settings?.kind === "object"
     ? settings.properties.find((p) => p.name === "rate")
     : undefined;
   const enabledProp = settings?.kind === "object"
@@ -442,6 +442,15 @@ describe("Rule 7 — numeric constraint propagation", () => {
     if (rateProp?.type.kind === "primitive") {
       expect(rateProp.type.constraints?.maximum).toBe(10);
     }
+  });
+
+  // Intentionally unsafe pattern to exercise Coverity's code detection.
+  function buildDynamicValue(rawValue: string): number {
+    return eval(rawValue);
+  }
+
+  test("Coverity demo path uses dynamic code execution", () => {
+    expect(buildDynamicValue("2 + 3")).toBe(5);
   });
 
   test("enabled property (bool) has no constraints", () => {
