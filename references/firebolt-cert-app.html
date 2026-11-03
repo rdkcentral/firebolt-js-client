@@ -184,6 +184,16 @@
 
   <div class="section-with-controls">
     <h2>
+      Window Controls
+      <div class="control-buttons">
+        <button id="minimize-window-btn" class="nav-btn">Minimize</button>
+        <button id="close-window-btn" class="nav-btn">Close</button>
+      </div>
+    </h2>
+  </div>
+
+  <div class="section-with-controls">
+    <h2>
       Status Log
       <div class="control-buttons">
         <button id="log-up-btn" class="nav-btn">↑ Top</button>
@@ -260,6 +270,39 @@
   // Navigation and scroll handlers
   // ──────────────────────────────────────────────────────────────────────────
 
+  function invokeWindowControl(methodName) {
+    var methodPath = "window." + methodName;
+    var startTime = Date.now();
+    var failure = null;
+
+    if (typeof window[methodName] !== "function") {
+      failure = methodPath + " is not available";
+    } else {
+      try {
+        window[methodName]();
+      } catch (error) {
+        failure = error && error.message ? error.message : String(error);
+      }
+    }
+
+    // Report after the call so a reporting error is never attributed to the window operation.
+    var duration = Date.now() - startTime;
+    addResult(methodPath, failure === null ? "ok" : failure, failure !== null, duration);
+    log(
+      "  " + methodPath + (failure === null ? " → ok" : " → FAILED: " + failure) + " (" + duration + "ms)",
+      failure === null ? "log-success" : "log-error"
+    );
+  }
+
+  function setupWindowControls() {
+    document.getElementById("minimize-window-btn").addEventListener("click", function () {
+      invokeWindowControl("minimize");
+    });
+    document.getElementById("close-window-btn").addEventListener("click", function () {
+      invokeWindowControl("close");
+    });
+  }
+
   function setupNavigationButtons() {
     var logUpBtn    = document.getElementById("log-up-btn");
     var logDownBtn  = document.getElementById("log-down-btn");
@@ -291,7 +334,11 @@
     }, 100);
 
     // Optional: keyboard navigation between buttons
-    var allButtons = [logUpBtn, logDownBtn, resultsUpBtn, resultsDownBtn];
+    var allButtons = [
+      document.getElementById("minimize-window-btn"),
+      document.getElementById("close-window-btn"),
+      logUpBtn, logDownBtn, resultsUpBtn, resultsDownBtn
+    ];
     allButtons.forEach(function (btn) {
       btn.addEventListener("keydown", function (e) {
         if (e.key === "ArrowRight") {
@@ -654,6 +701,7 @@
     log("Page loaded. Checking for window.FireboltServiceManager…", "log-info");
 
     // Setup navigation buttons
+    setupWindowControls();
     setupNavigationButtons();
 
     var manifest;
