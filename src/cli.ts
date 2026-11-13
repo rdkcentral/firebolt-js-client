@@ -26,6 +26,7 @@ import "./generators/cpp";
 import "./generators/python";
 import "./generators/inject-js";
 import "./generators/inject-js-types";
+import "./generators/certification";
 
 // ---------------------------------------------------------------------------
 // CLI definition

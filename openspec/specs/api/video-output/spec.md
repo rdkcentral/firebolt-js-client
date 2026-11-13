@@ -16,8 +16,7 @@ properties:
       TV device: returns the resolution of the panel.
     since: "8.0.0"
     result:
-      type:
-        $ref: VideoResolution
+      $ref: "#/types/VideoResolution"
     examples:
       - description: Device output resolution is 4K
         result:
@@ -31,8 +30,7 @@ properties:
       TV device: returns direct.
     since: "9.0.0"
     result:
-      type:
-        $ref: HdcpType
+      $ref: "#/types/HdcpType"
     examples:
       - description: HDCP 2.2 negotiated
         result: "hdcp2.2"
@@ -43,8 +41,7 @@ events:
     since: "8.0.0"
     params: []
     result:
-      type:
-        $ref: VideoResolution
+      $ref: "#/types/VideoResolution"
     examples:
       - description: Resolution changed to 1080p
         result:
@@ -60,8 +57,7 @@ events:
     since: "9.0.0"
     params: []
     result:
-      type:
-        $ref: HdcpType
+      $ref: "#/types/HdcpType"
     examples:
       - description: HDCP state changed
         result: "hdcp1.4"
@@ -69,7 +65,7 @@ events:
 types:
   - name: VideoResolution
     description: |
-      Video resolution output in pixels.
+      Video resolution output in pixels (object with width and height).
       Allowed width/height combinations: (720, 480), (720, 576), (1280, 720), (1920, 1080), (3840, 2160).
     properties:
       - name: width

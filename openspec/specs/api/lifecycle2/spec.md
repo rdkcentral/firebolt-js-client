@@ -45,13 +45,11 @@ types:
       Always carries exactly one state transition.
     properties:
       - name: oldState
-        type:
-          $ref: LifecycleState
+        $ref: "#/types/LifecycleState"
         required: true
         description: The state the app transitioned from
       - name: newState
-        type:
-          $ref: LifecycleState
+        $ref: "#/types/LifecycleState"
         required: true
         description: The state the app transitioned to
 
@@ -64,7 +62,7 @@ events:
     since: "8.0.0"
     payload:
       type:
-        $ref: StateChangedEvent
+        $ref: "#/types/StateChangedEvent"
     examples:
       - description: App becoming active from paused
         payload:

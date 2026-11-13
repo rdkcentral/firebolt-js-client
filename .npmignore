@@ -2,7 +2,6 @@
 .husky/*
 .DS_Store
 *.config.js*
-.releaserc
 .commitlintrc.json
 src/descriptions/*
 src/js/*
